@@ -786,17 +786,99 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="bg-brand-sand border-b border-brand-border flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
-        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">📊 Sales &amp; Reports</button>
-        <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 In-Store POS</button>
-        <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock &amp; Inventory</button>
-        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
-        <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Full Text CMS</button>
-        <button onclick="switchAdminTab('featureflags')" id="adminTabBtn-featureflags" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚀 Feature Flags</button>
-        <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Coupons</button>
-        <button onclick="switchAdminTab('resets')" id="adminTabBtn-resets" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🔑 Password Resets</button>
-        <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
-        <button onclick="switchAdminTab('users')" id="adminTabBtn-users" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Accounts</button>
+    <div class="bg-brand-sand border-b border-brand-border flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
+      <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">📊 Sales &amp; Reports</button>
+      <button onclick="switchAdminTab('crm')" id="adminTabBtn-crm" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🔍 Customer 360° &amp; Fixes</button>
+      <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 In-Store POS</button>
+      <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock &amp; Inventory</button>
+      <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
+      <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Full Text CMS</button>
+      <button onclick="switchAdminTab('featureflags')" id="adminTabBtn-featureflags" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚀 Feature Flags</button>
+      <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Coupons</button>
+      <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
+      <button onclick="switchAdminTab('users')" id="adminTabBtn-users" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Accounts</button>
+    </div>
+
+    <!-- Tab Content Area -->
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fcfaf7]">
+      
+      <!-- ================= TAB 1: OMNICHANNEL ANALYTICS & REPORTS ================= -->
+      <div id="adminTab-analytics" class="space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h4 class="serif-title text-lg font-bold text-brand-charcoal">Omnichannel Sales Analytics</h4>
+            <p class="text-xs text-brand-muted">Combined revenue reports across Online Orders and In-Store Walk-in billing.</p>
+          </div>
+          
+          <!-- Time Filters (Day, Week, Month, Year, All-Time) -->
+          <div class="flex items-center gap-1 bg-white border border-brand-border p-1 rounded-lg text-xs font-semibold overflow-x-auto max-w-full">
+            <button onclick="filterAnalyticsTime('today')" id="btnAna-today" class="px-2.5 py-1 rounded hover:bg-neutral-100">Day (Today)</button>
+            <button onclick="filterAnalyticsTime('week')" id="btnAna-week" class="px-2.5 py-1 rounded hover:bg-neutral-100">This Week</button>
+            <button onclick="filterAnalyticsTime('month')" id="btnAna-month" class="px-2.5 py-1 rounded hover:bg-neutral-100">This Month</button>
+            <button onclick="filterAnalyticsTime('year')" id="btnAna-year" class="px-2.5 py-1 rounded hover:bg-neutral-100">This Year</button>
+            <button onclick="filterAnalyticsTime('all')" id="btnAna-all" class="px-2.5 py-1 rounded bg-brand-charcoal text-white">All-Time</button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
+            <p class="text-[11px] font-bold uppercase text-brand-muted">Gross Revenue</p>
+            <h3 id="anaTotalRevenue" class="text-xl sm:text-2xl font-bold font-mono text-brand-darkgreen mt-1">₹0</h3>
+            <p class="text-[10px] text-emerald-600 font-semibold mt-1">Combined online &amp; walk-in</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
+            <p class="text-[11px] font-bold uppercase text-brand-muted">Total Orders Placed</p>
+            <h3 id="anaTotalOrders" class="text-xl sm:text-2xl font-bold font-mono text-brand-charcoal mt-1">0</h3>
+            <p class="text-[10px] text-neutral-500 mt-1"><span id="anaOnlineCount">0</span> Online • <span id="anaOfflineCount">0</span> Walk-in</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
+            <p class="text-[11px] font-bold uppercase text-brand-muted">Units Sold</p>
+            <h3 id="anaUnitsSold" class="text-xl sm:text-2xl font-bold font-mono text-brand-gold mt-1">0</h3>
+            <p class="text-[10px] text-neutral-500 mt-1">Qurans, Boxes &amp; Janamaz</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
+            <p class="text-[11px] font-bold uppercase text-brand-muted">Average Order Value</p>
+            <h3 id="anaAov" class="text-xl sm:text-2xl font-bold font-mono text-blue-800 mt-1">₹0</h3>
+            <p class="text-[10px] text-neutral-500 mt-1">Avg basket spend</p>
+          </div>
+        </div>
+
+        <!-- Payment Breakdown & Top Selling -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm space-y-3">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Payment Mode Breakdown</h5>
+            <div id="anaPaymentBreakdown" class="space-y-2 text-xs">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm space-y-3">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Top Selling Items in Period</h5>
+            <div id="anaTopProducts" class="space-y-2 text-xs">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB: CUSTOMER 360° SEARCH & FIX CENTER ================= -->
+      <div id="adminTab-crm" class="hidden space-y-5">
+        <div>
+          <h4 class="serif-title text-lg font-bold text-brand-charcoal">Customer 360° Search &amp; Account Fix Desk</h4>
+          <p class="text-xs text-brand-muted">Search any customer by Mobile Number or Email. View order history, reset passwords directly, fix account issues, and send updates via WhatsApp.</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm flex flex-col sm:flex-row gap-3">
+          <input type="text" id="crmSearchInput" placeholder="Enter customer 10-digit mobile number or email address..." class="flex-1 bg-brand-sand border border-brand-border rounded-lg px-3.5 py-2.5 text-xs font-mono focus:outline-none focus:border-brand-gold" />
+          <button onclick="handleCrmCustomerLookup()" class="bg-brand-charcoal hover:bg-black text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition">Search Customer</button>
+        </div>
+
+        <!-- Result Card / Fix Panel -->
+        <div id="crmCustomerDetails" class="hidden space-y-5">
+          <!-- Injected via JS -->
+        </div>
       </div>
 
       <!-- Tab Content Area -->
@@ -1150,46 +1232,46 @@
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-neutral-600 mb-1">IFSC Code</label>
-                  <input type="text" id="cfgIfsc" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs font-mono uppercase" />
-                </div>
-              </div>
-            </div>
+  <!-- ================= FORGOT PASSWORD WORKFLOW MODAL ================= -->
+  <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeForgotPasswordModal()" class="absolute right-4 top-4 text-neutral-400 hover:text-black">✕</button>
+      
+      <div class="text-center mb-5">
+        <h3 class="serif-title text-lg font-bold text-brand-charcoal">Reset Your Password</h3>
+        <p class="text-xs text-brand-muted mt-1">Choose either instant self-verification using your Mobile &amp; Email or contact the store owner directly via WhatsApp.</p>
+      </div>
 
-            <div class="pt-3">
-              <button type="submit" class="bg-brand-charcoal text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition shadow">Save Payment Settings</button>
-            </div>
+      <div class="space-y-4">
+        <!-- Option A: Direct Self-Reset (No token needed!) -->
+        <div class="bg-brand-sand p-3.5 rounded-xl border border-brand-border space-y-2.5">
+          <div class="flex items-center gap-1.5">
+            <span class="w-5 h-5 rounded-full bg-brand-charcoal text-white text-[10px] font-bold flex items-center justify-center">1</span>
+            <h5 class="text-xs font-bold text-brand-charcoal">Instant Self Reset (Fastest)</h5>
+          </div>
+          <p class="text-[11px] text-brand-muted">Enter your registered Mobile and Email to verify and change your password right now.</p>
+          
+          <form onsubmit="handleDirectSelfPasswordReset(event)" class="space-y-2">
+            <input type="tel" id="selfResetPhone" required placeholder="Registered 10-digit mobile" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs font-mono">
+            <input type="email" id="selfResetEmail" required placeholder="Registered email address" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs">
+            <input type="password" id="selfResetNewPass" required placeholder="Choose New Password" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs font-semibold">
+            <button type="submit" class="w-full py-2.5 bg-brand-darkgreen text-white text-xs font-bold uppercase rounded-lg hover:bg-black transition">
+              Verify &amp; Update Password Now
+            </button>
           </form>
         </div>
 
-        <!-- ================= TAB 10: USER ACCOUNTS ================= -->
-        <div id="adminTab-users" class="hidden space-y-6">
-          <div class="flex justify-between items-center">
-            <div>
-              <h4 class="serif-title text-lg font-bold text-brand-charcoal">Account Control &amp; Password Management</h4>
-              <p class="text-xs text-brand-muted">Developer Admin has supreme access to modify passwords for customers and staff.</p>
-            </div>
-            <button onclick="promptCreateUser()" class="bg-brand-charcoal text-white px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase">+ Add Account</button>
+        <!-- Option B: Direct WhatsApp Request to Owner -->
+        <div class="bg-white p-3.5 rounded-xl border border-brand-border space-y-2">
+          <div class="flex items-center gap-1.5">
+            <span class="w-5 h-5 rounded-full bg-brand-whatsapp text-white text-[10px] font-bold flex items-center justify-center">2</span>
+            <h5 class="text-xs font-bold text-brand-charcoal">Contact Showroom Owner via WhatsApp</h5>
           </div>
-
-          <div class="bg-white rounded-xl border border-brand-border overflow-hidden shadow-sm">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-brand-sand uppercase tracking-wider text-brand-charcoal border-b border-brand-border">
-                <tr>
-                  <th class="p-3">User / Name</th>
-                  <th class="p-3">Role</th>
-                  <th class="p-3">Contact</th>
-                  <th class="p-3">PIN</th>
-                  <th class="p-3">Current Password</th>
-                  <th class="p-3 text-right">Reset</th>
-                </tr>
-              </thead>
-              <tbody id="adminUsersTableBody" class="divide-y divide-brand-border">
-                <!-- Injected via JS -->
-              </tbody>
-            </table>
-          </div>
+          <p class="text-[11px] text-brand-muted">If you forgot your details, message the showroom owner directly on WhatsApp for manual reset.</p>
+          <button type="button" onclick="contactOwnerForManualReset()" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-95">
+            <span>💬 Message Owner on WhatsApp</span>
+          </button>
         </div>
-
       </div>
     </div>
   </div>
@@ -1844,759 +1926,262 @@
     }
 
     /* -------------------------------------------------------------
-       INITIALIZATION
+       PASSWORD RESET WORKFLOW (DIRECT & SECURE)
     ------------------------------------------------------------- */
-    window.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("currentYear").textContent = new Date().getFullYear();
-      syncLiveCmsUI();
-      renderCategoryChips();
-      renderProducts();
-      updateCartUI();
-      updateWishlistUI();
-      syncSessionUI();
-    });
-
-    function toggleTheme() {
-      document.documentElement.classList.toggle("dark");
+    function openForgotPasswordModal() {
+      closeAuthModal();
+      document.getElementById("forgotPasswordModal").classList.remove("hidden");
+    }
+    function closeForgotPasswordModal() { 
+      document.getElementById("forgotPasswordModal").classList.add("hidden"); 
     }
 
-    function playAudioTone() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 tone
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.25);
-      } catch (e) {
-        // Fallback
-      }
-    }
-
-    /* -------------------------------------------------------------
-       ULTRA ADMIN LIVE CMS ENGINE
-    ------------------------------------------------------------- */
-    function syncLiveCmsUI() {
-      // Top header & branding
-      document.getElementById("brandNavTitle").textContent = config.brandName;
-      document.getElementById("brandNavSub").textContent = config.address;
-      document.getElementById("announcementText").textContent = config.announcement;
-      document.getElementById("floatingWhatsAppLink").href = `https://wa.me/91${config.whatsappPhone}?text=Assalamu%20Alaikum,%20I%20have%20an%20inquiry%20regarding%20products%20at%20${encodeURIComponent(config.brandName)}`;
-      
-      // Hero section
-      document.getElementById("heroHeadline").textContent = config.heroHeadline;
-      document.getElementById("heroDescription").textContent = config.heroDesc;
-      document.getElementById("heroArabic").textContent = config.urduSubtitle || "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
-
-      // Footer
-      document.getElementById("footerBrandName").textContent = config.brandName;
-      document.getElementById("drawerBrandName").textContent = config.brandName;
-      document.getElementById("copyrightBrand").textContent = config.brandName;
-      document.getElementById("footerUrduSubtitle").textContent = config.urduSubtitle;
-      document.getElementById("footerProprietor").textContent = config.proprietor;
-      document.getElementById("footerAddress").textContent = config.address;
-      document.getElementById("footerPhones").textContent = `+91 ${config.phone1} / +91 ${config.phone2}`;
-      document.getElementById("footerEmail").textContent = config.ownerEmail;
-      document.getElementById("footerGst").textContent = config.gst;
-
-      // Contact modal
-      document.getElementById("modalContactAddr").textContent = config.address;
-      document.getElementById("modalContactPhones").textContent = `+91 ${config.phone1} / +91 ${config.phone2}`;
-      document.getElementById("modalContactWa").textContent = `+91 ${config.whatsappPhone}`;
-      document.getElementById("modalContactWaBtn").href = `https://wa.me/91${config.whatsappPhone}`;
-
-      // Checkout payment details
-      document.getElementById("displayCheckoutUpi").textContent = config.upiId;
-      document.getElementById("displayCheckoutName").textContent = config.merchantName;
-      document.getElementById("displayCheckoutBank").textContent = config.bankName;
-      document.getElementById("displayCheckoutAcc").textContent = config.accountNum;
-      document.getElementById("displayCheckoutIfsc").textContent = config.ifsc;
-
-      // Flags
-      document.getElementById("chkCodOptionWrap").classList.toggle("hidden", !flags.enableCod);
-    }
-
-    function handleCmsSave(e) {
+    function handleDirectSelfPasswordReset(e) {
       e.preventDefault();
-      config.brandName = document.getElementById("cmsBrandName").value.trim();
-      config.urduSubtitle = document.getElementById("cmsUrduSubtitle").value.trim();
-      config.proprietor = document.getElementById("cmsProprietor").value.trim();
-      config.gst = document.getElementById("cmsGst").value.trim();
-      config.address = document.getElementById("cmsAddress").value.trim();
-      config.phone1 = document.getElementById("cmsPhone1").value.trim();
-      config.phone2 = document.getElementById("cmsPhone2").value.trim();
-      config.whatsappPhone = document.getElementById("cmsWhatsApp").value.trim();
-      config.announcement = document.getElementById("cmsAnnouncement").value.trim();
-      config.heroHeadline = document.getElementById("cmsHeroHeadline").value.trim();
+      const phone = document.getElementById("selfResetPhone").value.replace(/\D/g, "");
+      const email = document.getElementById("selfResetEmail").value.trim().toLowerCase();
+      const newPass = document.getElementById("selfResetNewPass").value.trim();
 
-      persistAllData();
-      syncLiveCmsUI();
-      alert("Alhamdulillah! All text, owner info & store details updated live across website!");
-    }
-
-    function toggleFeatureFlag(flagName, value) {
-      flags[flagName] = value;
-      persistAllData();
-      syncLiveCmsUI();
-      renderProducts();
-    }
-
-    /* -------------------------------------------------------------
-       CATEGORY CHIPS & STOREFRONT RENDERING
-    ------------------------------------------------------------- */
-    const CATEGORIES = [
-      "All", "Bestsellers", "Essentials", "Tarjuma Qurans",
-      "Hajj & Umrah", "Quran Boxes & Rehal", "Janamaz", "Namaz Caps & Tasbih"
-    ];
-
-    function renderCategoryChips() {
-      const container = document.getElementById("categoryChips");
-      container.innerHTML = CATEGORIES.map(cat => `
-        <button onclick="filterCategory('${cat}')" class="px-3.5 py-1.5 rounded-full transition ${activeCategory === cat ? 'bg-brand-charcoal text-white' : 'bg-white/80 dark:bg-neutral-800 text-brand-charcoal hover:bg-white'} border border-brand-border shadow-sm">
-          ${cat}
-        </button>
-      `).join("");
-    }
-
-    function filterCategory(cat) {
-      activeCategory = cat;
-      renderCategoryChips();
-      
-      const heading = document.getElementById("currentCategoryHeading");
-      const sub = document.getElementById("currentCategorySub");
-      
-      if (cat === "All" || cat === "Bestsellers") {
-        heading.textContent = "Our Bestsellers";
-        sub.textContent = "Authentic prints, luxurious binding, and sacred accessories";
-      } else {
-        heading.textContent = cat;
-        sub.textContent = `Explore our curated ${cat} collection`;
-      }
-
-      renderProducts();
-      toggleDrawer(false);
-    }
-
-    function resetFilters() {
-      document.getElementById("filterInStockOnly").checked = false;
-      document.getElementById("filterSortOrder").value = "featured";
-      filterCategory("All");
-    }
-
-    function renderProducts(itemsToRender = null) {
-      const grid = document.getElementById("productGrid");
-      const emptyState = document.getElementById("emptyCatalogState");
-      const inStockOnly = document.getElementById("filterInStockOnly").checked;
-      const sortOrder = document.getElementById("filterSortOrder").value;
-      
-      let list = itemsToRender ? [...itemsToRender] : [...products];
-
-      if (!itemsToRender && activeCategory !== "All" && activeCategory !== "Bestsellers") {
-        list = list.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
-      }
-
-      if (inStockOnly) {
-        list = list.filter(p => (p.stock || 0) > 0);
-      }
-
-      if (sortOrder === "low-to-high") {
-        list.sort((a, b) => a.salePrice - b.salePrice);
-      } else if (sortOrder === "high-to-low") {
-        list.sort((a, b) => b.salePrice - a.salePrice);
-      } else if (sortOrder === "rating") {
-        list.sort((a, b) => b.rating - a.rating);
-      }
-
-      if (list.length === 0) {
-        grid.innerHTML = "";
-        emptyState.classList.remove("hidden");
+      if (!newPass || newPass.length < 3) {
+        alert("Please enter a valid password (at least 3 characters).");
         return;
       }
 
-      emptyState.classList.add("hidden");
+      const user = users.find(u => 
+        (u.phone.replace(/\D/g, "") === phone || u.phone.includes(phone)) &&
+        u.email.toLowerCase() === email
+      );
 
-      grid.innerHTML = list.map(item => {
-        const isOutOfStock = (item.stock || 0) <= 0;
-        const isLowStock = !isOutOfStock && (item.stock || 0) <= 5;
-        const isFav = wishlist.includes(item.id);
+      if (!user) {
+        alert("Account verification failed: No customer account matches this mobile number and email combination.");
+        return;
+      }
 
-        return `
-          <div class="bg-white dark:bg-[#1a201c] rounded-xl border border-brand-border/80 overflow-hidden flex flex-col justify-between group hover:shadow-md transition relative">
-            
-            <!-- Product Photo & Quick Action Tags -->
-            <div class="relative bg-brand-sand/40 aspect-square overflow-hidden">
-              <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/400x400/f4efe6/6b726d?text=Holy+Quran'" />
-              
-              <!-- Badges -->
-              <div class="absolute top-2 left-2 flex flex-col gap-1">
-                ${item.isSale ? `<span class="bg-[#2d4739] text-white text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shadow">Sale</span>` : ''}
-                ${isOutOfStock ? `<span class="bg-red-600 text-white text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shadow">Out of Stock</span>` : ''}
-                ${isLowStock ? `<span class="bg-amber-600 text-white text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shadow">Only ${item.stock} left</span>` : ''}
-              </div>
-
-              <!-- Wishlist Heart Button -->
-              <button onclick="toggleWishlistItem('${item.id}')" class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 dark:bg-black/60 hover:bg-white text-xs ${isFav ? 'text-red-500' : 'text-neutral-500'} shadow transition" title="Save to Wishlist">
-                ${isFav ? '❤️' : '🤍'}
-              </button>
-            </div>
-
-            <!-- Product Info -->
-            <div class="p-3 sm:p-4 flex flex-col flex-grow justify-between text-left">
-              <div>
-                <p class="text-[9px] uppercase tracking-wider text-brand-gold font-bold mb-1 font-mono">${item.sku || 'MQB'}</p>
-                <h3 class="text-xs sm:text-sm font-medium text-brand-charcoal line-clamp-2 leading-snug mb-1.5" title="${item.title}">
-                  ${item.title}
-                </h3>
-
-                <div class="flex items-center gap-1 text-amber-500 text-xs mb-2">
-                  <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-amber-400">★</span>
-                  <span class="text-[10px] text-brand-muted ml-1">(${item.reviewsCount || 18})</span>
-                  ${flags.enableReviews ? `<button onclick="openReviewModal('${item.id}')" class="text-[10px] text-brand-gold hover:underline ml-auto font-semibold">+ Review</button>` : ''}
-                </div>
-
-                <div class="flex items-baseline gap-2 mb-3">
-                  <span class="text-xs text-brand-muted line-through">Rs. ${Number(item.oldPrice || (item.salePrice * 1.4)).toLocaleString('en-IN')}.00</span>
-                  <span class="text-sm sm:text-base font-bold text-brand-charcoal">Rs. ${Number(item.salePrice).toLocaleString('en-IN')}.00</span>
-                </div>
-              </div>
-
-              <div class="space-y-1.5">
-                <button onclick="${isOutOfStock ? 'notifyBackInStock()' : `addToCart('${item.id}')`}" class="w-full py-2.5 px-3 border border-brand-charcoal ${isOutOfStock ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed border-neutral-300' : 'text-brand-charcoal hover:bg-brand-charcoal hover:text-white'} rounded-lg text-xs font-semibold uppercase tracking-wider transition duration-200">
-                  ${isOutOfStock ? 'Sold Out' : 'Add to cart'}
-                </button>
-                <button onclick="shareOnWhatsApp('${item.id}')" class="w-full py-1 text-brand-whatsapp text-[11px] font-bold flex items-center justify-center gap-1 hover:underline">
-                  <span>💬 Direct WhatsApp Order</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        `;
-      }).join("");
+      user.password = newPass;
+      persistAllData();
+      alert(`Alhamdulillah! Password updated successfully for ${user.name}. You can now sign in.`);
+      closeForgotPasswordModal();
+      openAuthModal('login');
+      document.getElementById("loginIdentifier").value = user.phone;
     }
 
-    function shareOnWhatsApp(productId) {
-      const item = products.find(p => p.id === productId);
-      if (!item) return;
-      const msg = `Assalamu Alaikum, I would like to order this item directly from *${config.brandName}*:\n\n*${item.title}*\nPrice: ₹${item.salePrice}\nSKU: ${item.sku || 'MQB'}\n\nPlease confirm availability and payment details.`;
+    function contactOwnerForManualReset() {
+      const msg = `Assalamu Alaikum,\nI forgot my customer login password on *${config.brandName}*.\nPlease assist me to reset my password.\n\nThank you.`;
       window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    function notifyBackInStock() {
-      alert("This item is currently sold out in showroom inventory. Our craftsmen are restocking soon!");
-    }
-
-    function scrollToProducts() {
-      document.getElementById("productGrid").scrollIntoView({ behavior: 'smooth' });
-    }
-
     /* -------------------------------------------------------------
-       WISHLIST SYSTEM
+       CUSTOMER 360° SEARCH & FIX CENTER (ADMIN & OWNER)
     ------------------------------------------------------------- */
-    function toggleWishlistItem(productId) {
-      const idx = wishlist.indexOf(productId);
-      if (idx === -1) {
-        wishlist.push(productId);
-      } else {
-        wishlist.splice(idx, 1);
-      }
-      persistAllData();
-      updateWishlistUI();
-      renderProducts();
-    }
-
-    function updateWishlistUI() {
-      const dot = document.getElementById("wishlistCountBadge");
-      dot.classList.toggle("hidden", wishlist.length === 0);
-
-      const box = document.getElementById("wishlistContainer");
-      if (wishlist.length === 0) {
-        box.innerHTML = `<p class="text-xs text-neutral-400 text-center py-6">Your wishlist is empty. Tap ❤️ on any item to save.</p>`;
+    function handleCrmCustomerLookup() {
+      const q = document.getElementById("crmSearchInput").value.trim().toLowerCase();
+      const container = document.getElementById("crmCustomerDetails");
+      if (!q) {
+        alert("Please enter a mobile number or email address.");
         return;
       }
 
-      const favProducts = products.filter(p => wishlist.includes(p.id));
-      box.innerHTML = favProducts.map(p => `
-        <div class="flex items-center justify-between p-2.5 bg-brand-sand rounded-xl border border-brand-border">
-          <div class="flex items-center gap-2">
-            <img src="${p.image}" class="w-10 h-10 rounded object-cover">
-            <div>
-              <p class="text-xs font-bold text-brand-charcoal truncate max-w-[170px]">${p.title}</p>
-              <p class="text-[11px] font-mono text-brand-gold">₹${p.salePrice}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="addToCart('${p.id}'); toggleWishlistModal();" class="px-2.5 py-1 bg-brand-charcoal text-white rounded text-[10px] font-bold">Buy</button>
-            <button onclick="toggleWishlistItem('${p.id}')" class="text-neutral-400 hover:text-red-500 text-sm">✕</button>
-          </div>
-        </div>
-      `).join("");
-    }
+      const cleanQ = q.replace(/\D/g, "");
+      const matchedUser = users.find(u => 
+        (cleanQ && u.phone.replace(/\D/g, "").includes(cleanQ)) ||
+        u.email.toLowerCase().includes(q) ||
+        u.name.toLowerCase().includes(q)
+      );
 
-    function openWishlistModal() { document.getElementById("wishlistModal").classList.remove("hidden"); }
-    function closeWishlistModal() { document.getElementById("wishlistModal").classList.add("hidden"); }
-
-    /* -------------------------------------------------------------
-       REVIEWS SYSTEM
-    ------------------------------------------------------------- */
-    function openReviewModal(prodId) {
-      const p = products.find(x => x.id === prodId);
-      if (!p) return;
-      document.getElementById("reviewModal").classList.remove("hidden");
-      document.getElementById("reviewTargetId").value = prodId;
-      document.getElementById("reviewProductTitle").textContent = p.title;
-    }
-    function closeReviewModal() { document.getElementById("reviewModal").classList.add("hidden"); }
-
-    function handleReviewSubmit(e) {
-      e.preventDefault();
-      const id = document.getElementById("reviewTargetId").value;
-      const author = document.getElementById("revAuthor").value.trim();
-      const stars = parseInt(document.getElementById("revStars").value) || 5;
-      const text = document.getElementById("revComment").value.trim();
-
-      const p = products.find(x => x.id === id);
-      if (p) {
-        p.reviewsCount = (p.reviewsCount || 10) + 1;
-        p.rating = Math.min(5.0, (p.rating + 0.1)).toFixed(1);
-        persistAllData();
-        renderProducts();
-        closeReviewModal();
-        alert(`JazakAllah Khair ${author}! Your verified review has been published.`);
-      }
-    }
-
-    /* -------------------------------------------------------------
-       CART SYSTEM & REAL-TIME INVENTORY DEDUCTION
-    ------------------------------------------------------------- */
-    function toggleCart(show) {
-      const drawer = document.getElementById("cartDrawer");
-      const backdrop = document.getElementById("cartBackdrop");
-      if (show) {
-        drawer.classList.remove("pointer-events-none");
-        drawer.classList.remove("translate-x-full");
-        backdrop.classList.add("opacity-100");
-      } else {
-        drawer.classList.add("translate-x-full");
-        backdrop.classList.remove("opacity-100");
-        setTimeout(() => drawer.classList.add("pointer-events-none"), 300);
-      }
-    }
-
-    function addToCart(productId) {
-      const item = products.find(p => p.id === productId);
-      if (!item) return;
-
-      if ((item.stock || 0) <= 0) {
-        alert("Sorry, this item is sold out.");
-        return;
-      }
-
-      const existing = cart.find(c => c.id === productId);
-      if (existing) {
-        if (existing.qty + 1 > item.stock) {
-          alert(`Only ${item.stock} units available in inventory!`);
-          return;
-        }
-        existing.qty += 1;
-      } else {
-        cart.push({ ...item, qty: 1 });
-      }
-
-      playAudioTone();
-      updateCartUI();
-      toggleCart(true);
-    }
-
-    function changeCartQty(productId, delta) {
-      const item = products.find(p => p.id === productId);
-      const index = cart.findIndex(c => c.id === productId);
-      if (index === -1) return;
-
-      if (delta > 0 && cart[index].qty + delta > (item.stock || 1)) {
-        alert(`Cannot add more: Showroom stock limit (${item.stock}) reached.`);
-        return;
-      }
-
-      cart[index].qty += delta;
-      if (cart[index].qty <= 0) {
-        cart.splice(index, 1);
-      }
-      updateCartUI();
-    }
-
-    function applyPromoCode() {
-      const code = document.getElementById("cartCouponInput").value.trim().toUpperCase();
-      const notice = document.getElementById("cartCouponNotice");
-      const subtotal = cart.reduce((sum, item) => sum + (item.salePrice * item.qty), 0);
-
-      const foundCoupon = coupons.find(c => c.code === code && c.active);
-      if (!foundCoupon) {
-        activeAppliedCoupon = null;
-        notice.textContent = "✕ Invalid or inactive coupon code.";
-        notice.className = "text-[11px] text-red-600 font-semibold";
-        notice.classList.remove("hidden");
-        updateCartUI();
-        return;
-      }
-
-      if (subtotal < (foundCoupon.minOrder || 0)) {
-        activeAppliedCoupon = null;
-        notice.textContent = `✕ Minimum order value of ₹${foundCoupon.minOrder} required for ${code}.`;
-        notice.className = "text-[11px] text-amber-700 font-semibold";
-        notice.classList.remove("hidden");
-        updateCartUI();
-        return;
-      }
-
-      activeAppliedCoupon = foundCoupon;
-      notice.textContent = `✓ Coupon ${code} applied successfully!`;
-      notice.className = "text-[11px] text-emerald-700 font-semibold";
-      notice.classList.remove("hidden");
-      updateCartUI();
-    }
-
-    function calculateDiscount(rawTotal) {
-      if (!activeAppliedCoupon) return 0;
-      if (activeAppliedCoupon.type === "percent") {
-        return Math.round((rawTotal * activeAppliedCoupon.value) / 100);
-      } else {
-        return Math.min(rawTotal, activeAppliedCoupon.value);
-      }
-    }
-
-    function calculateCartTotal() {
-      const rawSubtotal = cart.reduce((sum, item) => sum + (item.salePrice * item.qty), 0);
-      const discount = calculateDiscount(rawSubtotal);
-      return Math.max(0, rawSubtotal - discount);
-    }
-
-    function updateCartUI() {
-      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
-      document.getElementById("cartCountBadge").textContent = totalCount;
-
-      const container = document.getElementById("cartContainer");
-      const footer = document.getElementById("cartFooter");
-
-      if (cart.length === 0) {
-        footer.classList.add("hidden");
+      if (!matchedUser) {
+        container.classList.remove("hidden");
         container.innerHTML = `
-          <div class="h-full flex flex-col items-center justify-center text-center p-6 space-y-6">
-            <h2 class="serif-title text-2xl font-medium text-brand-charcoal">Your cart is empty</h2>
-            <button onclick="toggleCart(false)" class="px-8 py-3.5 bg-brand-charcoal hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-lg transition">
-              Explore Collections
-            </button>
+          <div class="bg-white p-6 rounded-xl border border-red-200 text-center text-xs text-red-600">
+            No customer account found matching "${q}". Please double check the number or email.
           </div>
         `;
         return;
       }
 
-      footer.classList.remove("hidden");
-      const rawSubtotal = cart.reduce((sum, item) => sum + (item.salePrice * item.qty), 0);
-      const discount = calculateDiscount(rawSubtotal);
-      const netPayable = rawSubtotal - discount;
+      // Customer orders
+      const userOrders = orders.filter(o => 
+        (o.customerPhone && matchedUser.phone && o.customerPhone.replace(/\D/g, "") === matchedUser.phone.replace(/\D/g, "")) ||
+        (o.customerEmail && matchedUser.email && o.customerEmail.toLowerCase() === matchedUser.email.toLowerCase())
+      );
 
-      document.getElementById("cartRawSubtotal").textContent = `₹${rawSubtotal.toLocaleString('en-IN')}.00`;
-      
-      const discountRow = document.getElementById("cartDiscountRow");
-      if (discount > 0) {
-        discountRow.classList.remove("hidden");
-        document.getElementById("cartDiscountAmount").textContent = `-₹${discount.toLocaleString('en-IN')}.00`;
-      } else {
-        discountRow.classList.add("hidden");
-      }
+      const totalSpend = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const userReturns = returns.filter(r => 
+        (r.phone && matchedUser.phone && r.phone.replace(/\D/g, "") === matchedUser.phone.replace(/\D/g, ""))
+      );
 
-      document.getElementById("cartSubtotal").textContent = `₹${netPayable.toLocaleString('en-IN')}.00`;
-
+      container.classList.remove("hidden");
       container.innerHTML = `
-        <div class="divide-y divide-brand-border">
-          ${cart.map(item => `
-            <div class="py-4 flex gap-3 items-center">
-              <img src="${item.image}" class="w-14 h-14 rounded-lg object-cover border border-brand-border" />
-              <div class="flex-1 min-w-0">
-                <h4 class="text-xs font-semibold text-brand-charcoal truncate">${item.title}</h4>
-                <p class="text-xs font-bold text-brand-charcoal mt-0.5">₹${Number(item.salePrice).toLocaleString('en-IN')}</p>
-                <div class="flex items-center gap-2 mt-2">
-                  <div class="flex items-center border border-brand-border rounded bg-white text-xs">
-                    <button onclick="changeCartQty('${item.id}', -1)" class="px-2 py-0.5 text-neutral-600 hover:bg-neutral-100">-</button>
-                    <span class="px-2 font-mono font-bold">${item.qty}</span>
-                    <button onclick="changeCartQty('${item.id}', 1)" class="px-2 py-0.5 text-neutral-600 hover:bg-neutral-100">+</button>
-                  </div>
-                  <button onclick="changeCartQty('${item.id}', -${item.qty})" class="text-[10px] text-red-500 hover:underline ml-auto">Remove</button>
-                </div>
+        <div class="bg-white p-5 rounded-2xl border border-brand-border space-y-5 shadow-sm">
+          
+          <!-- Header Profile Summary -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-brand-border gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-brand-sand border border-brand-border flex items-center justify-center font-bold text-base text-brand-gold">
+                ${matchedUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-brand-charcoal">${matchedUser.name} <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-sand text-neutral-600 uppercase ml-1">${matchedUser.role}</span></h4>
+                <p class="text-xs text-brand-muted font-mono">📞 +91 ${matchedUser.phone} • ✉️ ${matchedUser.email}</p>
               </div>
             </div>
-          `).join("")}
+
+            <div class="flex items-center gap-2">
+              <button onclick="sendCrmCustomerWhatsApp('${matchedUser.id}')" class="px-3 py-1.5 bg-brand-whatsapp text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow hover:opacity-90">
+                <span>💬 WhatsApp Customer</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Metrics -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-3 bg-brand-sand/60 rounded-xl border border-brand-border">
+              <span class="text-neutral-500 text-[10px] uppercase font-bold block">Lifetime Orders</span>
+              <span class="text-base font-bold font-mono text-brand-charcoal">${userOrders.length} Orders</span>
+            </div>
+            <div class="p-3 bg-brand-sand/60 rounded-xl border border-brand-border">
+              <span class="text-neutral-500 text-[10px] uppercase font-bold block">Total Spend</span>
+              <span class="text-base font-bold font-mono text-brand-gold">₹${totalSpend.toLocaleString('en-IN')}</span>
+            </div>
+            <div class="p-3 bg-brand-sand/60 rounded-xl border border-brand-border">
+              <span class="text-neutral-500 text-[10px] uppercase font-bold block">Current Password</span>
+              <span class="text-xs font-bold font-mono text-brand-charcoal bg-white px-2 py-0.5 rounded border border-brand-border inline-block mt-0.5">${matchedUser.password}</span>
+            </div>
+            <div class="p-3 bg-brand-sand/60 rounded-xl border border-brand-border">
+              <span class="text-neutral-500 text-[10px] uppercase font-bold block">Quick PIN</span>
+              <span class="text-xs font-bold font-mono text-brand-charcoal bg-white px-2 py-0.5 rounded border border-brand-border inline-block mt-0.5">${matchedUser.pin || 'None'}</span>
+            </div>
+          </div>
+
+          <!-- Quick Fix Desk & Override Controls -->
+          <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-200 space-y-3">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-amber-900">🛠️ Direct Account Fix &amp; Override Actions</h5>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <!-- Fix 1: Override Password -->
+              <div class="bg-white p-3 rounded-lg border border-amber-200 space-y-1.5">
+                <span class="text-[11px] font-bold text-brand-charcoal block">Force Update Password</span>
+                <input type="text" id="crmNewPassInput-${matchedUser.id}" placeholder="Enter new password" class="w-full bg-brand-sand border border-brand-border rounded px-2.5 py-1 text-xs">
+                <button onclick="crmOverridePassword('${matchedUser.id}')" class="w-full py-1.5 bg-brand-charcoal text-white rounded text-[11px] font-bold uppercase hover:bg-black">
+                  Save Password
+                </button>
+              </div>
+
+              <!-- Fix 2: Reset PIN -->
+              <div class="bg-white p-3 rounded-lg border border-amber-200 space-y-1.5">
+                <span class="text-[11px] font-bold text-brand-charcoal block">Update 4-Digit PIN</span>
+                <input type="text" maxlength="4" id="crmNewPinInput-${matchedUser.id}" placeholder="4-digit PIN (e.g. 1234)" class="w-full bg-brand-sand border border-brand-border rounded px-2.5 py-1 text-xs font-mono text-center">
+                <button onclick="crmOverridePin('${matchedUser.id}')" class="w-full py-1.5 bg-brand-darkgreen text-white rounded text-[11px] font-bold uppercase hover:bg-black">
+                  Set New PIN
+                </button>
+              </div>
+
+              <!-- Fix 3: Send Credentials via WhatsApp -->
+              <div class="bg-white p-3 rounded-lg border border-amber-200 space-y-1.5 flex flex-col justify-between">
+                <div>
+                  <span class="text-[11px] font-bold text-brand-charcoal block">Notify Customer</span>
+                  <p class="text-[10px] text-neutral-500">Dispatch current login details &amp; order history link to WhatsApp.</p>
+                </div>
+                <button onclick="crmDispatchCredentialsWhatsApp('${matchedUser.id}')" class="w-full py-1.5 bg-brand-whatsapp text-white rounded text-[11px] font-bold uppercase hover:opacity-90">
+                  Send Login to WA
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order History for this customer -->
+          <div class="space-y-2">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal">Complete Order History (${userOrders.length})</h5>
+            
+            <div class="space-y-2 max-h-60 overflow-y-auto">
+              ${userOrders.length > 0 ? userOrders.map(o => `
+                <div class="p-3 bg-brand-sand/50 rounded-xl border border-brand-border flex justify-between items-center text-xs">
+                  <div>
+                    <span class="font-mono font-bold text-brand-charcoal">${o.orderId}</span>
+                    <span class="text-neutral-500 text-[10px] ml-2">${new Date(o.date).toLocaleDateString()}</span>
+                    <p class="text-neutral-600 mt-0.5 truncate max-w-sm">${o.items.map(it => `${it.qty}x ${it.title}`).join(", ")}</p>
+                  </div>
+                  <div class="text-right space-y-1">
+                    <span class="font-bold text-brand-gold font-mono block">₹${o.total}</span>
+                    <div class="flex items-center gap-1 justify-end">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold ${getStatusBadgeClass(o.status)}">${o.status}</span>
+                      <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-neutral-700 hover:text-black underline text-[10px]">Invoice</button>
+                    </div>
+                  </div>
+                </div>
+              `).join("") : `<p class="text-neutral-400 text-xs py-2">No orders placed by this customer yet.</p>`}
+            </div>
+          </div>
+
         </div>
       `;
     }
 
-    /* -------------------------------------------------------------
-       CHECKOUT & AUTOMATED STOCK DEDUCTION
-    ------------------------------------------------------------- */
-    function startCheckout() {
-      if (cart.length === 0) return;
-      toggleCart(false);
-      openCheckoutModal();
-    }
-
-    function openCheckoutModal() {
-      document.getElementById("checkoutModal").classList.remove("hidden");
-      const total = calculateCartTotal();
-      document.getElementById("checkoutTotalAmount").textContent = `₹${total.toLocaleString('en-IN')}.00`;
-
-      if (currentUser) {
-        document.getElementById("chkName").value = currentUser.name;
-        document.getElementById("chkPhone").value = currentUser.phone;
-        document.getElementById("chkEmail").value = currentUser.email;
-      }
-
-      const upiUrl = `upi://pay?pa=${encodeURIComponent(config.upiId)}&pn=${encodeURIComponent(config.merchantName)}&am=${total}&cu=INR&tn=${encodeURIComponent('Moin Quran Box Order')}`;
-      document.getElementById("checkoutQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUrl)}`;
-    }
-
-    function closeCheckoutModal() { document.getElementById("checkoutModal").classList.add("hidden"); }
-
-    function togglePaymentType(type) {
-      document.getElementById("upiPaymentPanel").classList.toggle("hidden", type !== "UPI");
-    }
-
-    function copyUpiId() {
-      const temp = document.createElement("input");
-      temp.value = config.upiId;
-      document.body.appendChild(temp);
-      temp.select();
-      document.execCommand("copy");
-      document.body.removeChild(temp);
-      alert(`Store UPI ID ${config.upiId} copied!`);
-    }
-
-    function handlePlaceOrder(e) {
-      e.preventDefault();
-      if (cart.length === 0) return;
-
-      const name = document.getElementById("chkName").value.trim();
-      const phone = document.getElementById("chkPhone").value.trim();
-      const email = document.getElementById("chkEmail").value.trim();
-      const address = document.getElementById("chkAddress").value.trim();
-      const city = document.getElementById("chkCity").value.trim();
-      const pincode = document.getElementById("chkPincode").value.trim();
-      const method = document.querySelector('input[name="paymentMethod"]:checked').value;
-      const utr = document.getElementById("chkUtr").value.trim();
-
-      const total = calculateCartTotal();
-      const autoOrderId = `MQB-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-      const nowIso = new Date().toISOString();
-
-      // Deduct Stock
-      cart.forEach(cartItem => {
-        const prod = products.find(p => p.id === cartItem.id);
-        if (prod) {
-          prod.stock = Math.max(0, (prod.stock || 0) - cartItem.qty);
-        }
-      });
-
-      const newOrder = {
-        orderId: autoOrderId,
-        customerName: name,
-        customerPhone: phone,
-        customerEmail: email,
-        address: `${address}, ${city} - ${pincode}`,
-        items: [...cart],
-        total: total,
-        paymentMethod: method,
-        channel: "Online",
-        utr: utr || "N/A",
-        status: "Ordered",
-        courierName: "Local Hyderabad Express",
-        awb: "PENDING-PACKING",
-        trackingUrl: "",
-        date: nowIso
-      };
-
-      orders.unshift(newOrder);
-      persistAllData();
-
-      lastPlacedOrder = newOrder;
-      cart = [];
-      activeAppliedCoupon = null;
-      updateCartUI();
-      renderProducts();
-      closeCheckoutModal();
-
-      const itemsListText = newOrder.items.map(i => `• ${i.qty}x ${i.title} (₹${i.salePrice})`).join("\n");
-      const whatsappMsg = `*NEW SACRED ORDER RECEIVED — ${config.brandName}*\n\n*Assigned Order ID:* ${autoOrderId}\n\n*Customer:*\n${name} • ${phone}\n${newOrder.address}\n\n*Items Ordered:*\n${itemsListText}\n\n*Total Payable:* ₹${total} (${method})\n${utr ? `UTR: ${utr}` : ''}`;
-      
-      document.getElementById("successOrderIdDisplay").textContent = autoOrderId;
-      document.getElementById("successWhatsAppOrderBtn").href = `https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(whatsappMsg)}`;
-      document.getElementById("successEmailOrderBtn").href = `mailto:${encodeURIComponent(email)}?subject=Invoice%20Confirmation%20${autoOrderId}&body=${encodeURIComponent(whatsappMsg)}`;
-      document.getElementById("orderSuccessModal").classList.remove("hidden");
-    }
-
-    function closeSuccessModal() { document.getElementById("orderSuccessModal").classList.add("hidden"); }
-
-    /* -------------------------------------------------------------
-       IN-STORE POS SYSTEM (OFFLINE WALK-IN SALES)
-    ------------------------------------------------------------- */
-    function renderPosCatalog() {
-      const q = document.getElementById("posSearchInput").value.trim().toLowerCase();
-      const grid = document.getElementById("posCatalogGrid");
-
-      let filtered = products;
-      if (q) {
-        filtered = products.filter(p => p.title.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
-      }
-
-      grid.innerHTML = filtered.map(p => `
-        <div onclick="addToPosTicket('${p.id}')" class="p-2 bg-brand-sand rounded-lg border border-brand-border cursor-pointer hover:border-brand-gold transition text-xs flex flex-col justify-between">
-          <div>
-            <span class="text-[9px] font-mono text-neutral-500 font-bold">${p.sku || 'SKU'}</span>
-            <p class="font-bold text-brand-charcoal truncate mt-0.5">${p.title}</p>
-          </div>
-          <div class="flex justify-between items-center mt-2 pt-1 border-t border-brand-border">
-            <span class="font-bold text-brand-gold font-mono">₹${p.salePrice}</span>
-            <span class="text-[10px] ${p.stock <= 5 ? 'text-red-500 font-bold' : 'text-neutral-500'}">Stock: ${p.stock}</span>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function addToPosTicket(prodId) {
-      const p = products.find(x => x.id === prodId);
-      if (!p) return;
-
-      if (p.stock <= 0) {
-        alert("Stock exhausted for this item.");
+    function crmOverridePassword(userId) {
+      const input = document.getElementById(`crmNewPassInput-${userId}`);
+      const newPass = input ? input.value.trim() : "";
+      if (!newPass) {
+        alert("Please enter a new password.");
         return;
       }
 
-      const existing = posCurrentTicket.find(t => t.id === prodId);
-      if (existing) {
-        if (existing.qty + 1 > p.stock) {
-          alert(`Only ${p.stock} units available in showroom!`);
-          return;
-        }
-        existing.qty += 1;
-      } else {
-        posCurrentTicket.push({ id: p.id, title: p.title, price: p.salePrice, qty: 1 });
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.password = newPass;
+        persistAllData();
+        renderAdminUsersTable();
+        alert(`Success! Password for ${u.name} has been set to: ${newPass}`);
+        handleCrmCustomerLookup();
       }
-
-      renderPosTicketUI();
     }
 
-    function renderPosTicketUI() {
-      const container = document.getElementById("posTicketItems");
-      const totalDisplay = document.getElementById("posTicketTotal");
-
-      if (posCurrentTicket.length === 0) {
-        container.innerHTML = `<p class="text-neutral-400 text-center py-4 text-xs">No items added to bill.</p>`;
-        totalDisplay.textContent = "₹0";
+    function crmOverridePin(userId) {
+      const input = document.getElementById(`crmNewPinInput-${userId}`);
+      const newPin = input ? input.value.trim() : "";
+      if (!newPin || newPin.length !== 4) {
+        alert("Please enter a valid 4-digit numeric PIN.");
         return;
       }
 
-      const total = posCurrentTicket.reduce((s, it) => s + (it.price * it.qty), 0);
-      totalDisplay.textContent = `₹${total.toLocaleString('en-IN')}`;
-
-      container.innerHTML = posCurrentTicket.map((it, idx) => `
-        <div class="py-1.5 flex justify-between items-center text-xs">
-          <div class="truncate max-w-[140px]">
-            <span class="font-semibold text-brand-charcoal">${it.title}</span>
-            <span class="block text-[10px] text-brand-muted">₹${it.price} each</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="changePosQty(${idx}, -1)" class="w-5 h-5 bg-neutral-200 rounded text-center leading-none">-</button>
-            <span class="font-mono font-bold">${it.qty}</span>
-            <button onclick="changePosQty(${idx}, 1)" class="w-5 h-5 bg-neutral-200 rounded text-center leading-none">+</button>
-            <span class="font-mono font-bold ml-1">₹${it.price * it.qty}</span>
-          </div>
-        </div>
-      `).join("");
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.pin = newPin;
+        persistAllData();
+        renderAdminUsersTable();
+        alert(`Success! 4-Digit PIN for ${u.name} set to: ${newPin}`);
+        handleCrmCustomerLookup();
+      }
     }
 
-    function changePosQty(idx, delta) {
-      const t = posCurrentTicket[idx];
-      const p = products.find(x => x.id === t.id);
-
-      if (delta > 0 && t.qty + delta > p.stock) {
-        alert("Stock limit reached!");
-        return;
-      }
-
-      t.qty += delta;
-      if (t.qty <= 0) {
-        posCurrentTicket.splice(idx, 1);
-      }
-      renderPosTicketUI();
+    function sendCrmCustomerWhatsApp(userId) {
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+      const clean = u.phone.replace(/\D/g, "");
+      const phone = clean.length === 10 ? '91' + clean : clean;
+      const msg = `Assalamu Alaikum ${u.name},\nThis is Shaik Moin Uddin from *${config.brandName}*, Hyderabad.\nHow can we assist you with your sacred book orders today?`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    function completePosSale() {
-      if (posCurrentTicket.length === 0) {
-        alert("Add products to ticket first!");
-        return;
-      }
-
-      const custName = document.getElementById("posCustName").value.trim() || "Walk-in Guest";
-      const custPhone = document.getElementById("posCustPhone").value.trim() || config.phone1;
-      const method = document.getElementById("posPaymentMethod").value;
-      const total = posCurrentTicket.reduce((s, it) => s + (it.price * it.qty), 0);
-      const autoId = `MQB-POS-${Math.floor(1000 + Math.random() * 9000)}`;
-
-      // Deduct inventory
-      posCurrentTicket.forEach(t => {
-        const prod = products.find(p => p.id === t.id);
-        if (prod) {
-          prod.stock = Math.max(0, (prod.stock || 0) - t.qty);
-        }
-      });
-
-      const newOfflineOrder = {
-        orderId: autoId,
-        customerName: custName,
-        customerPhone: custPhone,
-        customerEmail: "showroom@moinquranbox.com",
-        address: "In-Store Falaknuma Showroom",
-        items: [...posCurrentTicket],
-        total: total,
-        paymentMethod: method,
-        channel: "Offline Walk-in",
-        utr: method === "Cash" ? "CASH" : "UPI-POS",
-        status: "Delivered",
-        courierName: "In-Store Handover",
-        awb: "POS-HANDOVER",
-        date: new Date().toISOString()
-      };
-
-      orders.unshift(newOfflineOrder);
-      persistAllData();
-
-      prepareAndPrintInvoice(autoId);
-
-      posCurrentTicket = [];
-      document.getElementById("posCustName").value = "";
-      document.getElementById("posCustPhone").value = "";
-      renderPosTicketUI();
-      renderPosCatalog();
-      renderAdminInventoryTable();
-      updateAnalyticsDashboard();
-      renderProducts();
-      alert(`Bill ${autoId} generated! Stock synchronized.`);
+    function crmDispatchCredentialsWhatsApp(userId) {
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+      const clean = u.phone.replace(/\D/g, "");
+      const phone = clean.length === 10 ? '91' + clean : clean;
+      const msg = `Assalamu Alaikum ${u.name},\n\nHere are your updated account credentials for *${config.brandName}*:\n\n*Login Mobile:* ${u.phone}\n*Password:* ${u.password}\n*Quick 4-Digit PIN:* ${u.pin || '1234'}\n\nYou can sign in at our official online showroom anytime.\n\nJazakAllah Khair,\n*${config.brandName}*, Falaknuma, Hyderabad`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     /* -------------------------------------------------------------
-       OMNICHANNEL ANALYTICS & TIME FILTERS
+       EXTENDED ANALYTICS: DAY, WEEK, MONTH, YEAR & ALL-TIME
     ------------------------------------------------------------- */
     function filterAnalyticsTime(range) {
       currentAnalyticsRange = range;
-      ['today', 'week', 'month', 'all'].forEach(r => {
+      ['today', 'week', 'month', 'year', 'all'].forEach(r => {
         const btn = document.getElementById(`btnAna-${r}`);
+        if (!btn) return;
         if (r === range) {
           btn.className = "px-2.5 py-1 rounded bg-brand-charcoal text-white font-bold";
         } else {
-          btn.className = "px-2.5 py-1 rounded hover:bg-neutral-100";
+          btn.className = "px-2.5 py-1 rounded hover:bg-neutral-100 text-neutral-600";
         }
       });
       updateAnalyticsDashboard();
@@ -2614,6 +2199,9 @@
       } else if (currentAnalyticsRange === 'month') {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 3600000);
         filteredOrders = orders.filter(o => new Date(o.date) >= monthAgo);
+      } else if (currentAnalyticsRange === 'year') {
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        filteredOrders = orders.filter(o => new Date(o.date) >= yearStart);
       }
 
       const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -3814,5 +3402,3 @@
       scrollToProducts();
     }
   </script>
-</body>
-</html>
