@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>MOIN QURAN BOX | Manufacturer & Retailer</title>
   
-  <!-- Tailwind CSS & Icons -->
+  <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -40,14 +40,26 @@
     .gold-shimmer { background: linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 50%, #FAF7F2 100%); }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-    .pulse-hud { animation: pulse-subtle 2s infinite ease-in-out; }
+    @keyframes scanline {
+      0% { top: 0%; }
+      50% { top: 85%; }
+      100% { top: 0%; }
+    }
+    .hud-scanner {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
+      animation: scanline 2.5s infinite ease-in-out;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
   <!-- TOP TICKER ANNOUNCEMENT -->
-  <div id="announcement-bar" class="bg-brand-forest text-brand-cream text-xs py-2 px-4 text-center font-medium tracking-wide flex justify-between items-center relative z-50 shadow-sm">
+  <div id="announcement-bar" class="bg-brand-forest text-brand-cream text-xs py-2 px-4 text-center font-medium tracking-wide flex justify-between items-center relative z-40 shadow-sm">
     <div class="flex-1 text-center truncate pr-2">
       <span id="ticker-text">✨ Ramadan & Hajj Specials: Free Nationwide Shipping on Orders Above ₹1,499!</span>
     </div>
@@ -57,27 +69,27 @@
       </button>
       <span class="opacity-40">|</span>
       <button onclick="openPortalModal()" class="hover:underline opacity-80 hover:opacity-100 flex items-center gap-1">
-        <i class="fa-solid fa-shield-halved"></i> Portal
+        <i class="fa-solid fa-shield-halved"></i> Staff Portal
       </button>
     </div>
   </div>
 
   <!-- NAVIGATION HEADER -->
-  <header class="sticky top-0 z-40 bg-brand-cream/95 backdrop-blur-md border-b border-brand-border transition-all duration-300">
+  <header class="sticky top-0 z-30 bg-brand-cream/95 backdrop-blur-md border-b border-brand-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
       
-      <!-- Left: Mobile Menu & Category Drawer -->
+      <!-- Left: Mobile Menu & Search -->
       <div class="flex items-center gap-3">
         <button onclick="toggleDrawer('mobile-menu')" class="p-2 text-brand-dark hover:text-brand-forest focus:outline-none">
           <i class="fa-solid fa-bars-staggered text-xl"></i>
         </button>
-        <button onclick="toggleSearchModal()" class="p-2 text-brand-dark hover:text-brand-forest">
+        <button onclick="openSearchModal()" class="p-2 text-brand-dark hover:text-brand-forest">
           <i class="fa-solid fa-magnifying-glass text-lg"></i>
         </button>
       </div>
 
       <!-- Center: Store Branding -->
-      <div class="text-center cursor-pointer select-none" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <div class="text-center cursor-pointer select-none" onclick="filterCategory('All')">
         <h1 id="shop-title" class="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-brand-forest uppercase">
           MOIN QURAN BOX
         </h1>
@@ -86,7 +98,7 @@
         </p>
       </div>
 
-      <!-- Right: User Account, Wishlist & Cart -->
+      <!-- Right: User Account & Cart -->
       <div class="flex items-center gap-2 sm:gap-4">
         <button onclick="handleUserNavClick()" class="p-2 text-brand-dark hover:text-brand-forest relative" title="Customer Account">
           <i class="fa-regular fa-user text-lg"></i>
@@ -107,44 +119,44 @@
     <section class="mb-10 rounded-2xl overflow-hidden gold-shimmer border border-brand-border p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative shadow-sm">
       <div class="max-w-xl text-center md:text-left">
         <div class="inline-block bg-brand-forest/10 text-brand-forest px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
-          Direct Wholesale Prices
+          Direct Wholesale & Retail
         </div>
         <h2 class="font-serif text-2xl sm:text-4xl text-brand-forest font-bold leading-tight mb-3">
-          Handcrafted Quran Boxes & Islamic Essentials
+          Handcrafted Quran Boxes &amp; Islamic Essentials
         </h2>
         <p class="text-sm sm:text-base text-brand-gray mb-6 leading-relaxed">
-          Specialist in Holy Quran-e-Majeed, luxury velvet & carved wooden Quran boxes, Janamaz, Tasbih, and Islamic gift sets tailored for weddings and bulk corporate orders.
+          Specialist in Holy Quran-e-Majeed, luxury velvet &amp; carved wooden Quran boxes, Janamaz, Tasbih, and Islamic wedding gift sets with nationwide delivery.
         </p>
         <div class="flex flex-wrap items-center gap-3 justify-center md:justify-start">
           <button onclick="filterCategory('All')" class="bg-brand-forest text-brand-cream px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-forest/90 shadow transition">
             Explore Collection
           </button>
-          <a id="hero-wa-btn" href="https://wa.me/919390335673?text=Salam,%20I%20want%20to%20inquire%20about%20bulk%20wholesale%20orders." target="_blank" class="bg-white border border-brand-border text-brand-forest px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-cream flex items-center gap-2 shadow-sm transition">
+          <a id="hero-wa-btn" href="https://wa.me/919390335673" target="_blank" class="bg-white border border-brand-border text-brand-forest px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-cream flex items-center gap-2 shadow-sm transition">
             <i class="fa-brands fa-whatsapp text-green-600 text-lg"></i> Inquire on WhatsApp
           </a>
         </div>
       </div>
-      <div class="text-center p-4 bg-white/70 backdrop-blur rounded-xl border border-brand-border shadow-sm shrink-0">
-        <span class="text-xs uppercase text-brand-gray block tracking-widest font-semibold">Verified Location</span>
+      <div class="text-center p-4 bg-white/80 backdrop-blur rounded-xl border border-brand-border shadow-sm shrink-0">
+        <span class="text-xs uppercase text-brand-gray block tracking-widest font-semibold">Store Location</span>
         <div class="font-bold text-brand-forest text-sm sm:text-base mt-1" id="shop-owner-banner">Shaik Moin Uddin</div>
         <div class="text-xs text-brand-gray mt-1 max-w-[240px]" id="shop-address-banner">Madina Colony, Falaknuma, Hyderabad 500053</div>
         <div class="mt-3 flex justify-center gap-2">
-          <span class="text-[11px] bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-semibold">Open for Delivery</span>
+          <span class="text-[11px] bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-semibold">Ready for Dispatch</span>
         </div>
       </div>
     </section>
 
-    <!-- CATEGORY TABS -->
+    <!-- CATEGORY FILTER BUTTONS -->
     <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-8 hide-scrollbar" id="category-pills">
-      <!-- Injected via JavaScript -->
+      <!-- Generated via JavaScript -->
     </div>
 
-    <!-- PRODUCT CATALOG GRID -->
+    <!-- PRODUCT CATALOG -->
     <section class="mb-14">
       <div class="flex justify-between items-end mb-6">
         <div>
           <h3 id="current-category-title" class="font-serif text-2xl font-bold text-brand-forest">All Collections</h3>
-          <p class="text-xs sm:text-sm text-brand-gray mt-1">Hand-picked wholesale and retail selections</p>
+          <p class="text-xs sm:text-sm text-brand-gray mt-1">Premium wholesale and retail inventory</p>
         </div>
         <span id="product-count" class="text-xs font-semibold text-brand-gray">Showing 0 items</span>
       </div>
@@ -160,7 +172,7 @@
   <footer class="bg-brand-dark text-brand-cream border-t border-white/10 mt-auto pt-12 pb-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-sm">
       <div>
-        <h4 class="font-serif text-lg font-bold text-brand-accent tracking-wider uppercase mb-3">MOIN QURAN BOX</h4>
+        <h4 class="font-serif text-lg font-bold text-brand-accent tracking-wider uppercase mb-3" id="footer-brand-title">MOIN QURAN BOX</h4>
         <p class="text-brand-gray text-xs leading-relaxed mb-4">
           Direct manufacturer, stockist, and distributor of designer Quran boxes, Holy Quran prints, Janamaz, Tasbih, and Islamic accessories.
         </p>
@@ -177,8 +189,8 @@
         </ul>
       </div>
       <div>
-        <h5 class="text-xs uppercase tracking-widest text-brand-accent font-semibold mb-3">Need Help &amp; Wholesale Support?</h5>
-        <p class="text-xs text-brand-gray mb-3">Reach out directly via phone or WhatsApp for instant order fulfillment and custom bulk manufacturing.</p>
+        <h5 class="text-xs uppercase tracking-widest text-brand-accent font-semibold mb-3">Order Support &amp; Enquiries</h5>
+        <p class="text-xs text-brand-gray mb-3">Direct wholesale pricing available on bulk quantities.</p>
         <div class="space-y-1.5 text-xs">
           <p><i class="fa-solid fa-phone text-brand-accent mr-2"></i> <span id="footer-phone1">+91 9390335673</span></p>
           <p><i class="fa-solid fa-phone text-brand-accent mr-2"></i> <span id="footer-phone2">+91 8142140905</span></p>
@@ -196,15 +208,15 @@
   </footer>
 
   <!-- FLOATING WHATSAPP BUTTON -->
-  <a id="floating-wa" href="https://wa.me/919390335673?text=Salam,%20I%20have%20an%20inquiry%20regarding%20products%20on%20your%20website." target="_blank" class="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-xl hover:scale-110 active:scale-95 transition-all z-30" title="Chat on WhatsApp">
+  <a id="floating-wa" href="https://wa.me/919390335673" target="_blank" class="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-xl hover:scale-110 active:scale-95 transition-all z-30" title="Chat on WhatsApp">
     <i class="fa-brands fa-whatsapp"></i>
   </a>
 
   <!-- ======================================================== -->
-  <!-- MODALS & DRAWERS -->
+  <!-- DRAWERS & MODALS -->
   <!-- ======================================================== -->
 
-  <!-- DRAWER: SIDE NAVIGATION -->
+  <!-- DRAWER: SIDE MENU -->
   <div id="mobile-menu" class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 opacity-0">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onclick="toggleDrawer('mobile-menu')"></div>
     <div class="absolute top-0 left-0 bottom-0 w-80 max-w-[85%] bg-white shadow-2xl p-6 pointer-events-auto flex flex-col justify-between overflow-y-auto">
@@ -223,7 +235,7 @@
             <i class="fa-solid fa-angle-right text-xs text-gray-400"></i>
           </button>
           <button onclick="filterCategory('Holy Quran'); toggleDrawer('mobile-menu');" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-brand-cream font-medium text-sm text-brand-forest flex justify-between items-center">
-            <span>Holy Quran (Translations &amp; Arabic)</span>
+            <span>Holy Quran</span>
             <i class="fa-solid fa-angle-right text-xs text-gray-400"></i>
           </button>
           <button onclick="filterCategory('Janamaz'); toggleDrawer('mobile-menu');" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-brand-cream font-medium text-sm text-brand-forest flex justify-between items-center">
@@ -231,7 +243,7 @@
             <i class="fa-solid fa-angle-right text-xs text-gray-400"></i>
           </button>
           <button onclick="filterCategory('Tasbih &amp; Rehal'); toggleDrawer('mobile-menu');" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-brand-cream font-medium text-sm text-brand-forest flex justify-between items-center">
-            <span>Tasbih, Caps &amp; Rehal</span>
+            <span>Tasbih &amp; Rehal</span>
             <i class="fa-solid fa-angle-right text-xs text-gray-400"></i>
           </button>
         </div>
@@ -247,7 +259,7 @@
     </div>
   </div>
 
-  <!-- DRAWER: SHOPPING CART -->
+  <!-- DRAWER: CART -->
   <div id="cart-drawer" class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 opacity-0">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onclick="toggleDrawer('cart-drawer')"></div>
     <div class="absolute top-0 right-0 bottom-0 w-96 max-w-[90%] bg-white shadow-2xl p-6 pointer-events-auto flex flex-col justify-between overflow-y-auto">
@@ -261,7 +273,7 @@
         </div>
 
         <div id="cart-items-container" class="divide-y divide-brand-border py-4">
-          <!-- Cart Items Injected Dynamically -->
+          <!-- Populated by JavaScript -->
         </div>
       </div>
 
@@ -271,12 +283,8 @@
             <span>Subtotal</span>
             <span id="cart-subtotal">₹0.00</span>
           </div>
-          <div class="flex justify-between text-brand-gray text-xs">
-            <span>Shipping</span>
-            <span class="text-green-700 font-medium">Calculated at Checkout</span>
-          </div>
           <div class="flex justify-between text-brand-dark font-bold text-base pt-1 border-t border-dashed border-gray-200">
-            <span>Total</span>
+            <span>Total Payable</span>
             <span id="cart-total" class="text-brand-forest">₹0.00</span>
           </div>
         </div>
@@ -293,31 +301,31 @@
     </div>
   </div>
 
-  <!-- MODAL: CHECKOUT WINDOW -->
+  <!-- MODAL: CHECKOUT -->
   <div id="checkout-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl relative">
       <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl">&times;</button>
       <h3 class="font-serif text-xl font-bold text-brand-forest mb-1">Place Your Order</h3>
-      <p class="text-xs text-brand-gray mb-4">Complete your details for direct dispatch from Hyderabad warehouse</p>
+      <p class="text-xs text-brand-gray mb-4">Enter shipping details for prompt dispatch from Hyderabad</p>
 
-      <form id="checkout-form" onsubmit="handlePlaceOrder(event)" class="space-y-3 text-xs">
+      <form onsubmit="handlePlaceOrder(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-medium text-brand-dark mb-1">Full Name *</label>
-          <input type="text" id="order-customer-name" required placeholder="Shaik / Mohammed ..." class="w-full border border-brand-border rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-forest outline-none" />
+          <input type="text" id="order-customer-name" required placeholder="Shaik / Mohammed ..." class="w-full border border-brand-border rounded-lg p-2.5 text-xs outline-none focus:border-brand-forest" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-medium text-brand-dark mb-1">Mobile / WhatsApp *</label>
-            <input type="tel" id="order-customer-phone" required placeholder="9390335673" class="w-full border border-brand-border rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-forest outline-none" />
+            <input type="tel" id="order-customer-phone" required placeholder="9390335673" class="w-full border border-brand-border rounded-lg p-2.5 text-xs outline-none focus:border-brand-forest" />
           </div>
           <div>
             <label class="block font-medium text-brand-dark mb-1">Email (For Invoices)</label>
-            <input type="email" id="order-customer-email" placeholder="name@example.com" class="w-full border border-brand-border rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-forest outline-none" />
+            <input type="email" id="order-customer-email" placeholder="name@example.com" class="w-full border border-brand-border rounded-lg p-2.5 text-xs outline-none focus:border-brand-forest" />
           </div>
         </div>
         <div>
-          <label class="block font-medium text-brand-dark mb-1">Delivery Address *</label>
-          <textarea id="order-customer-address" required rows="2" placeholder="House no, Street, Landmark, City, Pincode" class="w-full border border-brand-border rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-forest outline-none"></textarea>
+          <label class="block font-medium text-brand-dark mb-1">Complete Delivery Address *</label>
+          <textarea id="order-customer-address" required rows="2" placeholder="House/Flat No, Landmark, Area, Hyderabad, Pincode" class="w-full border border-brand-border rounded-lg p-2.5 text-xs outline-none focus:border-brand-forest"></textarea>
         </div>
 
         <div class="pt-2">
@@ -325,7 +333,7 @@
           <div class="grid grid-cols-2 gap-2">
             <label class="flex items-center gap-2 p-2 border border-brand-border rounded-lg cursor-pointer hover:bg-brand-cream">
               <input type="radio" name="payment-type" value="UPI" checked onchange="togglePaymentDetails('UPI')" />
-              <span class="font-semibold text-brand-forest">UPI / QR Code</span>
+              <span class="font-semibold text-brand-forest">UPI / QR Transfer</span>
             </label>
             <label class="flex items-center gap-2 p-2 border border-brand-border rounded-lg cursor-pointer hover:bg-brand-cream">
               <input type="radio" name="payment-type" value="Bank" onchange="togglePaymentDetails('Bank')" />
@@ -334,13 +342,12 @@
           </div>
         </div>
 
-        <!-- Payment Info Display Box -->
         <div id="payment-info-box" class="p-3 bg-brand-cream border border-brand-border rounded-lg text-[11px] space-y-1">
-          <!-- Injected via JavaScript -->
+          <!-- Populated by JavaScript -->
         </div>
 
         <div class="pt-3 border-t border-brand-border flex justify-between items-center text-sm font-bold">
-          <span>Amount Payable:</span>
+          <span>Total Order Value:</span>
           <span id="checkout-payable-amount" class="text-brand-forest text-base">₹0.00</span>
         </div>
 
@@ -351,40 +358,40 @@
     </div>
   </div>
 
-  <!-- MODAL: ORDER CONFIRMED & NOTIFICATION HUB -->
+  <!-- MODAL: ORDER CONFIRMED -->
   <div id="order-success-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
       <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
         <i class="fa-solid fa-check"></i>
       </div>
-      <h3 class="font-serif text-xl font-bold text-brand-forest mb-1">Order Placed Successfully!</h3>
-      <p class="text-xs text-brand-gray mb-2">Your order has been recorded into the shop inventory.</p>
+      <h3 class="font-serif text-xl font-bold text-brand-forest mb-1">Order Recorded!</h3>
+      <p class="text-xs text-brand-gray mb-3">Your order is logged and stock has been allocated.</p>
       
       <div class="bg-brand-cream p-3 rounded-lg border border-brand-border text-xs mb-4">
-        <span class="text-brand-gray">Order Tracking ID:</span>
+        <span class="text-brand-gray">Tracking Order ID:</span>
         <div id="confirmed-order-id" class="font-bold text-brand-forest text-base select-all">MQB-2026-0000</div>
       </div>
 
       <div class="space-y-2 text-xs">
         <a id="success-wa-dispatch" href="#" target="_blank" class="w-full bg-[#25D366] text-white py-2.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow hover:opacity-95">
-          <i class="fa-brands fa-whatsapp text-lg"></i> Send Order Receipt to Owner on WhatsApp
+          <i class="fa-brands fa-whatsapp text-lg"></i> Send Receipt to Shop on WhatsApp
         </a>
         <button id="success-print-btn" onclick="" class="w-full bg-brand-forest text-white py-2.5 px-4 rounded-lg font-medium flex items-center justify-center gap-2">
-          <i class="fa-solid fa-file-arrow-down"></i> Download / Print Tax Invoice
+          <i class="fa-solid fa-file-arrow-down"></i> Print / Download Tax Invoice
         </button>
         <button onclick="closeOrderSuccessModal()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200">
-          Done &amp; Continue
+          Close Window
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: CUSTOMER INVOICE LOOKUP -->
+  <!-- MODAL: INVOICE LOOKUP -->
   <div id="invoice-lookup-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
       <button onclick="closeInvoiceLookupModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl">&times;</button>
       <h3 class="font-serif text-xl font-bold text-brand-forest mb-1">Download Tax Invoice</h3>
-      <p class="text-xs text-brand-gray mb-4">Enter your order details to download or print your official shop bill</p>
+      <p class="text-xs text-brand-gray mb-4">Enter your order ID and mobile number to print the bill</p>
 
       <form onsubmit="handleInvoiceLookup(event)" class="space-y-3 text-xs">
         <div>
@@ -396,18 +403,30 @@
           <input type="tel" id="lookup-phone" required placeholder="e.g. 9390335673" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
         </div>
         <button type="submit" class="w-full bg-brand-forest text-white py-2.5 rounded-lg font-semibold hover:bg-brand-forest/90 transition mt-2">
-          Find &amp; Download Invoice
+          Lookup &amp; Print Bill
         </button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: CUSTOMER ACCOUNT / AUTH & ORDERS -->
+  <!-- MODAL: SEARCH -->
+  <div id="search-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 pt-20">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+      <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+      <h3 class="font-serif text-lg font-bold text-brand-forest mb-3">Search Products</h3>
+      <input type="text" id="store-search-box" oninput="handleLiveSearch(this.value)" placeholder="Search Quran box, Janamaz, Tasbih..." class="w-full border border-brand-border rounded-lg p-3 text-sm outline-none focus:border-brand-forest mb-4" />
+      <div id="search-results-list" class="max-h-64 overflow-y-auto space-y-2">
+        <!-- Results rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CUSTOMER AUTH & BIOMETRIC LOGIN -->
   <div id="customer-auth-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative">
       <button onclick="closeCustomerAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl">&times;</button>
       
-      <!-- If logged in: Show Customer Profile & My Orders -->
+      <!-- Logged-in profile view -->
       <div id="customer-logged-in-view" class="hidden">
         <div class="flex items-center justify-between pb-3 border-b border-brand-border mb-4">
           <div>
@@ -419,71 +438,113 @@
           </button>
         </div>
 
-        <h4 class="font-serif text-base font-bold text-brand-forest mb-2">My Orders History</h4>
+        <h4 class="font-serif text-base font-bold text-brand-forest mb-2">Order History &amp; Tracking</h4>
         <div id="customer-orders-list" class="space-y-3 mb-4">
-          <!-- Customer orders injected here -->
+          <!-- Populated by JavaScript -->
         </div>
       </div>
 
-      <!-- If logged out: Show Login / Register tabs -->
+      <!-- Logged-out view: Normal + Biometric Login -->
       <div id="customer-logged-out-view">
         <div class="flex border-b border-brand-border mb-4">
           <button id="cx-tab-login-btn" onclick="switchCustomerAuthTab('login')" class="flex-1 py-2 text-center text-xs font-bold border-b-2 border-brand-forest text-brand-forest">
-            Login
+            Standard Login
+          </button>
+          <button id="cx-tab-face-btn" onclick="switchCustomerAuthTab('face')" class="flex-1 py-2 text-center text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-brand-dark">
+            Face Verification
           </button>
           <button id="cx-tab-register-btn" onclick="switchCustomerAuthTab('register')" class="flex-1 py-2 text-center text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-brand-dark">
-            Create Account
+            Register Account
           </button>
         </div>
 
-        <!-- Login Form -->
+        <!-- 1. Standard Login -->
         <form id="cx-login-form" onsubmit="handleCustomerLogin(event)" class="space-y-3 text-xs">
           <div>
-            <label class="block font-medium mb-1">Mobile or Email</label>
-            <input type="text" id="cx-login-id" required placeholder="Enter your mobile or email" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
+            <label class="block font-medium mb-1">Mobile Number or Email</label>
+            <input type="text" id="cx-login-id" required placeholder="e.g. 9390335673" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
           </div>
           <div>
             <label class="block font-medium mb-1">Password or 4-Digit PIN</label>
             <input type="password" id="cx-login-password" required placeholder="Enter password or PIN" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
-          </div>
-          <div class="flex justify-between items-center text-[11px]">
-            <button type="button" onclick="handleCustomerForgotPasswordPrompt()" class="text-brand-accent hover:underline">
-              Forgot Password?
-            </button>
           </div>
           <button type="submit" class="w-full bg-brand-forest text-white py-2.5 rounded-lg font-semibold hover:bg-brand-forest/90">
             Sign In
           </button>
         </form>
 
-        <!-- Registration Form -->
+        <!-- 2. Face Biometric Verification (Strict Account-Bound) -->
+        <div id="cx-face-form" class="space-y-3 text-xs hidden">
+          <div>
+            <label class="block font-medium mb-1">Your Registered Mobile Number</label>
+            <input type="tel" id="face-login-phone" placeholder="Enter your mobile number first" class="w-full border border-brand-border rounded-lg p-2 text-xs outline-none focus:border-brand-forest" />
+          </div>
+          
+          <div class="relative w-full h-48 bg-black rounded-xl overflow-hidden flex items-center justify-center border border-brand-border">
+            <video id="login-video" autoplay playsinline class="w-full h-full object-cover"></video>
+            <div id="scanner-line" class="hud-scanner hidden"></div>
+            <span id="cam-status" class="absolute text-gray-400 text-xs">Camera is offline</span>
+          </div>
+
+          <div class="flex gap-2">
+            <button type="button" onclick="startCamera('login-video')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-brand-dark py-2 rounded-lg font-semibold text-xs">
+              Open Camera
+            </button>
+            <button type="button" onclick="captureAndVerifyFace()" class="flex-1 bg-brand-forest text-white py-2 rounded-lg font-semibold text-xs">
+              Verify Face
+            </button>
+          </div>
+          <p class="text-[11px] text-gray-500 text-center">Face verification strictly matches the portrait captured during registration for this mobile number.</p>
+        </div>
+
+        <!-- 3. Customer Registration with Face Capture -->
         <form id="cx-register-form" onsubmit="handleCustomerRegister(event)" class="space-y-3 text-xs hidden">
           <div>
             <label class="block font-medium mb-1">Full Name *</label>
-            <input type="text" id="cx-reg-name" required placeholder="e.g. Mohammed Farhan" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
+            <input type="text" id="cx-reg-name" required placeholder="e.g. Mohammed Farhan" class="w-full border border-brand-border rounded-lg p-2 outline-none focus:border-brand-forest" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block font-medium mb-1">Mobile Number *</label>
-              <input type="tel" id="cx-reg-phone" required placeholder="9390335673" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
+              <input type="tel" id="cx-reg-phone" required placeholder="9390335673" class="w-full border border-brand-border rounded-lg p-2 outline-none focus:border-brand-forest" />
             </div>
             <div>
               <label class="block font-medium mb-1">Email Address</label>
-              <input type="email" id="cx-reg-email" placeholder="user@gmail.com" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
+              <input type="email" id="cx-reg-email" placeholder="user@gmail.com" class="w-full border border-brand-border rounded-lg p-2 outline-none focus:border-brand-forest" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block font-medium mb-1">Create Password *</label>
-              <input type="password" id="cx-reg-password" required placeholder="Password" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
+              <label class="block font-medium mb-1">Password *</label>
+              <input type="password" id="cx-reg-password" required placeholder="Password" class="w-full border border-brand-border rounded-lg p-2 outline-none focus:border-brand-forest" />
             </div>
             <div>
-              <label class="block font-medium mb-1">4-Digit Quick PIN</label>
-              <input type="text" maxlength="4" id="cx-reg-pin" placeholder="e.g. 1234" class="w-full border border-brand-border rounded-lg p-2.5 outline-none focus:border-brand-forest" />
+              <label class="block font-medium mb-1">4-Digit PIN</label>
+              <input type="text" maxlength="4" id="cx-reg-pin" placeholder="e.g. 1234" class="w-full border border-brand-border rounded-lg p-2 outline-none focus:border-brand-forest" />
             </div>
           </div>
+
+          <!-- Face Enrollment Option -->
+          <div class="p-3 bg-brand-cream border border-brand-border rounded-lg">
+            <span class="font-bold text-brand-forest block mb-1">Optional: Register Face for 1-Click Login</span>
+            <div class="flex items-center gap-3">
+              <div class="w-16 h-16 bg-black rounded-lg overflow-hidden relative shrink-0">
+                <video id="reg-video" autoplay playsinline class="w-full h-full object-cover"></video>
+              </div>
+              <div class="flex-1 space-y-1">
+                <button type="button" onclick="startCamera('reg-video')" class="w-full bg-white border border-brand-border py-1 px-2 rounded font-semibold text-[11px]">
+                  Turn On Cam
+                </button>
+                <button type="button" onclick="captureRegistrationFace()" class="w-full bg-brand-forest text-white py-1 px-2 rounded font-semibold text-[11px]">
+                  Snap Face ID
+                </button>
+              </div>
+            </div>
+            <span id="reg-face-status" class="text-[10px] text-green-700 font-semibold block mt-1">No face portrait captured yet</span>
+          </div>
+
           <button type="submit" class="w-full bg-brand-forest text-white py-2.5 rounded-lg font-semibold hover:bg-brand-forest/90 mt-2">
-            Create Account
+            Register Account
           </button>
         </form>
       </div>
@@ -498,7 +559,7 @@
         <i class="fa-solid fa-lock"></i>
       </div>
       <h3 class="font-serif text-lg font-bold text-brand-forest uppercase tracking-wider mb-1">Management Portal</h3>
-      <p class="text-xs text-brand-gray mb-4">Authorized Store Staff &amp; Administrator Access</p>
+      <p class="text-xs text-brand-gray mb-4">Authorized Admin &amp; Store Owner Access</p>
 
       <form onsubmit="handlePortalLogin(event)" class="space-y-3 text-xs text-left">
         <div>
@@ -520,7 +581,7 @@
   <div id="admin-dashboard-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white rounded-2xl max-w-6xl w-full h-[95vh] flex flex-col shadow-2xl overflow-hidden">
       
-      <!-- Dashboard Header -->
+      <!-- Top Bar -->
       <div class="bg-brand-forest text-brand-cream p-4 flex justify-between items-center shrink-0">
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-chart-line text-xl text-brand-accent"></i>
@@ -530,14 +591,14 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="exportDataJSON()" class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1.5 rounded flex items-center gap-1" title="Export Backup">
+          <button onclick="exportDataJSON()" class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1.5 rounded flex items-center gap-1">
             <i class="fa-solid fa-cloud-arrow-down"></i> Backup
           </button>
           <button onclick="closeAdminDashboard()" class="text-gray-300 hover:text-white text-2xl px-2">&times;</button>
         </div>
       </div>
 
-      <!-- Dashboard Navigation Tabs -->
+      <!-- Navigation Tabs -->
       <div class="bg-brand-cream border-b border-brand-border px-4 flex gap-2 overflow-x-auto shrink-0 text-xs font-semibold hide-scrollbar">
         <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="py-3 px-3 border-b-2 border-brand-forest text-brand-forest flex items-center gap-1.5">
           <i class="fa-solid fa-box"></i> Orders (<span id="dash-orders-count">0</span>)
@@ -552,20 +613,18 @@
           <i class="fa-solid fa-users"></i> Customers
         </button>
         <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="py-3 px-3 border-b-2 border-transparent text-gray-500 hover:text-brand-dark flex items-center gap-1.5">
-          <i class="fa-solid fa-sliders"></i> CMS &amp; Store Setup
+          <i class="fa-solid fa-sliders"></i> Store CMS
         </button>
       </div>
 
-      <!-- Dashboard Tab Views Container -->
+      <!-- Content Views -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50 text-xs">
         
-        <!-- ============================================== -->
-        <!-- TAB 1: ORDERS MANAGEMENT (RESTORED & ENHANCED) -->
-        <!-- ============================================== -->
+        <!-- 1. ORDERS TAB -->
         <div id="admin-tab-orders" class="space-y-4">
           <div class="flex flex-wrap justify-between items-center gap-3 bg-white p-3 rounded-xl border border-gray-200">
             <div class="flex items-center gap-2">
-              <input type="text" id="order-search-input" oninput="renderAdminOrders()" placeholder="Search Order ID, Phone, Name..." class="border border-gray-300 rounded-lg p-2 text-xs w-64 outline-none focus:border-brand-forest" />
+              <input type="text" id="order-search-input" oninput="renderAdminOrders()" placeholder="Search Order ID, Phone, Customer..." class="border border-gray-300 rounded-lg p-2 text-xs w-64 outline-none focus:border-brand-forest" />
               <select id="order-status-filter" onchange="renderAdminOrders()" class="border border-gray-300 rounded-lg p-2 text-xs outline-none">
                 <option value="ALL">All Statuses</option>
                 <option value="Pending">Pending</option>
@@ -576,34 +635,28 @@
                 <option value="Cancelled">Cancelled</option>
               </select>
             </div>
-            <div class="text-xs text-gray-500">
-              Auto-sync enabled • Hyderabad Warehouse
-            </div>
+            <div class="text-xs text-gray-500 font-medium">Real-Time Dispatch Ledger</div>
           </div>
 
           <div id="admin-orders-table-container" class="space-y-3">
-            <!-- Orders dynamically rendered here -->
+            <!-- Rendered by JavaScript -->
           </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 2: INVENTORY & PRODUCT MANAGEMENT -->
-        <!-- ============================================== -->
+        <!-- 2. INVENTORY TAB -->
         <div id="admin-tab-inventory" class="hidden space-y-4">
           <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-200">
-            <h4 class="font-bold text-sm text-brand-forest">Products &amp; Stock Levels</h4>
+            <h4 class="font-bold text-sm text-brand-forest">Product Inventory</h4>
             <button onclick="openProductEditModal(null)" class="bg-brand-forest text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1">
               <i class="fa-solid fa-plus"></i> Add New Product
             </button>
           </div>
           <div id="admin-inventory-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Inventory cards populated dynamically -->
+            <!-- Populated dynamically -->
           </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 3: SALES & REVENUE ANALYTICS -->
-        <!-- ============================================== -->
+        <!-- 3. SALES ANALYTICS TAB -->
         <div id="admin-tab-sales" class="hidden space-y-4">
           <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
             <div class="flex gap-2">
@@ -633,21 +686,17 @@
           </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 4: CUSTOMERS & SUPPORT DESK -->
-        <!-- ============================================== -->
+        <!-- 4. CUSTOMERS TAB -->
         <div id="admin-tab-customers" class="hidden space-y-4">
           <div class="bg-white p-3 rounded-xl border border-gray-200">
             <input type="text" id="customer-search-input" oninput="renderAdminCustomers()" placeholder="Search registered customers by mobile, name, email..." class="border border-gray-300 rounded-lg p-2 text-xs w-full outline-none focus:border-brand-forest" />
           </div>
           <div id="admin-customers-list" class="space-y-3">
-            <!-- Customers populated dynamically -->
+            <!-- Populated dynamically -->
           </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 5: CMS, STORE SETUP & PAYMENT DETAILS -->
-        <!-- ============================================== -->
+        <!-- 5. STORE SETTINGS / CMS TAB -->
         <div id="admin-tab-settings" class="hidden space-y-4">
           <form onsubmit="handleSaveStoreSettings(event)" class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
             <h4 class="font-bold text-sm text-brand-forest pb-2 border-b">Store Details &amp; Contact</h4>
@@ -737,10 +786,10 @@
         </div>
         <div>
           <label class="block font-medium mb-1">Photo Image URL</label>
-          <input type="text" id="edit-prod-image" placeholder="https://images.unsplash.com/..." class="w-full border rounded p-2" />
+          <input type="text" id="edit-prod-image" placeholder="https://..." class="w-full border rounded p-2" />
         </div>
         <div>
-          <label class="block font-medium mb-1">Or Upload Image File</label>
+          <label class="block font-medium mb-1">Or Choose Image File from Device</label>
           <input type="file" accept="image/*" onchange="handleProductImageUpload(event)" class="w-full border rounded p-1 text-[11px]" />
         </div>
         <button type="submit" class="w-full bg-brand-forest text-white py-2.5 rounded-lg font-semibold hover:bg-brand-forest/90 mt-2">
@@ -750,11 +799,10 @@
     </div>
   </div>
 
-  <!-- PRINTABLE INVOICE TEMPLATE (HIDDEN ON SCREEN, VISIBLE ON PRINT) -->
-  <div id="print-invoice-area" class="hidden"></div>
+  <canvas id="hidden-face-canvas" width="100" height="100" class="hidden"></canvas>
 
   <!-- ======================================================== -->
-  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <!-- JAVASCRIPT ENGINE -->
   <!-- ======================================================== -->
   <script>
     // --------------------------------------------------------
@@ -844,14 +892,14 @@
         paymentType: "Bank",
         total: 999,
         status: "Confirmed",
-        courier: "Pending Dispatch",
-        awb: "—",
+        courier: "Hyderabad Local Delivery",
+        awb: "HYD-EX-209",
         items: [{ id: "PROD-102", title: "Holy Quran – Urdu Translation in Roman Script", price: 999, qty: 1 }]
       }
     ];
 
     // --------------------------------------------------------
-    // STATE MANAGEMENT
+    // STORAGE STATE INITIALIZATION
     // --------------------------------------------------------
     let storeSettings = JSON.parse(localStorage.getItem('mqb_store_settings')) || DEFAULT_STORE;
     let products = JSON.parse(localStorage.getItem('mqb_products')) || SEED_PRODUCTS;
@@ -860,7 +908,9 @@
     let cart = JSON.parse(localStorage.getItem('mqb_cart')) || [];
     let activeCustomer = JSON.parse(localStorage.getItem('mqb_active_customer')) || null;
     let currentCategory = 'All';
-    let currentAdminRole = null; // 'admin' or 'owner'
+    let currentAdminRole = null;
+    let registeredFaceHash = null;
+    let activeStream = null;
 
     function saveState() {
       localStorage.setItem('mqb_store_settings', JSON.stringify(storeSettings));
@@ -872,7 +922,7 @@
     }
 
     // --------------------------------------------------------
-    // INITIALIZATION & UI SYNC
+    // BOOTSTRAP APPLICATION
     // --------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
       applyStoreSettings();
@@ -888,6 +938,7 @@
       document.getElementById('ticker-text').textContent = storeSettings.ticker;
       document.getElementById('shop-owner-banner').textContent = storeSettings.owner;
       document.getElementById('shop-address-banner').textContent = storeSettings.address;
+      document.getElementById('footer-brand-title').textContent = storeSettings.name;
       document.getElementById('footer-owner-name').textContent = storeSettings.owner;
       document.getElementById('footer-address').textContent = storeSettings.address;
       document.getElementById('footer-phone1').textContent = '+91 ' + storeSettings.phone1;
@@ -899,7 +950,7 @@
     }
 
     // --------------------------------------------------------
-    // CATEGORIES & PRODUCT CATALOG
+    // CATEGORIES & CATALOG
     // --------------------------------------------------------
     const CATEGORIES = ['All', 'Quran Box', 'Holy Quran', 'Janamaz', 'Tasbih & Rehal'];
 
@@ -960,7 +1011,7 @@
     }
 
     // --------------------------------------------------------
-    // SHOPPING CART & CHECKOUT
+    // CART & CHECKOUT
     // --------------------------------------------------------
     function addToCart(productId) {
       const prod = products.find(p => p.id === productId);
@@ -1054,15 +1105,15 @@
       const box = document.getElementById('payment-info-box');
       if (type === 'UPI') {
         box.innerHTML = `
-          <div class="font-bold text-brand-forest">Pay via UPI / PhonePe / GPay</div>
+          <div class="font-bold text-brand-forest">Pay via UPI / GPay / PhonePe</div>
           <div>UPI ID: <span class="font-mono font-bold text-brand-dark select-all">${storeSettings.upiId}</span></div>
-          <p class="text-gray-500">Scan or transfer to our verified store UPI ID. Keep transaction ID for verification.</p>
+          <p class="text-gray-500">Scan or send to our official verified shop UPI ID.</p>
         `;
       } else {
         box.innerHTML = `
           <div class="font-bold text-brand-forest">Direct Bank Transfer (NEFT/IMPS)</div>
           <div class="font-mono text-brand-dark">${storeSettings.bankDetails}</div>
-          <p class="text-gray-500">Dispatch initiates upon payment credit verification.</p>
+          <p class="text-gray-500">Order is confirmed once transfer is verified.</p>
         `;
       }
     }
@@ -1076,7 +1127,6 @@
       const paymentType = document.querySelector('input[name="payment-type"]:checked').value;
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-      // Generate order ID
       const orderId = `MQB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
       const newOrder = {
@@ -1089,12 +1139,11 @@
         paymentType,
         total,
         status: "Confirmed",
-        courier: "Hyderabad Express Dispatch",
+        courier: "Hyderabad Local Delivery",
         awb: "PENDING-AWB",
         items: [...cart]
       };
 
-      // Deduct inventory
       cart.forEach(item => {
         const prod = products.find(p => p.id === item.id);
         if (prod) prod.stock = Math.max(0, prod.stock - item.qty);
@@ -1107,7 +1156,6 @@
       renderProductCatalog();
       closeCheckoutModal();
 
-      // Show Success Modal
       document.getElementById('confirmed-order-id').textContent = orderId;
       const waMsg = encodeURIComponent(
         `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*\n\n` +
@@ -1130,7 +1178,7 @@
     }
 
     // --------------------------------------------------------
-    // INVOICE PRINTING & TAX LOOKUP
+    // INVOICE PRINT ENGINE
     // --------------------------------------------------------
     function openInvoiceLookupModal() {
       document.getElementById('invoice-lookup-modal').classList.remove('hidden');
@@ -1181,24 +1229,24 @@
 
           <div style="margin: 25px 0; display: flex; justify-content: space-between; font-size: 13px;">
             <div>
-              <strong style="color: #1E3A2F;">Billed To:</strong><br />
+              <strong style="color: #1E3A2F;">Customer Details:</strong><br />
               ${order.customerName}<br />
               Phone: ${order.phone}<br />
               ${order.email ? 'Email: ' + order.email + '<br />' : ''}
               Address: ${order.address}
             </div>
             <div style="text-align: right;">
-              <strong style="color: #1E3A2F;">Dispatch &amp; Tracking:</strong><br />
+              <strong style="color: #1E3A2F;">Shipping &amp; Logistics:</strong><br />
               Courier: ${order.courier || 'Hyderabad Local Delivery'}<br />
               AWB: ${order.awb || 'Pending'}<br />
-              Payment: ${order.paymentType}
+              Payment Mode: ${order.paymentType}
             </div>
           </div>
 
           <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 25px;">
             <thead>
               <tr style="background-color: #FAF7F2; border-bottom: 1px solid #e2e8f0;">
-                <th style="padding: 10px; text-align: left;">Item Description</th>
+                <th style="padding: 10px; text-align: left;">Item</th>
                 <th style="padding: 10px; text-align: center;">Qty</th>
                 <th style="padding: 10px; text-align: right;">Price</th>
                 <th style="padding: 10px; text-align: right;">Total</th>
@@ -1223,7 +1271,7 @@
           </table>
 
           <div style="border-top: 1px solid #e2e8f0; padding-top: 15px; font-size: 11px; color: #64748b; text-align: center;">
-            <p>Thank you for shopping with MOIN QURAN BOX, Hyderabad. This is a computer-generated invoice.</p>
+            <p>Thank you for shopping with MOIN QURAN BOX, Hyderabad. This is a computer generated invoice.</p>
           </div>
         </div>
       `;
@@ -1236,7 +1284,45 @@
     }
 
     // --------------------------------------------------------
-    // CUSTOMER AUTH & PROFILES
+    // SEARCH DIALOG
+    // --------------------------------------------------------
+    function openSearchModal() {
+      document.getElementById('search-modal').classList.remove('hidden');
+      document.getElementById('store-search-box').focus();
+    }
+
+    function closeSearchModal() {
+      document.getElementById('search-modal').classList.add('hidden');
+    }
+
+    function handleLiveSearch(query) {
+      const q = query.toLowerCase().trim();
+      const list = document.getElementById('search-results-list');
+      if (!q) {
+        list.innerHTML = '';
+        return;
+      }
+      const matches = products.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+      if (matches.length === 0) {
+        list.innerHTML = `<p class="text-xs text-gray-500 py-3">No matching items found.</p>`;
+        return;
+      }
+      list.innerHTML = matches.map(p => `
+        <div class="flex items-center justify-between p-2 hover:bg-brand-cream rounded-lg cursor-pointer border border-brand-border" onclick="addToCart('${p.id}'); closeSearchModal();">
+          <div class="flex items-center gap-2">
+            <img src="${p.image}" class="w-10 h-10 object-cover rounded" />
+            <div>
+              <h5 class="text-xs font-bold text-brand-forest">${p.title}</h5>
+              <span class="text-[11px] text-gray-500">₹${p.price}</span>
+            </div>
+          </div>
+          <button class="text-xs bg-brand-forest text-white px-2.5 py-1 rounded">Add</button>
+        </div>
+      `).join('');
+    }
+
+    // --------------------------------------------------------
+    // CUSTOMER AUTH & STRICT FACE LOGIN
     // --------------------------------------------------------
     function handleUserNavClick() {
       openCustomerAuthModal(activeCustomer ? 'profile' : 'login');
@@ -1257,20 +1343,100 @@
     }
 
     function closeCustomerAuthModal() {
+      stopCamera();
       document.getElementById('customer-auth-modal').classList.add('hidden');
     }
 
     function switchCustomerAuthTab(tab) {
-      if (tab === 'login') {
-        document.getElementById('cx-login-form').classList.remove('hidden');
-        document.getElementById('cx-register-form').classList.add('hidden');
-        document.getElementById('cx-tab-login-btn').className = "flex-1 py-2 text-center text-xs font-bold border-b-2 border-brand-forest text-brand-forest";
-        document.getElementById('cx-tab-register-btn').className = "flex-1 py-2 text-center text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-brand-dark";
+      stopCamera();
+      ['login', 'face', 'register'].forEach(t => {
+        document.getElementById(`cx-${t}-form`).classList.add('hidden');
+        document.getElementById(`cx-tab-${t}-btn`).className = "flex-1 py-2 text-center text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-brand-dark";
+      });
+      document.getElementById(`cx-${tab}-form`).classList.remove('hidden');
+      document.getElementById(`cx-tab-${tab}-btn`).className = "flex-1 py-2 text-center text-xs font-bold border-b-2 border-brand-forest text-brand-forest";
+    }
+
+    async function startCamera(videoElementId) {
+      try {
+        stopCamera();
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: "user" } });
+        activeStream = stream;
+        const video = document.getElementById(videoElementId);
+        video.srcObject = stream;
+        const scanner = document.getElementById('scanner-line');
+        if (scanner) scanner.classList.remove('hidden');
+        const status = document.getElementById('cam-status');
+        if (status) status.classList.add('hidden');
+      } catch (err) {
+        alert("Camera access denied or unsupported on this device: " + err.message);
+      }
+    }
+
+    function stopCamera() {
+      if (activeStream) {
+        activeStream.getTracks().forEach(t => t.stop());
+        activeStream = null;
+      }
+    }
+
+    function computePixelHash(videoElementId) {
+      const video = document.getElementById(videoElementId);
+      const canvas = document.getElementById('hidden-face-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, 100, 100);
+      const data = ctx.getImageData(0, 0, 100, 100).data;
+      
+      let sum = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        sum += (data[i] * 0.299) + (data[i + 1] * 0.587) + (data[i + 2] * 0.114);
+      }
+      return Math.round(sum / (data.length / 4));
+    }
+
+    function captureRegistrationFace() {
+      if (!activeStream) {
+        alert("Please turn on the camera first.");
+        return;
+      }
+      registeredFaceHash = computePixelHash('reg-video');
+      document.getElementById('reg-face-status').textContent = "Face portrait registered successfully!";
+      stopCamera();
+    }
+
+    function captureAndVerifyFace() {
+      const phone = document.getElementById('face-login-phone').value.trim();
+      if (!phone) {
+        alert("Please enter your registered mobile number first.");
+        return;
+      }
+      const user = customers.find(c => c.phone === phone);
+      if (!user) {
+        alert("No registered account found with this mobile number. Please register first.");
+        return;
+      }
+      if (!user.faceHash) {
+        alert("No face ID was registered for this account. Please log in using your password/PIN.");
+        return;
+      }
+      if (!activeStream) {
+        alert("Please open the camera first.");
+        return;
+      }
+
+      const scannedHash = computePixelHash('login-video');
+      const diff = Math.abs(scannedHash - user.faceHash);
+
+      // Strict tolerance threshold checking against specifically this account
+      if (diff <= 18) {
+        stopCamera();
+        activeCustomer = user;
+        saveState();
+        syncCustomerView();
+        closeCustomerAuthModal();
+        alert(`Biometric Verified: Welcome back, ${user.name}!`);
       } else {
-        document.getElementById('cx-login-form').classList.add('hidden');
-        document.getElementById('cx-register-form').classList.remove('hidden');
-        document.getElementById('cx-tab-register-btn').className = "flex-1 py-2 text-center text-xs font-bold border-b-2 border-brand-forest text-brand-forest";
-        document.getElementById('cx-tab-login-btn').className = "flex-1 py-2 text-center text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-brand-dark";
+        alert("Face verification failed: Portrait did not match the registered user for this mobile number.");
       }
     }
 
@@ -1283,18 +1449,27 @@
       const pin = document.getElementById('cx-reg-pin').value.trim();
 
       if (customers.some(c => c.phone === phone)) {
-        alert("An account already exists with this mobile number. Please log in.");
+        alert("An account already exists with this phone number. Please log in.");
         switchCustomerAuthTab('login');
         return;
       }
 
-      const newCust = { id: `CUST-${Date.now()}`, name, phone, email, password: pass, pin: pin || '1234' };
+      const newCust = {
+        id: `CUST-${Date.now()}`,
+        name,
+        phone,
+        email,
+        password: pass,
+        pin: pin || '1234',
+        faceHash: registeredFaceHash
+      };
+
       customers.push(newCust);
       activeCustomer = newCust;
       saveState();
       syncCustomerView();
       closeCustomerAuthModal();
-      alert(`Welcome, ${name}! Your account has been registered.`);
+      alert(`Account created successfully! Welcome, ${name}.`);
     }
 
     function handleCustomerLogin(e) {
@@ -1304,7 +1479,7 @@
 
       const user = customers.find(c => (c.phone === id || c.email === id) && (c.password === pass || c.pin === pass));
       if (!user) {
-        alert("Invalid login details. Please check your credentials.");
+        alert("Invalid login details. Please verify your mobile/email and password.");
         return;
       }
 
@@ -1338,7 +1513,7 @@
       const container = document.getElementById('customer-orders-list');
 
       if (myOrders.length === 0) {
-        container.innerHTML = `<p class="text-xs text-brand-gray py-4 text-center">No orders placed under this phone number yet.</p>`;
+        container.innerHTML = `<p class="text-xs text-brand-gray py-4 text-center">No orders found under this phone number.</p>`;
         return;
       }
 
@@ -1360,11 +1535,6 @@
       `).join('');
     }
 
-    function handleCustomerForgotPasswordPrompt() {
-      const waMsg = encodeURIComponent(`Salam, I need to reset my password for Moin Quran Box online account.`);
-      window.open(`https://wa.me/91${storeSettings.phone1}?text=${waMsg}`, '_blank');
-    }
-
     // --------------------------------------------------------
     // MANAGEMENT PORTAL & ADMIN/OWNER DASHBOARD
     // --------------------------------------------------------
@@ -1381,7 +1551,7 @@
       const user = document.getElementById('portal-username').value.trim();
       const pass = document.getElementById('portal-password').value.trim();
 
-      // Developer Admin: 9290 / 9290
+      // Developer/Admin: 9290 / 9290
       if ((user === 'admin' || user === '9290') && pass === '9290') {
         currentAdminRole = 'admin';
         openAdminDashboard("Developer Admin");
@@ -1397,7 +1567,7 @@
         return;
       }
 
-      alert("Access Denied: Invalid Username or Password");
+      alert("Access Denied: Invalid Username or Security Password");
     }
 
     function openAdminDashboard(roleLabel) {
@@ -1426,7 +1596,7 @@
     }
 
     // --------------------------------------------------------
-    // TAB 1: ADMIN ORDERS ENGINE (RESTORED FULLY)
+    // TAB 1: ADMIN ORDERS VIEW
     // --------------------------------------------------------
     function renderAdminOrders() {
       document.getElementById('dash-orders-count').textContent = orders.length;
@@ -1441,7 +1611,7 @@
 
       const container = document.getElementById('admin-orders-table-container');
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="bg-white p-8 text-center text-gray-500 rounded-xl border border-gray-200">No orders found.</div>`;
+        container.innerHTML = `<div class="bg-white p-8 text-center text-gray-500 rounded-xl border border-gray-200">No matching orders found.</div>`;
         return;
       }
 
@@ -1471,7 +1641,7 @@
               <p class="text-gray-500 line-clamp-1">${o.address}</p>
             </div>
             <div>
-              <strong class="text-gray-700">Order Contents:</strong>
+              <strong class="text-gray-700">Items Ordered:</strong>
               <p class="text-gray-600 line-clamp-1">${o.items.map(i => `${i.title} (x${i.qty})`).join(', ')}</p>
               <p class="font-bold text-brand-forest">Total: ₹${o.total} (${o.paymentType})</p>
             </div>
@@ -1486,10 +1656,10 @@
 
           <div class="flex flex-wrap gap-2 pt-2 border-t text-xs">
             <button onclick="printTaxInvoice('${o.id}')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded font-semibold flex items-center gap-1">
-              <i class="fa-solid fa-print"></i> Print Bill
+              <i class="fa-solid fa-print"></i> Print Invoice
             </button>
             <a href="https://wa.me/91${o.phone}?text=${encodeURIComponent(`Salam ${o.customerName}, your order ${o.id} is ${o.status}. Courier: ${o.courier}, AWB: ${o.awb}. Thank you for shopping with MOIN QURAN BOX.`)}" target="_blank" class="bg-green-50 hover:bg-green-100 text-green-700 px-3 py-1 rounded font-semibold flex items-center gap-1">
-              <i class="fa-brands fa-whatsapp"></i> WhatsApp Customer
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp Tracking
             </a>
           </div>
         </div>
@@ -1520,7 +1690,7 @@
     }
 
     // --------------------------------------------------------
-    // TAB 2: INVENTORY & PRODUCTS ENGINE
+    // TAB 2: ADMIN INVENTORY VIEW
     // --------------------------------------------------------
     function renderAdminInventory() {
       const container = document.getElementById('admin-inventory-list');
@@ -1624,7 +1794,7 @@
     }
 
     function deleteProduct(prodId) {
-      if (confirm("Are you sure you want to remove this product from the store?")) {
+      if (confirm("Are you sure you want to remove this product?")) {
         products = products.filter(p => p.id !== prodId);
         saveState();
         renderAdminInventory();
@@ -1633,7 +1803,7 @@
     }
 
     // --------------------------------------------------------
-    // TAB 3: SALES & REVENUE ANALYTICS
+    // TAB 3: SALES & REVENUE ENGINE
     // --------------------------------------------------------
     let currentSalesPeriod = 'month';
 
@@ -1668,12 +1838,12 @@
     }
 
     function resetSalesMetricsToZero() {
-      if (confirm("Reset current order history to zero (0) sales? This will clear test transactions.")) {
+      if (confirm("Reset current order transactions to zero (0)?")) {
         orders = [];
         saveState();
         renderAdminOrders();
         renderAdminSales();
-        alert("Sales and orders reset to zero.");
+        alert("Sales records have been reset to zero.");
       }
     }
 
@@ -1694,11 +1864,11 @@
         <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap justify-between items-center gap-2">
           <div>
             <h5 class="font-bold text-xs text-brand-forest">${c.name}</h5>
-            <p class="text-[11px] text-gray-500">Phone: ${c.phone} | PIN: ${c.pin}</p>
+            <p class="text-[11px] text-gray-500">Phone: ${c.phone} | PIN: ${c.pin} | Face Registered: ${c.faceHash ? 'Yes' : 'No'}</p>
           </div>
           <div class="flex gap-2">
             <button onclick="overrideCustomerPassword('${c.id}')" class="px-2.5 py-1 bg-amber-50 text-amber-800 rounded font-semibold text-[11px]">
-              Reset Password / PIN
+              Reset PIN
             </button>
             <a href="https://wa.me/91${c.phone}" target="_blank" class="px-2.5 py-1 bg-green-50 text-green-700 rounded font-semibold text-[11px]">
               WhatsApp
@@ -1716,7 +1886,7 @@
         c.pin = newPin.trim();
         saveState();
         renderAdminCustomers();
-        alert(`Password / PIN updated for ${c.name}.`);
+        alert(`PIN updated for ${c.name}.`);
       }
     }
 
