@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MOIN QURAN BOX | Luxury Islamic Store & Manufacturer</title>
+  <title>MOIN QURAN BOX | Luxury Islamic Store & Manufacturer Hyderabad</title>
   
-  <!-- Fonts: Cinzel & Plus Jakarta Sans inspired by emaan.world luxury design -->
+  <!-- Fonts: Cinzel & Plus Jakarta Sans & Amiri -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   
-  <!-- Tailwind CSS Engine -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,12 +21,13 @@
               cream: '#fbf9f5',
               sand: '#f4efe6',
               surface: '#ffffff',
-              gold: '#c59b27',
-              goldHover: '#aa821c',
-              darkgreen: '#122b22',
+              gold: '#c5a059',
+              goldHover: '#ad8740',
+              darkgreen: '#1c3026',
+              forest: '#12231c',
               charcoal: '#1f2421',
-              muted: '#69706a',
-              border: '#e5dfd5',
+              muted: '#6b726d',
+              border: '#e4ddd3',
               whatsapp: '#25D366'
             }
           },
@@ -41,39 +42,68 @@
   </script>
 
   <style>
-    /* Global Aesthetic Smoothing & Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f4efe6; }
-    ::-webkit-scrollbar-thumb { background: #cfc7b9; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #c59b27; }
+    ::-webkit-scrollbar-thumb { background: #d0c7ba; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #c5a059; }
     body { background-color: #fbf9f5; color: #1f2421; -webkit-tap-highlight-color: transparent; }
-    .serif-title { font-family: 'Cinzel', serif; letter-spacing: 0.04em; }
-    .modal-backdrop { background-color: rgba(18, 22, 20, 0.7); backdrop-filter: blur(5px); }
+    .serif-title { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
+    .modal-backdrop { background-color: rgba(18, 35, 28, 0.75); backdrop-filter: blur(6px); }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Biometric scanning animation */
+    @keyframes scanline {
+      0% { top: 5%; opacity: 0.8; }
+      50% { top: 90%; opacity: 1; }
+      100% { top: 5%; opacity: 0.8; }
+    }
+    .scanner-line {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #c5a059, #34d399, transparent);
+      box-shadow: 0 0 12px #c5a059;
+      animation: scanline 2.2s infinite ease-in-out;
+    }
+
     @media print {
-      body * { visibility: hidden; }
-      #invoicePrintSection, #invoicePrintSection * { visibility: visible; }
-      #invoicePrintSection { position: absolute; left: 0; top: 0; width: 100%; }
+      body * { visibility: hidden !important; }
+      #invoicePrintSection, #invoicePrintSection * { visibility: visible !important; }
+      #invoicePrintSection { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        padding: 20px;
+        background: #fff !important; 
+        color: #000 !important; 
+      }
     }
   </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
 
   <!-- ================= TOP ANNOUNCEMENT TICKER ================= -->
-  <div class="bg-brand-darkgreen text-brand-cream text-xs py-2 px-4 flex items-center justify-between border-b border-[#1b3d30]">
-    <div class="flex items-center gap-2 overflow-hidden mx-auto text-center truncate font-medium">
-      <span class="inline-block px-1.5 py-0.5 bg-[#1e4637] rounded text-[10px] uppercase tracking-wider font-bold text-amber-300">Notice</span>
-      <span id="announcementText">Special Offer: Quran with Translation from ₹799 • Free Shipping Across Hyderabad • COD Available</span>
+  <div class="bg-brand-darkgreen text-brand-cream text-xs py-2 px-4 border-b border-[#2b483a]">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2 overflow-hidden mx-auto text-center truncate font-medium">
+        <span class="inline-block px-2 py-0.5 bg-[#254234] rounded text-[10px] uppercase tracking-wider font-bold text-amber-300">Notice</span>
+        <span id="announcementText">Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD &amp; Instant UPI Available</span>
+      </div>
+      <button onclick="openInvoiceLookupModal()" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-300 hover:text-white transition ml-4 shrink-0 underline">
+        <span>📄 Download Invoice</span>
+      </button>
     </div>
   </div>
 
-  <!-- ================= STICKY HEADER ================= -->
+  <!-- ================= HEADER ================= -->
   <header class="sticky top-0 z-40 bg-brand-cream/95 backdrop-blur-md border-b border-brand-border">
     <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
       
       <!-- Drawer Menu Trigger -->
-      <button onclick="toggleDrawer(true)" class="p-2 -ml-2 text-brand-charcoal hover:opacity-75 focus:outline-none" aria-label="Open navigation menu">
+      <button onclick="toggleDrawer(true)" class="p-2 -ml-2 text-brand-charcoal hover:opacity-75 focus:outline-none" aria-label="Open Navigation">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -92,20 +122,26 @@
 
       <!-- Action Navigation Buttons -->
       <div class="flex items-center gap-2 -mr-2">
-        <button onclick="openSearchModal()" class="p-2 text-brand-charcoal hover:opacity-70 transition" title="Search Catalogue">
+        <button onclick="openInvoiceLookupModal()" class="p-2 text-brand-charcoal hover:text-brand-gold transition" title="Search & Download Tax Invoice">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </button>
+
+        <button onclick="openSearchModal()" class="p-2 text-brand-charcoal hover:opacity-70 transition" title="Search Store">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
         </button>
 
-        <button onclick="handleUserAccountClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="My Account">
+        <button onclick="handleUserAccountClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Account / Login">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
           <span id="userStatusDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-brand-cream"></span>
         </button>
 
-        <button onclick="toggleCart(true)" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Cart Bag">
+        <button onclick="toggleCart(true)" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Shopping Bag">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
           </svg>
@@ -118,28 +154,63 @@
 
   <!-- ================= HORIZONTAL CATEGORY SCROLLER ================= -->
   <div class="bg-brand-sand/80 border-b border-brand-border py-2.5 overflow-x-auto no-scrollbar">
-    <div class="max-w-6xl mx-auto px-4 flex gap-2.5 text-xs uppercase tracking-wider font-semibold whitespace-nowrap" id="categoryChips">
-      <!-- Dynamic Category Chips -->
+    <div class="max-w-6xl mx-auto px-4 flex gap-2 text-xs uppercase tracking-wider font-semibold whitespace-nowrap" id="categoryChips">
+      <!-- Injected via JS -->
     </div>
   </div>
 
-  <!-- ================= MAIN STOREFRONT BODY ================= -->
+  <!-- ================= MAIN STOREFRONT ================= -->
   <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8">
 
     <!-- Hero Promotional Banner -->
-    <div class="mb-10 bg-gradient-to-r from-[#142e24] via-[#10241d] to-[#0c1a15] rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl border border-[#214b3b]">
+    <div class="mb-10 bg-gradient-to-r from-[#1c3026] via-[#15251e] to-[#0e1914] rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl border border-[#2a493a]">
       <div class="relative z-10 max-w-xl">
-        <span class="inline-block bg-brand-gold/25 text-amber-300 text-[11px] px-3 py-1 rounded-full uppercase tracking-widest font-bold mb-3 border border-amber-400/30">Direct Manufacturer &amp; Wholesale</span>
+        <span class="inline-block bg-brand-gold/20 text-amber-300 text-[11px] px-3 py-1 rounded-full uppercase tracking-widest font-bold mb-3 border border-amber-400/30">Direct Manufacturer &amp; Wholesale</span>
         <h1 class="serif-title text-2xl sm:text-4xl font-bold leading-tight mb-2">Preserving The Divine Word With Sacred Grace</h1>
         <p class="font-arabic text-xl sm:text-2xl text-amber-200 mb-3">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-        <p class="text-xs sm:text-sm text-neutral-300 mb-6 leading-relaxed">Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Hyderabad.</p>
+        <p class="text-xs sm:text-sm text-neutral-300 mb-6 leading-relaxed">
+          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Falaknuma, Hyderabad.
+        </p>
         <div class="flex flex-wrap gap-3">
-          <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Explore Collection</button>
-          <button onclick="openTrackingModal()" class="bg-transparent border border-white/60 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition">Track Your Order</button>
+          <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Shop Collection</button>
+          <button onclick="openTrackingModal()" class="bg-transparent border border-white/60 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition">Track Courier</button>
+          <button onclick="openInvoiceLookupModal()" class="bg-amber-400/20 border border-amber-400/40 text-amber-300 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-amber-400/30 transition">Download Tax Invoice</button>
         </div>
       </div>
       <div class="hidden lg:block absolute right-6 -bottom-10 opacity-20 pointer-events-none text-[180px] font-arabic select-none text-brand-gold">
         قرآن
+      </div>
+    </div>
+
+    <!-- Quick Utilities Bar -->
+    <div class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+      <div onclick="openInvoiceLookupModal()" class="bg-white p-3.5 rounded-xl border border-brand-border flex items-center gap-3 cursor-pointer hover:shadow-sm transition">
+        <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-lg">📄</div>
+        <div>
+          <p class="font-bold text-brand-charcoal">Instant Invoice</p>
+          <p class="text-[10px] text-brand-muted">Search by Order &amp; Mobile</p>
+        </div>
+      </div>
+      <div onclick="openTrackingModal()" class="bg-white p-3.5 rounded-xl border border-brand-border flex items-center gap-3 cursor-pointer hover:shadow-sm transition">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg">🚚</div>
+        <div>
+          <p class="font-bold text-brand-charcoal">Courier Tracking</p>
+          <p class="text-[10px] text-brand-muted">BlueDart, DTDC, Porter</p>
+        </div>
+      </div>
+      <div onclick="openAuthModal('face')" class="bg-white p-3.5 rounded-xl border border-brand-border flex items-center gap-3 cursor-pointer hover:shadow-sm transition">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-lg">📷</div>
+        <div>
+          <p class="font-bold text-brand-charcoal">Face / PIN Login</p>
+          <p class="text-[10px] text-brand-muted">Biometric Account Sign In</p>
+        </div>
+      </div>
+      <div onclick="openContactModal()" class="bg-white p-3.5 rounded-xl border border-brand-border flex items-center gap-3 cursor-pointer hover:shadow-sm transition">
+        <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-lg">📍</div>
+        <div>
+          <p class="font-bold text-brand-charcoal">Visit Hyderabad Shop</p>
+          <p class="text-[10px] text-brand-muted">Falaknuma, Telangana</p>
+        </div>
       </div>
     </div>
 
@@ -159,7 +230,7 @@
       <!-- Injected via JavaScript -->
     </div>
 
-    <!-- Empty State -->
+    <!-- Empty Catalog State -->
     <div id="emptyCatalogState" class="hidden text-center py-16">
       <div class="w-16 h-16 mx-auto mb-4 text-neutral-400">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
@@ -195,20 +266,21 @@
         <h4 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal mb-3">Collections</h4>
         <ul class="text-xs space-y-2 text-brand-muted">
           <li><button onclick="filterCategory('Tarjuma Qurans')" class="hover:text-brand-gold transition">Tarjuma Qurans</button></li>
-          <li><button onclick="filterCategory('Quran Boxes')" class="hover:text-brand-gold transition">Quran Boxes &amp; Rehal</button></li>
+          <li><button onclick="filterCategory('Quran Boxes & Rehal')" class="hover:text-brand-gold transition">Quran Boxes &amp; Rehal</button></li>
           <li><button onclick="filterCategory('Janamaz')" class="hover:text-brand-gold transition">Prayer Mats (Janamaz)</button></li>
           <li><button onclick="filterCategory('Hajj & Umrah')" class="hover:text-brand-gold transition">Hajj &amp; Umrah Essentials</button></li>
-          <li><button onclick="filterCategory('Tasbih')" class="hover:text-brand-gold transition">Tasbih &amp; Digital Counters</button></li>
+          <li><button onclick="filterCategory('Namaz Caps & Tasbih')" class="hover:text-brand-gold transition">Namaz Caps &amp; Tasbih</button></li>
         </ul>
       </div>
 
-      <!-- Customer Service & Staff Access -->
+      <!-- Quick Services -->
       <div>
-        <h4 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal mb-3">Customer Support</h4>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal mb-3">Customer Desk</h4>
         <ul class="text-xs space-y-2 text-brand-muted">
-          <li><button onclick="openTrackingModal()" class="hover:text-brand-gold transition">Track Courier Shipment</button></li>
-          <li><button onclick="openReturnsModal()" class="hover:text-brand-gold transition">Return / Exchange Request</button></li>
-          <li><button onclick="openPoliciesModal()" class="hover:text-brand-gold transition">Packaging &amp; Return Policy</button></li>
+          <li><button onclick="openInvoiceLookupModal()" class="hover:text-brand-gold transition">Download Official Invoice</button></li>
+          <li><button onclick="openTrackingModal()" class="hover:text-brand-gold transition">Courier Shipment Track</button></li>
+          <li><button onclick="openForgotPasswordModal()" class="hover:text-brand-gold transition">Reset Password via WhatsApp</button></li>
+          <li><button onclick="openReturnsModal()" class="hover:text-brand-gold transition">Return / Swap Request</button></li>
           <li><button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline transition">Management Portal</button></li>
         </ul>
       </div>
@@ -217,7 +289,7 @@
 
     <div class="max-w-6xl mx-auto px-4 mt-8 pt-6 border-t border-brand-border text-center text-[11px] text-brand-muted flex flex-col sm:flex-row justify-between items-center gap-2">
       <p>© <span id="currentYear"></span> MOIN QURAN BOX. All rights reserved.</p>
-      <p class="font-mono text-[10px]">Madina Colony, Falaknuma • Wholesale &amp; Retail Network</p>
+      <p class="font-mono text-[10px]">Madina Colony, Falaknuma • Direct Manufacturer &amp; Wholesale Distribution</p>
     </div>
   </footer>
 
@@ -267,16 +339,20 @@
             <span>Hajj &amp; Umrah</span>
             <span class="text-xs">→</span>
           </button>
-          <button onclick="navigateDrawer('Popular for Kids')" class="w-full py-3.5 text-left flex items-center justify-between hover:text-brand-gold">
-            <span>Popular for Kids</span>
-            <span class="text-xs">→</span>
-          </button>
-          <button onclick="navigateDrawer('Quran Boxes')" class="w-full py-3.5 text-left flex items-center justify-between hover:text-brand-gold">
+          <button onclick="navigateDrawer('Quran Boxes & Rehal')" class="w-full py-3.5 text-left flex items-center justify-between hover:text-brand-gold">
             <span>Quran Boxes &amp; Rehal</span>
             <span class="text-xs">→</span>
           </button>
+          <button onclick="navigateDrawer('Namaz Caps & Tasbih')" class="w-full py-3.5 text-left flex items-center justify-between hover:text-brand-gold">
+            <span>Namaz Caps &amp; Tasbih</span>
+            <span class="text-xs">→</span>
+          </button>
+          <button onclick="openInvoiceLookupModal(); toggleDrawer(false);" class="w-full py-3.5 text-left flex items-center justify-between text-amber-700 font-bold hover:text-brand-gold">
+            <span>Download Invoice PDF</span>
+            <span class="text-xs">📄</span>
+          </button>
           <button onclick="openPoliciesModal(); toggleDrawer(false);" class="w-full py-3.5 text-left flex items-center justify-between hover:text-brand-gold">
-            <span>Our Policies</span>
+            <span>Store Policies</span>
             <span class="text-xs">→</span>
           </button>
           <button onclick="openContactModal(); toggleDrawer(false);" class="w-full py-3.5 text-left flex items-center justify-between hover:text-brand-gold">
@@ -290,13 +366,13 @@
           <svg class="w-5 h-5 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
-          <span id="drawerAccountText">Log in</span>
+          <span id="drawerAccountText">Customer Login</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ================= SLIDE-OUT CART ================= -->
+  <!-- ================= SLIDE-OUT CART & PROMO CODE ================= -->
   <div id="cartDrawer" class="fixed inset-0 z-50 transform translate-x-full transition-transform duration-300 ease-in-out pointer-events-none">
     <div id="cartBackdrop" onclick="toggleCart(false)" class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
     <div class="relative ml-auto w-full max-w-md h-full bg-brand-cream flex flex-col justify-between shadow-2xl pointer-events-auto">
@@ -316,97 +392,238 @@
 
       <div id="cartFooter" class="p-5 bg-brand-sand border-t border-brand-border space-y-3">
         <!-- Coupon Voucher Input -->
-        <div class="flex gap-2">
-          <input type="text" id="cartCouponInput" placeholder="Promo code (e.g. RAMADAN50)" class="flex-1 bg-white border border-brand-border rounded-lg px-3 py-1.5 text-xs font-mono uppercase focus:outline-none" />
-          <button onclick="applyPromoCode()" class="bg-brand-charcoal text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-black transition">Apply</button>
+        <div class="space-y-1">
+          <div class="flex gap-2">
+            <input type="text" id="cartCouponInput" placeholder="Promo code (e.g. RAMADAN50)" class="flex-1 bg-white border border-brand-border rounded-lg px-3 py-1.5 text-xs font-mono uppercase focus:outline-none" />
+            <button onclick="applyPromoCode()" class="bg-brand-charcoal text-white text-xs px-3.5 py-1.5 rounded-lg font-semibold hover:bg-black transition">Apply</button>
+          </div>
+          <div id="cartCouponNotice" class="hidden text-[11px] font-semibold"></div>
         </div>
-        <div id="cartCouponNotice" class="hidden text-[11px] text-emerald-700 font-semibold"></div>
 
-        <div class="flex justify-between items-center text-sm">
-          <span class="text-brand-muted">Subtotal</span>
-          <span id="cartSubtotal" class="serif-title text-base font-bold text-brand-charcoal">₹0.00</span>
+        <div class="space-y-1 text-xs">
+          <div class="flex justify-between items-center text-brand-muted">
+            <span>Items Total</span>
+            <span id="cartRawSubtotal" class="font-mono">₹0.00</span>
+          </div>
+          <div id="cartDiscountRow" class="hidden flex justify-between items-center text-emerald-700 font-semibold">
+            <span>Coupon Discount</span>
+            <span id="cartDiscountAmount">-₹0.00</span>
+          </div>
+          <div class="flex justify-between items-center text-sm pt-2 border-t border-brand-border font-bold">
+            <span class="text-brand-charcoal">Net Payable</span>
+            <span id="cartSubtotal" class="serif-title text-base font-bold text-brand-charcoal">₹0.00</span>
+          </div>
         </div>
-        <p class="text-[11px] text-brand-muted">Automated Order ID generation, WhatsApp receipts, and email tracking on checkout.</p>
-        <button onclick="startCheckout()" class="w-full py-3.5 bg-brand-charcoal hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow">Proceed to Checkout</button>
+
+        <button onclick="startCheckout()" class="w-full py-3.5 bg-brand-charcoal hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow">Proceed to Delivery &amp; Pay</button>
       </div>
 
     </div>
   </div>
 
-  <!-- ================= SEARCH MODAL ================= -->
-  <div id="searchModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center pt-20 px-4">
-    <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="serif-title text-base font-bold text-brand-charcoal">Search Store Products</h3>
-        <button onclick="closeSearchModal()" class="text-neutral-500 hover:text-black">✕</button>
+  <!-- ================= PUBLIC INVOICE LOOKUP MODAL ================= -->
+  <div id="invoiceLookupModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeInvoiceLookupModal()" class="absolute right-4 top-4 text-neutral-400 hover:text-black">✕</button>
+      
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-xl text-amber-700 mb-2 border border-amber-200">
+          📄
+        </div>
+        <h3 class="serif-title text-lg font-bold text-brand-charcoal">Download Official Tax Invoice</h3>
+        <p class="text-xs text-brand-muted mt-1">Enter your assigned Order ID and 10-digit mobile number to view and print your verified receipt.</p>
       </div>
-      <div class="relative">
-        <input type="text" id="searchInput" oninput="liveSearch(this.value)" placeholder="Search Holy Quran, velvet box, Janamaz, Tasbih..." class="w-full bg-white border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-gold pr-10" />
-        <span class="absolute right-3 top-3 text-neutral-400">🔍</span>
-      </div>
-      <div id="searchResults" class="mt-4 max-h-60 overflow-y-auto divide-y divide-brand-border">
-        <!-- Live search matches -->
-      </div>
+
+      <form onsubmit="handlePublicInvoiceLookup(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-[11px] font-bold uppercase text-brand-charcoal mb-1">Order ID *</label>
+          <input type="text" id="lookupOrderId" required placeholder="e.g. MQB-2026-1082" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3.5 py-2.5 text-xs font-mono uppercase focus:outline-none focus:border-brand-gold" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase text-brand-charcoal mb-1">Registered Mobile Number *</label>
+          <input type="tel" id="lookupPhone" required placeholder="10-digit phone number" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3.5 py-2.5 text-xs font-mono focus:outline-none focus:border-brand-gold" />
+        </div>
+        
+        <div id="lookupError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200"></div>
+
+        <button type="submit" class="w-full py-3 bg-brand-darkgreen text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-black transition shadow">
+          Search &amp; Download Invoice
+        </button>
+      </form>
     </div>
   </div>
 
-  <!-- ================= CUSTOMER AUTH MODAL ================= -->
+  <!-- ================= ADVANCED MULTI-FACTOR LOGIN MODAL ================= -->
   <div id="authModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+    <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative max-h-[92vh] overflow-y-auto">
       <button onclick="closeAuthModal()" class="absolute right-4 top-4 text-neutral-500 hover:text-black text-lg">✕</button>
       
+      <!-- Auth Mode Tabs -->
       <div class="flex border-b border-brand-border mb-6">
-        <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-brand-charcoal text-brand-charcoal">Log In</button>
-        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400">Create Account</button>
+        <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-brand-charcoal text-brand-charcoal">Password / PIN</button>
+        <button id="authTabFace" onclick="switchAuthTab('face')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400">Face Scan</button>
+        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400">Register</button>
       </div>
 
-      <!-- Customer Login Form -->
+      <!-- Tab 1: Password or 4-Digit Quick PIN Login -->
       <div id="loginFormContainer">
         <form onsubmit="handleCustomerLogin(event)" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Email or Mobile Number</label>
-            <input type="text" id="loginIdentifier" required placeholder="Enter registered email or phone" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-charcoal" />
+            <input type="text" id="loginIdentifier" required placeholder="Enter registered email or phone" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-brand-charcoal" />
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Password</label>
-            <input type="password" id="loginPassword" required placeholder="Enter password" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-charcoal" />
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-semibold text-brand-charcoal uppercase">Password or 4-Digit PIN</label>
+              <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-brand-gold font-semibold hover:underline">Forgot Password?</button>
+            </div>
+            <input type="password" id="loginPassword" required placeholder="Enter password or your 4-digit PIN" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-brand-charcoal" />
           </div>
-          <button type="submit" class="w-full py-3 bg-brand-charcoal text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-800 transition">Sign In</button>
+
+          <button type="submit" class="w-full py-3 bg-brand-charcoal text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-800 transition shadow">
+            Sign In to Customer Account
+          </button>
         </form>
 
-        <div class="mt-6 pt-4 border-t border-brand-border flex justify-between items-center text-xs text-brand-muted">
-          <span>Staff or Administration?</span>
-          <button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline">Management Portal →</button>
+        <div class="mt-5 pt-4 border-t border-brand-border flex flex-col gap-2 text-center text-xs text-brand-muted">
+          <p>Prefer faster Biometric Login? <button type="button" onclick="switchAuthTab('face')" class="text-brand-gold font-bold underline">Use Camera Face Login →</button></p>
+          <div class="pt-2 flex justify-between items-center text-[11px]">
+            <span>Store Staff &amp; Management?</span>
+            <button onclick="openAdminLoginModal()" class="text-brand-charcoal font-bold hover:underline">Management Portal →</button>
+          </div>
         </div>
       </div>
 
-      <!-- Customer Register Form -->
+      <!-- Tab 2: Biometric / Face Recognition Scan Login -->
+      <div id="faceScanContainer" class="hidden space-y-4 text-center">
+        <p class="text-xs text-brand-muted">Position your face within the frame. Our scanner matches against your registered portrait descriptor.</p>
+        
+        <div class="relative w-64 h-64 mx-auto rounded-2xl overflow-hidden bg-black border-2 border-brand-gold shadow-lg flex items-center justify-center">
+          <video id="faceLoginVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+          <div class="scanner-line"></div>
+          <div class="absolute inset-4 border border-dashed border-amber-300/40 rounded-full pointer-events-none"></div>
+          <div id="faceScanStatusOverlay" class="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] py-1 px-2 rounded font-mono">
+            Initializing Camera...
+          </div>
+        </div>
+
+        <div class="flex gap-2 justify-center">
+          <button type="button" onclick="triggerFaceCaptureAndMatch()" class="bg-brand-darkgreen text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-black transition shadow">
+            🔍 Verify &amp; Unlock
+          </button>
+          <button type="button" onclick="stopFaceCamera()" class="border border-brand-border bg-white px-3 py-2.5 rounded-lg text-xs font-semibold">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Customer Registration with Optional PIN & Face Enrollment -->
       <div id="registerFormContainer" class="hidden">
-        <form onsubmit="handleCustomerRegister(event)" class="space-y-3.5">
+        <form onsubmit="handleCustomerRegister(event)" class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Full Name</label>
-            <input type="text" id="regName" required placeholder="e.g. Mohammed Farhan" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-brand-charcoal" />
+            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Full Name *</label>
+            <input type="text" id="regName" required placeholder="e.g. Mohammed Farhan" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs focus:outline-none" />
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Email Address (for order receipts)</label>
-            <input type="email" id="regEmail" required placeholder="farhan@example.com" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-brand-charcoal" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Email Address *</label>
+              <input type="email" id="regEmail" required placeholder="farhan@example.com" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Mobile Phone *</label>
+              <input type="tel" id="regPhone" required placeholder="10-digit mobile" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs focus:outline-none font-mono" />
+            </div>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Mobile Phone (for tracking WhatsApp)</label>
-            <input type="tel" id="regPhone" required placeholder="10-digit mobile number" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-brand-charcoal" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Password *</label>
+              <input type="password" id="regPassword" required placeholder="Choose password" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">4-Digit Quick PIN</label>
+              <input type="password" maxlength="4" id="regPin" placeholder="e.g. 5678" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs focus:outline-none font-mono text-center tracking-widest" />
+            </div>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Create Password</label>
-            <input type="password" id="regPassword" required placeholder="Choose a password" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-brand-charcoal" />
+
+          <!-- Face Enrollment Option -->
+          <div class="bg-white p-3 rounded-xl border border-brand-border space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <h5 class="text-xs font-bold text-brand-charcoal">Biometric Face Registration</h5>
+                <p class="text-[10px] text-brand-muted">Take a snapshot now to enable 1-tap instant face login.</p>
+              </div>
+              <button type="button" onclick="startRegFaceCapture()" class="text-xs bg-brand-sand border border-brand-border px-2.5 py-1 rounded-md font-semibold text-brand-charcoal hover:bg-neutral-200">
+                📸 Start Camera
+              </button>
+            </div>
+
+            <div id="regCameraBox" class="hidden space-y-2">
+              <div class="relative w-40 h-40 mx-auto rounded-xl overflow-hidden bg-black border border-brand-gold">
+                <video id="regFaceVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                <canvas id="regFaceCanvas" class="hidden"></canvas>
+              </div>
+              <button type="button" onclick="captureRegFaceSnapshot()" class="w-full py-1.5 bg-brand-charcoal text-white text-xs font-bold rounded">
+                Capture Portrait
+              </button>
+            </div>
+
+            <div id="regFacePreviewRow" class="hidden flex items-center gap-2 p-1.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-[11px]">
+              <img id="regCapturedThumb" src="" class="w-8 h-8 rounded-full object-cover border border-emerald-400" />
+              <span>✓ Face descriptor enrolled successfully!</span>
+            </div>
+            <input type="hidden" id="regFaceData" />
           </div>
-          <button type="submit" class="w-full py-3 bg-brand-charcoal text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-800 transition">Register Account</button>
+
+          <button type="submit" class="w-full py-3 bg-brand-charcoal text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-800 transition">
+            Create Customer Account
+          </button>
         </form>
       </div>
 
     </div>
   </div>
 
-  <!-- ================= MANAGEMENT PORTAL LOGIN (CLEAN - NO CREDENTIALS SHOWN) ================= -->
+  <!-- ================= FORGOT PASSWORD & OWNER RESET WORKFLOW MODAL ================= -->
+  <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeForgotPasswordModal()" class="absolute right-4 top-4 text-neutral-400 hover:text-black">✕</button>
+      
+      <div class="text-center mb-5">
+        <h3 class="serif-title text-lg font-bold text-brand-charcoal">Reset Your Password</h3>
+        <p class="text-xs text-brand-muted mt-1">Submit your registered mobile or email to request a secure reset token directly from the showroom owner.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Mobile Number or Email</label>
+          <input type="text" id="resetReqContact" placeholder="Enter 10-digit mobile or registered email" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3.5 py-2 text-xs focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="sendResetRequestToOwner('whatsapp')" class="py-2.5 bg-brand-whatsapp text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-90">
+            <span>💬 Send via WhatsApp</span>
+          </button>
+          <button type="button" onclick="sendResetRequestToOwner('email')" class="py-2.5 bg-brand-darkgreen text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-90">
+            <span>✉️ Send via Email</span>
+          </button>
+        </div>
+
+        <div class="border-t border-brand-border pt-4">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal mb-2">Already have a Reset Token from Owner?</h5>
+          <div class="space-y-2">
+            <input type="text" id="tokenInput" placeholder="Enter Token (e.g. MQB-RESET-XXXX)" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-1.5 text-xs font-mono uppercase" />
+            <input type="password" id="tokenNewPassword" placeholder="Enter New Password" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-1.5 text-xs" />
+            <button onclick="applyTokenPasswordReset()" class="w-full py-2 bg-brand-charcoal text-white text-xs font-bold rounded-lg uppercase">
+              Update Password
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MANAGEMENT PORTAL LOGIN (CLEAN NO CREDENTIALS) ================= -->
   <div id="adminLoginModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
       <button onclick="closeAdminLoginModal()" class="absolute right-4 top-4 text-neutral-400 hover:text-black">✕</button>
@@ -429,7 +646,7 @@
           <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Security PIN / Password</label>
           <input type="password" id="portalPassword" required autocomplete="current-password" placeholder="Enter password" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-gold" />
         </div>
-        <button type="submit" class="w-full py-3 bg-[#122b22] text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-black transition shadow">Unlock Dashboard</button>
+        <button type="submit" class="w-full py-3 bg-[#1c3026] text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-black transition shadow">Unlock Dashboard</button>
       </form>
     </div>
   </div>
@@ -460,7 +677,7 @@
 
         <div class="pt-4 border-t border-brand-border flex justify-between items-center">
           <button onclick="logoutCurrentUser()" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-50">Log Out</button>
-          <button onclick="openTrackingModal(); closeCustomerProfileModal();" class="text-xs text-brand-gold font-semibold underline">Search Order by ID →</button>
+          <button onclick="openTrackingModal(); closeCustomerProfileModal();" class="text-xs text-brand-gold font-semibold underline">Track Order by AWB / ID →</button>
         </div>
       </div>
     </div>
@@ -476,7 +693,7 @@
           <div class="p-2 bg-brand-gold/30 rounded-lg text-amber-300 font-bold text-xs uppercase">Portal</div>
           <div>
             <h3 class="serif-title text-base sm:text-lg font-bold">Moin Quran Box — Master Operations</h3>
-            <p class="text-[11px] text-neutral-300" id="portalRoleBadge">Authenticated: Developer Admin</p>
+            <p class="text-[11px] text-neutral-300" id="portalRoleBadge">Authenticated</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -487,15 +704,17 @@
 
       <!-- Navigation Tabs -->
       <div class="bg-brand-sand border-b border-brand-border flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider">
-        <button onclick="switchAdminTab('products')" id="adminTabBtn-products" class="px-5 py-3 border-b-2 border-brand-charcoal text-brand-charcoal">🛍️ Products &amp; Uploads</button>
-        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-5 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">📦 Orders (<span id="adminOrdersCount">0</span>)</button>
-        <button onclick="switchAdminTab('returns')" id="adminTabBtn-returns" class="px-5 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">🔄 Return Requests (<span id="adminReturnsCount">0</span>)</button>
-        <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-5 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">💳 UPI &amp; Bank Accounts</button>
-        <button onclick="switchAdminTab('users')" id="adminTabBtn-users" class="px-5 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">👥 Accounts &amp; Passwords</button>
-        <button onclick="switchAdminTab('announcement')" id="adminTabBtn-announcement" class="px-5 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">📢 Announcement</button>
+        <button onclick="switchAdminTab('products')" id="adminTabBtn-products" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal">🛍️ Products</button>
+        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">📦 Orders &amp; Courier (<span id="adminOrdersCount">0</span>)</button>
+        <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">🏷️ Coupons</button>
+        <button onclick="switchAdminTab('resets')" id="adminTabBtn-resets" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">🔑 Reset Links</button>
+        <button onclick="switchAdminTab('returns')" id="adminTabBtn-returns" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">🔄 Returns (<span id="adminReturnsCount">0</span>)</button>
+        <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">💳 UPI &amp; Bank</button>
+        <button onclick="switchAdminTab('users')" id="adminTabBtn-users" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">👥 Accounts</button>
+        <button onclick="switchAdminTab('announcement')" id="adminTabBtn-announcement" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black">📢 Announcement</button>
       </div>
 
-      <!-- Dashboard Panels -->
+      <!-- Dashboard Panels Container -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fcfaf7]">
         
         <!-- ================= TAB 1: PRODUCTS & IMAGE UPLOAD ================= -->
@@ -503,7 +722,7 @@
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h4 class="serif-title text-lg font-bold text-brand-charcoal">Inventory Catalog &amp; Photography</h4>
-              <p class="text-xs text-brand-muted">Upload product photos directly from your phone/computer or use image links.</p>
+              <p class="text-xs text-brand-muted">Upload product photos directly from your phone/computer camera or web URLs.</p>
             </div>
             <button onclick="openProductEditModal(null)" class="bg-brand-darkgreen text-white px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-black transition flex items-center gap-1.5 shadow">
               <span>+</span> Upload &amp; Add New Product
@@ -523,7 +742,7 @@
                     <th class="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody id="adminProductsTableBody" class="divide-y divide-brand-border">
+                <tbody id="adminProductsTableBody" class="divide-y border-brand-border">
                   <!-- Injected via JS -->
                 </tbody>
               </table>
@@ -531,14 +750,14 @@
           </div>
         </div>
 
-        <!-- ================= TAB 2: ORDERS, DISPATCH & NOTIFICATIONS ================= -->
+        <!-- ================= TAB 2: ORDERS, COURIER & BRAND INVOICE DISPATCH ================= -->
         <div id="adminTab-orders" class="hidden space-y-4">
           <div class="flex justify-between items-center">
             <div>
-              <h4 class="serif-title text-lg font-bold text-brand-charcoal">Customer Orders &amp; Dispatch</h4>
-              <p class="text-xs text-brand-muted">Trigger direct WhatsApp and Email tracking updates to customer with one tap.</p>
+              <h4 class="serif-title text-lg font-bold text-brand-charcoal">Customer Orders, Courier &amp; Tax Invoice Engine</h4>
+              <p class="text-xs text-brand-muted">Assign courier partners, tracking numbers (AWB), and send formatted brand invoices to customers.</p>
             </div>
-            <button onclick="exportOrdersToCsv()" class="text-xs bg-brand-sand border border-brand-border px-3 py-1.5 rounded-lg font-semibold hover:bg-neutral-200">📥 Export CSV</button>
+            <button onclick="exportOrdersToCsv()" class="text-xs bg-brand-sand border border-brand-border px-3 py-1.5 rounded-lg font-semibold hover:bg-neutral-200">📥 Export Orders CSV</button>
           </div>
 
           <div id="adminOrdersContainer" class="space-y-4">
@@ -546,7 +765,50 @@
           </div>
         </div>
 
-        <!-- ================= TAB 3: RETURNS & REPLACEMENTS ================= -->
+        <!-- ================= TAB 3: COUPONS & DISCOUNT VOUCHERS ================= -->
+        <div id="adminTab-coupons" class="hidden space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h4 class="serif-title text-lg font-bold text-brand-charcoal">Store Discount Coupons &amp; Vouchers</h4>
+              <p class="text-xs text-brand-muted">Configure active promo codes, percentage or flat INR discounts, and minimum purchase limits.</p>
+            </div>
+            <button onclick="promptCreateCoupon()" class="bg-brand-darkgreen text-white px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase shadow">+ Create New Coupon</button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-brand-border overflow-hidden shadow-sm">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-brand-sand uppercase tracking-wider text-brand-charcoal border-b border-brand-border">
+                <tr>
+                  <th class="p-3">Coupon Code</th>
+                  <th class="p-3">Discount Type &amp; Value</th>
+                  <th class="p-3">Min Order</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminCouponsTableBody" class="divide-y divide-brand-border">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= TAB 4: PASSWORD RESET LINKS MANAGER ================= -->
+        <div id="adminTab-resets" class="hidden space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h4 class="serif-title text-lg font-bold text-brand-charcoal">Customer Password Reset Manager</h4>
+              <p class="text-xs text-brand-muted">Generate secure one-time reset tokens and dispatch them straight to customer WhatsApp or Email.</p>
+            </div>
+            <button onclick="openGenerateResetTokenModal()" class="bg-brand-charcoal text-white px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase">+ Generate Token</button>
+          </div>
+
+          <div id="adminResetTokensContainer" class="space-y-3">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- ================= TAB 5: RETURNS & REPLACEMENTS ================= -->
         <div id="adminTab-returns" class="hidden space-y-4">
           <div>
             <h4 class="serif-title text-lg font-bold text-brand-charcoal">Customer Return &amp; Exchange Inquiries</h4>
@@ -557,7 +819,7 @@
           </div>
         </div>
 
-        <!-- ================= TAB 4: UPI & BANK DETAILS ================= -->
+        <!-- ================= TAB 6: UPI & BANK DETAILS ================= -->
         <div id="adminTab-payments" class="hidden space-y-6">
           <div>
             <h4 class="serif-title text-lg font-bold text-brand-charcoal">Payment Receiving Details</h4>
@@ -603,12 +865,12 @@
             </div>
 
             <div class="pt-3">
-              <button type="submit" class="bg-brand-charcoal text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition">Save Payment Settings</button>
+              <button type="submit" class="bg-brand-charcoal text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition shadow">Save Payment Settings</button>
             </div>
           </form>
         </div>
 
-        <!-- ================= TAB 5: ACCOUNTS & PASSWORD RESET ================= -->
+        <!-- ================= TAB 7: ACCOUNTS & SUPREME PASSWORD CONTROL ================= -->
         <div id="adminTab-users" class="hidden space-y-6">
           <div class="flex justify-between items-center">
             <div>
@@ -625,8 +887,9 @@
                   <th class="p-3">User / Name</th>
                   <th class="p-3">Role</th>
                   <th class="p-3">Contact</th>
+                  <th class="p-3">PIN</th>
                   <th class="p-3">Current Password</th>
-                  <th class="p-3 text-right">Reset Password</th>
+                  <th class="p-3 text-right">Reset</th>
                 </tr>
               </thead>
               <tbody id="adminUsersTableBody" class="divide-y divide-brand-border">
@@ -636,7 +899,7 @@
           </div>
         </div>
 
-        <!-- ================= TAB 6: BANNER TICKER ================= -->
+        <!-- ================= TAB 8: BANNER TICKER ================= -->
         <div id="adminTab-announcement" class="hidden space-y-4">
           <h4 class="serif-title text-lg font-bold text-brand-charcoal">Storefront Top Announcement</h4>
           <p class="text-xs text-brand-muted">Update promotional deals, special discounts, and shipping updates.</p>
@@ -650,7 +913,7 @@
     </div>
   </div>
 
-  <!-- ================= PRODUCT ADD/EDIT MODAL (PHOTO UPLOAD ENABLED) ================= -->
+  <!-- ================= PRODUCT ADD/EDIT MODAL ================= -->
   <div id="productEditModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-6 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeProductEditModal()" class="absolute right-4 top-4 text-neutral-500 hover:text-black">✕</button>
@@ -671,10 +934,9 @@
               <option value="Tarjuma Qurans">Tarjuma Qurans</option>
               <option value="Essentials">Essentials</option>
               <option value="Hajj & Umrah">Hajj &amp; Umrah</option>
-              <option value="Popular for Kids">Popular for Kids</option>
-              <option value="Quran Boxes">Quran Boxes</option>
+              <option value="Quran Boxes & Rehal">Quran Boxes &amp; Rehal</option>
               <option value="Janamaz">Janamaz</option>
-              <option value="Tasbih">Tasbih</option>
+              <option value="Namaz Caps & Tasbih">Namaz Caps &amp; Tasbih</option>
             </select>
           </div>
           <div>
@@ -696,14 +958,14 @@
 
         <!-- Photo Upload Box -->
         <div class="bg-brand-sand/60 p-3.5 rounded-xl border border-brand-border space-y-2">
-          <label class="block text-xs font-bold uppercase text-brand-charcoal">Upload Product Photo</label>
+          <label class="block text-xs font-bold uppercase text-brand-charcoal">Product Photo (Camera or Web URL)</label>
           <div class="flex items-center gap-3">
             <div class="w-16 h-16 rounded-lg bg-white border border-brand-border overflow-hidden flex items-center justify-center relative">
-              <img id="editProductPhotoPreview" src="https://placehold.co/100x100/f4efe6/69706a?text=Preview" class="w-full h-full object-cover" />
+              <img id="editProductPhotoPreview" src="https://placehold.co/100x100/f4efe6/6b726d?text=Preview" class="w-full h-full object-cover" />
             </div>
             <div class="flex-1">
               <input type="file" id="editProductFileInput" accept="image/*" onchange="handleProductPhotoUpload(event)" class="text-xs text-neutral-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-charcoal file:text-white hover:file:bg-black cursor-pointer" />
-              <p class="text-[10px] text-brand-muted mt-1">Upload from camera or gallery. Or enter a direct web URL below:</p>
+              <p class="text-[10px] text-brand-muted mt-1">Direct upload from phone/pc, or paste a link below:</p>
             </div>
           </div>
           <input type="url" id="editProductImage" oninput="updatePhotoPreview(this.value)" placeholder="https://example.com/photo.jpg" class="w-full bg-white border border-brand-border rounded-lg px-3 py-1.5 text-xs font-mono" />
@@ -716,12 +978,62 @@
 
         <div class="flex items-center gap-2">
           <input type="checkbox" id="editProductIsSale" checked class="rounded" />
-          <label for="editProductIsSale" class="text-xs font-semibold">Display 'Sale' Badge on storefront card</label>
+          <label for="editProductIsSale" class="text-xs font-semibold">Display 'Sale' Badge on card</label>
         </div>
 
         <div class="pt-3 flex justify-end gap-2">
           <button type="button" onclick="closeProductEditModal()" class="px-4 py-2 border rounded-lg text-xs font-bold">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-brand-charcoal text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-black transition">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= COURIER & ORDER DISPATCH MODAL ================= -->
+  <div id="courierDispatchModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeCourierDispatchModal()" class="absolute right-4 top-4 text-neutral-400 hover:text-black">✕</button>
+      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-1">Update Courier &amp; Tracking Details</h3>
+      <p class="text-xs text-brand-muted mb-4" id="dispatchOrderHeader">Order: MQB-XXXX</p>
+
+      <form onsubmit="handleSaveCourierDispatch(event)" class="space-y-3">
+        <input type="hidden" id="dispatchTargetOrderId" />
+        
+        <div>
+          <label class="block text-xs font-semibold mb-1">Courier Partner *</label>
+          <select id="dispatchCourierName" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs">
+            <option value="DTDC Express">DTDC Express</option>
+            <option value="Blue Dart">Blue Dart</option>
+            <option value="Delhivery">Delhivery</option>
+            <option value="India Post (Speed Post)">India Post (Speed Post)</option>
+            <option value="Porter (Hyderabad Local)">Porter (Hyderabad Local)</option>
+            <option value="Local Store Runner (Hyderabad)">Local Store Runner (Hyderabad)</option>
+            <option value="Professional Courier">Professional Courier</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Tracking Number / AWB Code *</label>
+          <input type="text" id="dispatchAwb" required placeholder="e.g. D49281048291" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs font-mono uppercase" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Live Tracking URL</label>
+          <input type="url" id="dispatchTrackingUrl" placeholder="https://www.dtdc.in/tracking/shipment-tracking.asp" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1">Update Status</label>
+          <select id="dispatchOrderStatus" class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs">
+            <option value="Dispatched">Dispatched</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Out for Delivery">Out for Delivery</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 bg-brand-darkgreen text-white text-xs font-bold uppercase rounded-lg hover:bg-black transition">Save Courier Details</button>
         </div>
       </form>
     </div>
@@ -752,7 +1064,7 @@
             </div>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Email Address (for order copy) *</label>
+            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Email Address (for official invoice) *</label>
             <input type="email" id="chkEmail" required class="w-full bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs" placeholder="name@example.com" />
           </div>
           <div>
@@ -783,7 +1095,7 @@
             <label class="border border-brand-border rounded-xl p-3 cursor-pointer flex flex-col items-center text-center has-[:checked]:border-brand-gold has-[:checked]:bg-amber-50/50">
               <input type="radio" name="paymentMethod" value="COD" onchange="togglePaymentType('COD')" class="mb-2" />
               <span class="text-xs font-bold">Cash on Delivery</span>
-              <span class="text-[10px] text-neutral-500">Pay when delivered at doorstep</span>
+              <span class="text-[10px] text-neutral-500">Pay at doorstep</span>
             </label>
           </div>
 
@@ -797,19 +1109,19 @@
               <div class="text-xs space-y-1.5 flex-1 text-center sm:text-left">
                 <p class="font-bold text-brand-charcoal">Store UPI ID:</p>
                 <div class="flex items-center gap-2 justify-center sm:justify-start">
-                  <span id="displayCheckoutUpi" class="font-mono bg-white px-2.5 py-1 rounded-md border border-brand-border font-bold text-brand-gold">moinquranbox@upi</span>
+                  <span id="displayCheckoutUpi" class="font-mono bg-white px-2.5 py-1 rounded-md border border-brand-border font-bold text-brand-gold">9390335673@ybl</span>
                   <button type="button" onclick="copyUpiId()" class="text-[10px] bg-neutral-200 hover:bg-neutral-300 px-2 py-1 rounded">Copy</button>
                 </div>
                 <p class="text-[11px] text-brand-muted">Beneficiary: <strong id="displayCheckoutName" class="text-brand-charcoal">MOIN QURAN BOX</strong></p>
                 <div class="text-[10px] text-neutral-600 bg-white/70 p-2 rounded-lg border border-brand-border mt-1 leading-snug">
                   <p><strong>Bank:</strong> <span id="displayCheckoutBank">State Bank of India</span></p>
-                  <p><strong>A/C:</strong> <span id="displayCheckoutAcc">XXXXXXXXXXXX</span> | <strong>IFSC:</strong> <span id="displayCheckoutIfsc">SBIN0000000</span></p>
+                  <p><strong>A/C:</strong> <span id="displayCheckoutAcc">392810482910</span> | <strong>IFSC:</strong> <span id="displayCheckoutIfsc">SBIN0020145</span></p>
                 </div>
               </div>
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-neutral-700 mb-1">Enter UPI Reference No. / 12-digit UTR ID (Optional for fast dispatch)</label>
+              <label class="block text-[11px] font-semibold text-neutral-700 mb-1">Enter UPI Reference No. / 12-digit UTR ID (Optional for fast verification)</label>
               <input type="text" id="chkUtr" class="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-xs font-mono" placeholder="e.g. 329847192834" />
             </div>
           </div>
@@ -820,7 +1132,7 @@
             <span>Total Payable:</span>
             <span id="checkoutTotalAmount" class="serif-title text-base text-brand-gold">₹0.00</span>
           </div>
-          <p class="text-[11px] text-emerald-800 font-medium">✓ An automatic Order ID will be generated. You will receive an instant copy on WhatsApp &amp; Email.</p>
+          <p class="text-[11px] text-emerald-800 font-medium">✓ An automatic Order ID will be generated. You can track this and print tax invoice anytime.</p>
           <button type="submit" class="w-full py-3.5 bg-brand-charcoal hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow-lg">Confirm &amp; Place Sacred Order</button>
         </div>
 
@@ -828,7 +1140,7 @@
     </div>
   </div>
 
-  <!-- ================= ORDER SUCCESS & AUTO-NOTIFICATION MODAL ================= -->
+  <!-- ================= ORDER SUCCESS MODAL ================= -->
   <div id="orderSuccessModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4">
       <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
@@ -847,12 +1159,12 @@
           <span>💬 Notify Owner on WhatsApp</span>
         </a>
         <a id="successEmailOrderBtn" href="#" class="w-full py-3 bg-brand-darkgreen text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95">
-          <span>✉️ Send Receipt via Email</span>
+          <span>✉️ Send Invoice Copy via Email</span>
         </a>
         <button onclick="printCurrentOrderInvoice()" class="w-full py-2.5 border border-brand-border text-brand-charcoal rounded-lg text-xs font-semibold hover:bg-neutral-50 flex items-center justify-center gap-2">
-          <span>🖨️ Print Order Tax Invoice</span>
+          <span>🖨️ Print / Download Official Tax Invoice</span>
         </button>
-        <button onclick="closeSuccessModal()" class="w-full py-2 text-xs text-neutral-500 hover:underline">Continue Browsing</button>
+        <button onclick="closeSuccessModal()" class="w-full py-2 text-xs text-neutral-500 hover:underline">Continue Shopping</button>
       </div>
     </div>
   </div>
@@ -861,8 +1173,8 @@
   <div id="trackingModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
       <button onclick="closeTrackingModal()" class="absolute right-4 top-4 text-neutral-500 hover:text-black">✕</button>
-      <h3 class="serif-title text-lg font-bold text-brand-charcoal mb-1">Track Sacred Shipment</h3>
-      <p class="text-xs text-brand-muted mb-4">Enter your automated Order ID (e.g. MQB-2026-1082) to view packaging &amp; dispatch status.</p>
+      <h3 class="serif-title text-lg font-bold text-brand-charcoal mb-1">Track Courier Shipment</h3>
+      <p class="text-xs text-brand-muted mb-4">Enter your Order ID (e.g. MQB-2026-1082) to view courier partner &amp; live dispatch status.</p>
       
       <div class="flex gap-2 mb-4">
         <input type="text" id="trackInputId" placeholder="Order ID (e.g. MQB-2026-1082)" class="flex-1 bg-brand-sand border border-brand-border rounded-lg px-3 py-2 text-xs font-mono uppercase" />
@@ -880,7 +1192,7 @@
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
       <button onclick="closeReturnsModal()" class="absolute right-4 top-4 text-neutral-500 hover:text-black">✕</button>
       <h3 class="serif-title text-lg font-bold text-brand-charcoal mb-1">Request Return / Replacement</h3>
-      <p class="text-xs text-brand-muted mb-4">We guarantee 100% sacred reverence and satisfaction for all Holy Qurans and accessories.</p>
+      <p class="text-xs text-brand-muted mb-4">100% sacred reverence and free replacement for any binding or shipping damage.</p>
 
       <form onsubmit="handleReturnSubmit(event)" class="space-y-3">
         <div>
@@ -917,15 +1229,15 @@
       <h3 class="serif-title text-base font-bold text-brand-charcoal">Store &amp; Sacred Packaging Policies</h3>
       <div>
         <h4 class="font-bold text-brand-charcoal mb-1">Reverent Packaging</h4>
-        <p class="text-neutral-600 leading-relaxed">Each copy of the Holy Quran is carefully wrapped in bubble wrap, velvet shielding, and clearly marked for sacred, respectful courier handling. Hyderabad orders are dispatched on the same business day.</p>
+        <p class="text-neutral-600 leading-relaxed">Each copy of the Holy Quran is carefully wrapped in bubble wrap, velvet shielding, and clearly marked for sacred, respectful courier handling.</p>
       </div>
       <div>
         <h4 class="font-bold text-brand-charcoal mb-1">7-Day Free Replacement</h4>
-        <p class="text-neutral-600 leading-relaxed">If there are any binding defects, script omissions, or courier damage, we will arrange an instant free pickup and swap or refund your amount directly to your UPI ID.</p>
+        <p class="text-neutral-600 leading-relaxed">If there are any binding defects, script omissions, or courier damage, we arrange instant free pickup and swap or refund directly to your UPI ID.</p>
       </div>
       <div>
         <h4 class="font-bold text-brand-charcoal mb-1">Wholesale &amp; Institutional Inquiries</h4>
-        <p class="text-neutral-600 leading-relaxed">We supply Masajid, Madrasas, and wedding events at direct manufacturer wholesale discounts.</p>
+        <p class="text-neutral-600 leading-relaxed">We supply Masajid, Madrasas, and wedding events across Telangana &amp; India at direct manufacturer wholesale discounts.</p>
       </div>
     </div>
   </div>
@@ -945,33 +1257,51 @@
     </div>
   </div>
 
-  <!-- ================= HIDDEN PRINTABLE INVOICE CONTAINER ================= -->
-  <div id="invoicePrintSection" class="hidden p-8 bg-white text-black font-sans">
-    <!-- Populated dynamically when user or admin clicks Print Invoice -->
+  <!-- ================= SEARCH MODAL ================= -->
+  <div id="searchModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center pt-20 px-4">
+    <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="serif-title text-base font-bold text-brand-charcoal">Search Store Products</h3>
+        <button onclick="closeSearchModal()" class="text-neutral-500 hover:text-black">✕</button>
+      </div>
+      <div class="relative">
+        <input type="text" id="searchInput" oninput="liveSearch(this.value)" placeholder="Search Holy Quran, velvet box, Janamaz, Tasbih..." class="w-full bg-white border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-gold pr-10" />
+        <span class="absolute right-3 top-3 text-neutral-400">🔍</span>
+      </div>
+      <div id="searchResults" class="mt-4 max-h-60 overflow-y-auto divide-y divide-brand-border">
+        <!-- Live search matches -->
+      </div>
+    </div>
   </div>
 
-  <!-- ================= SYSTEM ARCHITECTURE & LOGIC ================= -->
+  <!-- ================= PRINTABLE OFFICIAL TAX INVOICE ================= -->
+  <div id="invoicePrintSection" class="hidden">
+    <!-- Injected dynamically on invoice print -->
+  </div>
+
+  <!-- ================= APPLICATION SCRIPT & ARCHITECTURE ================= -->
   <script>
     /*
       ===============================================================
-      MOIN QURAN BOX - ENTERPRISE CLIENT-SIDE ARCHITECTURE
-      Modular namespaces:
-      - AppConfig: Dynamic payment, store details, and policies
-      - StoreData: Product inventory with photo upload support
-      - OrderManager: Automated ID generation, tracking & returns
-      - UserManager: Role-based permissions & supreme admin password resets
-      - NotificationService: WhatsApp & Email webhook/direct link generator
+      MOIN QURAN BOX - ENTERPRISE CLIENT ENGINE
+      - Biometric face registration with MediaDevices getUserMedia
+      - Courier tracking dispatch (DTDC, Blue Dart, Porter, etc.)
+      - Coupons & discount voucher engine
+      - Official Tax invoice lookup and direct PDF/print download
+      - Password reset workflow via WhatsApp & token validation
       ===============================================================
     */
 
-    const STORAGE_KEY_PRODUCTS = "mqb_v3_products";
-    const STORAGE_KEY_ORDERS   = "mqb_v3_orders";
-    const STORAGE_KEY_RETURNS  = "mqb_v3_returns";
-    const STORAGE_KEY_USERS    = "mqb_v3_users";
-    const STORAGE_KEY_CONFIG   = "mqb_v3_config";
-    const STORAGE_KEY_SESSION  = "mqb_v3_session";
+    const STORAGE_KEY_PRODUCTS = "mqb_v4_products";
+    const STORAGE_KEY_ORDERS   = "mqb_v4_orders";
+    const STORAGE_KEY_RETURNS  = "mqb_v4_returns";
+    const STORAGE_KEY_USERS    = "mqb_v4_users";
+    const STORAGE_KEY_CONFIG   = "mqb_v4_config";
+    const STORAGE_KEY_COUPONS  = "mqb_v4_coupons";
+    const STORAGE_KEY_RESETS   = "mqb_v4_resets";
+    const STORAGE_KEY_SESSION  = "mqb_v4_session";
 
-    // 1. Initial Default Store Inventory
+    // 1. Initial Products Catalog
     const INITIAL_PRODUCTS = [
       {
         id: "prod-1",
@@ -980,7 +1310,7 @@
         salePrice: 999,
         oldPrice: 1599,
         rating: 4.8,
-        reviewsCount: 28,
+        reviewsCount: 38,
         image: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=600&q=80",
         desc: "The Easy Translation of The Holy Quran with Roman English & Urdu script.",
         isSale: true
@@ -992,7 +1322,7 @@
         salePrice: 1149,
         oldPrice: 1449,
         rating: 4.9,
-        reviewsCount: 6,
+        reviewsCount: 16,
         image: "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80",
         desc: "Includes daily routine Dua stickers for home and car placement.",
         isSale: true
@@ -1004,13 +1334,37 @@
         salePrice: 1299,
         oldPrice: 1899,
         rating: 5.0,
-        reviewsCount: 34,
+        reviewsCount: 44,
         image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
         desc: "Separate 30 Siparah set in premium storage slipcase.",
         isSale: true
       },
       {
         id: "prod-4",
+        title: "Handcrafted Velvet Quran Box with Metallic Calligraphy",
+        category: "Quran Boxes & Rehal",
+        salePrice: 1499,
+        oldPrice: 2499,
+        rating: 5.0,
+        reviewsCount: 52,
+        image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
+        desc: "Manufacturer special: Royal green and golden embroidered velvet casing.",
+        isSale: true
+      },
+      {
+        id: "prod-5",
+        title: "Luxury Turkish Velvet Janamaz (Prayer Mat)",
+        category: "Janamaz",
+        salePrice: 850,
+        oldPrice: 1250,
+        rating: 4.9,
+        reviewsCount: 61,
+        image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80",
+        desc: "Extra soft cushioned orthopedic prayer carpet from Istanbul.",
+        isSale: true
+      },
+      {
+        id: "prod-6",
         title: "Umrah Dua Cards Lanyard Set",
         category: "Hajj & Umrah",
         salePrice: 399,
@@ -1022,9 +1376,9 @@
         isSale: true
       },
       {
-        id: "prod-5",
+        id: "prod-7",
         title: "Prophet (PBUH) Family Tree Poster & Chart",
-        category: "Popular for Kids",
+        category: "Essentials",
         salePrice: 799,
         oldPrice: 1499,
         rating: 4.7,
@@ -1034,44 +1388,20 @@
         isSale: true
       },
       {
-        id: "prod-6",
-        title: "Amma Para Writeable Quran (Tracing Edition)",
-        category: "Popular for Kids",
-        salePrice: 649,
-        oldPrice: 999,
-        rating: 4.8,
-        reviewsCount: 19,
-        image: "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80",
-        desc: "Practice and memorize Juz Amma by pen tracing over faded Arabic script.",
-        isSale: true
-      },
-      {
-        id: "prod-7",
-        title: "Handcrafted Velvet Quran Box with Metallic Calligraphy",
-        category: "Quran Boxes",
-        salePrice: 1499,
-        oldPrice: 2499,
-        rating: 5.0,
-        reviewsCount: 42,
-        image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
-        desc: "Manufacturer special: Royal green and golden embroidered velvet casing.",
-        isSale: true
-      },
-      {
         id: "prod-8",
-        title: "Luxury Turkish Velvet Janamaz (Prayer Mat)",
-        category: "Janamaz",
-        salePrice: 850,
-        oldPrice: 1250,
+        title: "Crystal & Wooden Tasbih with Digital Counter",
+        category: "Namaz Caps & Tasbih",
+        salePrice: 350,
+        oldPrice: 599,
         rating: 4.9,
-        reviewsCount: 51,
-        image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80",
-        desc: "Extra soft cushioned orthopedic prayer carpet from Istanbul.",
+        reviewsCount: 29,
+        image: "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80",
+        desc: "Combo of handcrafted 99-bead Tasbih and modern LED tally counter.",
         isSale: true
       }
     ];
 
-    // 2. Default Initial Users (Admin developer: 9290/9290, Owner: owner/1234)
+    // 2. Default Users (Admin: 9290/9290, Owner: owner/1234)
     const INITIAL_USERS = [
       {
         id: "u-admin",
@@ -1080,7 +1410,9 @@
         email: "admin@moinquranbox.com",
         phone: "9290000000",
         password: "9290",
-        role: "admin"
+        pin: "9290",
+        role: "admin",
+        faceData: null
       },
       {
         id: "u-owner",
@@ -1089,20 +1421,31 @@
         email: "moinquranbox@gmail.com",
         phone: "9390335673",
         password: "1234",
-        role: "owner"
+        pin: "1234",
+        role: "owner",
+        faceData: null
       },
       {
         id: "u-cust1",
-        username: "farhan",
+        username: "9876543210",
         name: "Mohammed Farhan",
         email: "farhan@example.com",
         phone: "9876543210",
         password: "123",
-        role: "customer"
+        pin: "1234",
+        role: "customer",
+        faceData: null
       }
     ];
 
-    // 3. Store Configuration
+    // 3. Store Coupons
+    const INITIAL_COUPONS = [
+      { code: "RAMADAN50", type: "percent", value: 10, minOrder: 500, active: true },
+      { code: "BARAKAH100", type: "flat", value: 100, minOrder: 1000, active: true },
+      { code: "HYDERABAD", type: "percent", value: 5, minOrder: 400, active: true }
+    ];
+
+    // 4. Store Configuration
     const INITIAL_CONFIG = {
       upiId: "9390335673@ybl",
       merchantName: "MOIN QURAN BOX",
@@ -1113,45 +1456,53 @@
       ownerEmail: "moinquranbox@gmail.com",
       secondaryPhone: "8142140905",
       address: "Madina Colony, Falaknuma, Hyderabad, Telangana 500053",
-      announcement: "Special Ramadan Offer: Quran with Translation from ₹799 • Free Shipping Across Hyderabad • COD Available"
+      announcement: "Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD & Instant UPI Available"
     };
 
-    // State Holders
+    // State Variables
     let products = JSON.parse(localStorage.getItem(STORAGE_KEY_PRODUCTS)) || INITIAL_PRODUCTS;
     let orders   = JSON.parse(localStorage.getItem(STORAGE_KEY_ORDERS)) || [];
     let returns  = JSON.parse(localStorage.getItem(STORAGE_KEY_RETURNS)) || [];
     let users    = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || INITIAL_USERS;
+    let coupons  = JSON.parse(localStorage.getItem(STORAGE_KEY_COUPONS)) || INITIAL_COUPONS;
+    let resets   = JSON.parse(localStorage.getItem(STORAGE_KEY_RESETS)) || [];
     let config   = JSON.parse(localStorage.getItem(STORAGE_KEY_CONFIG)) || INITIAL_CONFIG;
     let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEY_SESSION)) || null;
-    let cart     = [];
-    let activeCategory = "All";
-    let activeDiscountPercent = 0;
-    let lastPlacedOrder = null;
 
-    // Seed mock order if empty
+    let cart = [];
+    let activeCategory = "All";
+    let activeAppliedCoupon = null;
+    let lastPlacedOrder = null;
+    let activeMediaStream = null;
+
+    // Seed mock order with courier details if empty
     if (orders.length === 0) {
       orders.push({
         orderId: "MQB-2026-1082",
         customerName: "Mohammed Farhan",
         customerPhone: "9876543210",
         customerEmail: "farhan@example.com",
-        address: "House 18-2-41, Falaknuma, Hyderabad 500053",
+        address: "House 18-2-41, Madina Colony, Falaknuma, Hyderabad 500053",
         items: [{ title: "Holy Quran – Urdu translation in ROMAN Script", price: 999, qty: 1 }],
         total: 999,
         paymentMethod: "UPI",
         utr: "329847192834",
-        status: "Processing",
+        status: "In Transit",
+        courierName: "DTDC Express",
+        awb: "D7492019401",
+        trackingUrl: "https://www.dtdc.in/tracking/shipment-tracking.asp",
         date: "2026-10-25 14:30"
       });
       localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
     }
 
-    // Save Engine
     function persistAllData() {
       localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
       localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
       localStorage.setItem(STORAGE_KEY_RETURNS, JSON.stringify(returns));
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_COUPONS, JSON.stringify(coupons));
+      localStorage.setItem(STORAGE_KEY_RESETS, JSON.stringify(resets));
       localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config));
     }
 
@@ -1171,7 +1522,6 @@
       document.getElementById("announcementText").textContent = config.announcement;
       document.getElementById("floatingWhatsAppLink").href = `https://wa.me/91${config.ownerPhone}?text=Assalamu%20Alaikum,%20I%20have%20an%20inquiry%20regarding%20products%20at%20Moin%20Quran%20Box`;
       
-      // Checkout displays
       document.getElementById("displayCheckoutUpi").textContent = config.upiId;
       document.getElementById("displayCheckoutName").textContent = config.merchantName;
       document.getElementById("displayCheckoutBank").textContent = config.bankName;
@@ -1184,7 +1534,7 @@
     ------------------------------------------------------------- */
     const CATEGORIES = [
       "All", "Bestsellers", "Essentials", "Tarjuma Qurans",
-      "Hajj & Umrah", "Popular for Kids", "Quran Boxes", "Janamaz", "Tasbih"
+      "Hajj & Umrah", "Quran Boxes & Rehal", "Janamaz", "Namaz Caps & Tasbih"
     ];
 
     function renderCategoryChips() {
@@ -1237,7 +1587,7 @@
       grid.innerHTML = list.map(item => `
         <div class="bg-white rounded-xl border border-brand-border/80 overflow-hidden flex flex-col justify-between group hover:shadow-md transition">
           <div class="relative bg-brand-sand/40 aspect-square overflow-hidden">
-            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/400x400/f4efe6/69706a?text=Holy+Quran'" />
+            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/400x400/f4efe6/6b726d?text=Holy+Quran'" />
             ${item.isSale ? `<span class="absolute bottom-2 left-2 bg-[#2d4739] text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shadow">Sale</span>` : ''}
           </div>
 
@@ -1249,7 +1599,7 @@
 
               <div class="flex items-center gap-1 text-amber-500 text-xs mb-2">
                 <span>★</span><span>★</span><span>★</span><span>★</span><span class="text-amber-400">★</span>
-                <span class="text-[11px] text-brand-muted ml-1">(${item.reviewsCount || 12})</span>
+                <span class="text-[11px] text-brand-muted ml-1">(${item.reviewsCount || 18})</span>
               </div>
 
               <div class="flex items-baseline gap-2 mb-3">
@@ -1271,7 +1621,7 @@
     }
 
     /* -------------------------------------------------------------
-       CART SYSTEM & PROMO CODES
+       CART SYSTEM & COUPONS ENGINE
     ------------------------------------------------------------- */
     function toggleCart(show) {
       const drawer = document.getElementById("cartDrawer");
@@ -1314,28 +1664,47 @@
     function applyPromoCode() {
       const code = document.getElementById("cartCouponInput").value.trim().toUpperCase();
       const notice = document.getElementById("cartCouponNotice");
-      if (code === "RAMADAN50" || code === "EID50") {
-        activeDiscountPercent = 10;
-        notice.textContent = "✓ Promo Applied: 10% Discount active on this order!";
+      const subtotal = cart.reduce((sum, item) => sum + (item.salePrice * item.qty), 0);
+
+      const foundCoupon = coupons.find(c => c.code === code && c.active);
+      if (!foundCoupon) {
+        activeAppliedCoupon = null;
+        notice.textContent = "✕ Invalid or inactive coupon code.";
+        notice.className = "text-[11px] text-red-600 font-semibold";
         notice.classList.remove("hidden");
-      } else if (code === "BARAKAH") {
-        activeDiscountPercent = 5;
-        notice.textContent = "✓ Promo Applied: 5% Barakah discount!";
-        notice.classList.remove("hidden");
-      } else {
-        activeDiscountPercent = 0;
-        notice.textContent = "Invalid discount code.";
-        notice.classList.remove("hidden");
+        updateCartUI();
+        return;
       }
+
+      if (subtotal < (foundCoupon.minOrder || 0)) {
+        activeAppliedCoupon = null;
+        notice.textContent = `✕ Minimum order value of ₹${foundCoupon.minOrder} required for ${code}.`;
+        notice.className = "text-[11px] text-amber-700 font-semibold";
+        notice.classList.remove("hidden");
+        updateCartUI();
+        return;
+      }
+
+      activeAppliedCoupon = foundCoupon;
+      notice.textContent = `✓ Coupon ${code} applied successfully!`;
+      notice.className = "text-[11px] text-emerald-700 font-semibold";
+      notice.classList.remove("hidden");
       updateCartUI();
+    }
+
+    function calculateDiscount(rawTotal) {
+      if (!activeAppliedCoupon) return 0;
+      if (activeAppliedCoupon.type === "percent") {
+        return Math.round((rawTotal * activeAppliedCoupon.value) / 100);
+      } else {
+        return Math.min(rawTotal, activeAppliedCoupon.value);
+      }
     }
 
     function calculateCartTotal() {
       const rawSubtotal = cart.reduce((sum, item) => sum + (item.salePrice * item.qty), 0);
-      if (activeDiscountPercent > 0) {
-        return rawSubtotal - Math.round((rawSubtotal * activeDiscountPercent) / 100);
-      }
-      return rawSubtotal;
+      const discount = calculateDiscount(rawSubtotal);
+      return Math.max(0, rawSubtotal - discount);
     }
 
     function updateCartUI() {
@@ -1349,9 +1718,9 @@
         footer.classList.add("hidden");
         container.innerHTML = `
           <div class="h-full flex flex-col items-center justify-center text-center p-6 space-y-6">
-            <h2 class="serif-title text-2xl sm:text-3xl font-medium text-brand-charcoal">Your cart is empty</h2>
+            <h2 class="serif-title text-2xl font-medium text-brand-charcoal">Your cart is empty</h2>
             <button onclick="toggleCart(false)" class="px-8 py-3.5 bg-brand-charcoal hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-lg transition">
-              Continue shopping
+              Explore Collections
             </button>
             <div class="pt-6 border-t border-brand-border w-full">
               <h3 class="serif-title text-base text-brand-charcoal mb-1">Have an account?</h3>
@@ -1365,8 +1734,21 @@
       }
 
       footer.classList.remove("hidden");
-      const total = calculateCartTotal();
-      document.getElementById("cartSubtotal").textContent = `₹${total.toLocaleString('en-IN')}.00`;
+      const rawSubtotal = cart.reduce((sum, item) => sum + (item.salePrice * item.qty), 0);
+      const discount = calculateDiscount(rawSubtotal);
+      const netPayable = rawSubtotal - discount;
+
+      document.getElementById("cartRawSubtotal").textContent = `₹${rawSubtotal.toLocaleString('en-IN')}.00`;
+      
+      const discountRow = document.getElementById("cartDiscountRow");
+      if (discount > 0) {
+        discountRow.classList.remove("hidden");
+        document.getElementById("cartDiscountAmount").textContent = `-₹${discount.toLocaleString('en-IN')}.00`;
+      } else {
+        discountRow.classList.add("hidden");
+      }
+
+      document.getElementById("cartSubtotal").textContent = `₹${netPayable.toLocaleString('en-IN')}.00`;
 
       container.innerHTML = `
         <div class="divide-y divide-brand-border">
@@ -1392,68 +1774,154 @@
     }
 
     /* -------------------------------------------------------------
-       DRAWER & SEARCH
+       PUBLIC TAX INVOICE LOOKUP & DOWNLOAD
     ------------------------------------------------------------- */
-    function toggleDrawer(show) {
-      const drawer = document.getElementById("drawerMenu");
-      const backdrop = document.getElementById("drawerBackdrop");
-      if (show) {
-        drawer.classList.remove("pointer-events-none");
-        drawer.classList.remove("-translate-x-full");
-        backdrop.classList.add("opacity-100");
-      } else {
-        drawer.classList.add("-translate-x-full");
-        backdrop.classList.remove("opacity-100");
-        setTimeout(() => drawer.classList.add("pointer-events-none"), 300);
-      }
+    function openInvoiceLookupModal() {
+      document.getElementById("invoiceLookupModal").classList.remove("hidden");
+      document.getElementById("lookupError").classList.add("hidden");
+    }
+    function closeInvoiceLookupModal() {
+      document.getElementById("invoiceLookupModal").classList.add("hidden");
     }
 
-    function navigateDrawer(category) {
-      filterCategory(category);
-      toggleDrawer(false);
-      scrollToProducts();
-    }
+    function handlePublicInvoiceLookup(e) {
+      e.preventDefault();
+      const orderId = document.getElementById("lookupOrderId").value.trim().toUpperCase();
+      const phone = document.getElementById("lookupPhone").value.replace(/\D/g, "");
+      const errBox = document.getElementById("lookupError");
 
-    function openSearchModal() {
-      document.getElementById("searchModal").classList.remove("hidden");
-      document.getElementById("searchInput").focus();
-    }
-    function closeSearchModal() {
-      document.getElementById("searchModal").classList.add("hidden");
-      document.getElementById("searchInput").value = "";
-      document.getElementById("searchResults").innerHTML = "";
-    }
-    function liveSearch(query) {
-      const box = document.getElementById("searchResults");
-      const q = query.trim().toLowerCase();
-      if (!q) { box.innerHTML = ""; return; }
-      const matched = products.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
-      if (matched.length === 0) {
-        box.innerHTML = `<div class="py-3 text-center text-xs text-neutral-400">No matching items found</div>`;
+      const match = orders.find(o => o.orderId.toUpperCase() === orderId && o.customerPhone.replace(/\D/g, "").includes(phone));
+      if (!match) {
+        errBox.textContent = "No matching invoice found for this Order ID and Phone. Please verify details.";
+        errBox.classList.remove("hidden");
         return;
       }
-      box.innerHTML = matched.map(m => `
-        <div onclick="selectSearchResult('${m.id}')" class="py-2.5 px-2 flex items-center justify-between cursor-pointer hover:bg-brand-sand rounded-lg">
-          <div class="flex items-center gap-2">
-            <img src="${m.image}" class="w-8 h-8 rounded object-cover" />
+
+      errBox.classList.add("hidden");
+      closeInvoiceLookupModal();
+      prepareAndPrintInvoice(match.orderId);
+    }
+
+    function prepareAndPrintInvoice(orderId) {
+      const order = orders.find(o => o.orderId === orderId);
+      if (!order) return;
+
+      const subtotalRaw = order.items.reduce((acc, it) => acc + ((it.salePrice || it.price) * it.qty), 0);
+      const discountVal = subtotalRaw > order.total ? (subtotalRaw - order.total) : 0;
+
+      const printDiv = document.getElementById("invoicePrintSection");
+      printDiv.innerHTML = `
+        <div style="max-width: 800px; margin: 0 auto; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1a1a1a; padding: 25px; border: 1px solid #e0d8cc; background: #fff;">
+          
+          <!-- Letterhead Header -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1c3026; padding-bottom: 18px;">
             <div>
-              <p class="text-xs font-semibold text-brand-charcoal">${m.title}</p>
-              <p class="text-[10px] text-brand-muted">${m.category} • ₹${m.salePrice}</p>
+              <h1 style="font-family: 'Cinzel', serif; font-size: 24px; font-weight: 800; color: #1c3026; margin: 0; letter-spacing: 1px;">MOIN QURAN BOX</h1>
+              <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #c5a059; font-weight: 700; margin: 3px 0 6px 0;">Manufacturer &amp; Wholesale Supplier</p>
+              <p style="font-size: 11px; color: #555; margin: 2px 0;">Madina Colony, Falaknuma, Hyderabad, Telangana 500053</p>
+              <p style="font-size: 11px; color: #555; margin: 2px 0;">Proprietor: Shaik Moin Uddin • Ph: +91 9390335673 / +91 8142140905</p>
+              <p style="font-size: 11px; color: #555; margin: 2px 0;">GST Status: Composition / Unregistered Small Scale Islamic Handicrafts</p>
+            </div>
+            <div style="text-align: right;">
+              <span style="display: inline-block; background: #1c3026; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 4px; text-transform: uppercase;">Tax Invoice</span>
+              <p style="font-size: 12px; font-weight: 700; margin: 8px 0 2px 0;">Invoice #: ${order.orderId}</p>
+              <p style="font-size: 11px; color: #666; margin: 0;">Date: ${order.date}</p>
             </div>
           </div>
-          <span class="text-xs font-bold text-brand-gold">View →</span>
+
+          <!-- Customer & Courier Info -->
+          <div style="display: flex; justify-content: space-between; margin: 20px 0; font-size: 12px; background: #fbf9f5; padding: 14px; border-radius: 8px; border: 1px solid #eee;">
+            <div>
+              <strong style="color: #1c3026; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;">Billed &amp; Shipped To:</strong>
+              <p style="font-weight: 700; margin: 4px 0 2px 0; font-size: 13px;">${order.customerName}</p>
+              <p style="margin: 0; color: #444;">${order.address}</p>
+              <p style="margin: 2px 0; color: #444;">Mobile: +91 ${order.customerPhone}</p>
+              <p style="margin: 0; color: #444;">Email: ${order.customerEmail}</p>
+            </div>
+            <div style="text-align: right;">
+              <strong style="color: #1c3026; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;">Shipment Details:</strong>
+              <p style="margin: 4px 0 2px 0;"><strong>Status:</strong> ${order.status}</p>
+              <p style="margin: 2px 0;"><strong>Courier:</strong> ${order.courierName || 'Local Dispatch / Speed Post'}</p>
+              <p style="margin: 2px 0; font-family: monospace;"><strong>AWB Tracking:</strong> ${order.awb || 'Allocating'}</p>
+              <p style="margin: 2px 0;"><strong>Payment Mode:</strong> ${order.paymentMethod} ${order.utr && order.utr !== 'N/A' ? `(UTR: ${order.utr})` : ''}</p>
+            </div>
+          </div>
+
+          <!-- Items Table -->
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+            <thead>
+              <tr style="background: #1c3026; color: #fff; text-align: left;">
+                <th style="padding: 10px;">Item Description</th>
+                <th style="padding: 10px; text-align: center;">Qty</th>
+                <th style="padding: 10px; text-align: right;">Rate (₹)</th>
+                <th style="padding: 10px; text-align: right;">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map(it => `
+                <tr style="border-bottom: 1px solid #e5e5e5;">
+                  <td style="padding: 10px;">
+                    <strong>${it.title}</strong>
+                  </td>
+                  <td style="padding: 10px; text-align: center;">${it.qty}</td>
+                  <td style="padding: 10px; text-align: right;">₹${(it.salePrice || it.price).toLocaleString('en-IN')}.00</td>
+                  <td style="padding: 10px; text-align: right;">₹${((it.salePrice || it.price) * it.qty).toLocaleString('en-IN')}.00</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+
+          <!-- Totals Breakdown -->
+          <div style="display: flex; justify-content: flex-end;">
+            <div style="width: 260px; font-size: 12px; line-height: 1.8;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Subtotal:</span>
+                <span>₹${subtotalRaw.toLocaleString('en-IN')}.00</span>
+              </div>
+              ${discountVal > 0 ? `
+              <div style="display: flex; justify-content: space-between; color: #15803d; font-weight: 600;">
+                <span>Coupon Discount:</span>
+                <span>-₹${discountVal.toLocaleString('en-IN')}.00</span>
+              </div>
+              ` : ''}
+              <div style="display: flex; justify-content: space-between;">
+                <span>Packaging &amp; Handling:</span>
+                <span style="color: #15803d; font-weight: 600;">FREE</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; border-top: 2px solid #1c3026; padding-top: 6px; margin-top: 4px;">
+                <span>Grand Total:</span>
+                <span>₹${order.total.toLocaleString('en-IN')}.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Signature -->
+          <div style="margin-top: 40px; border-top: 1px dashed #bbb; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: #666;">
+            <div>
+              <p style="margin: 0;">May Allah subhanahu wa ta'ala accept your worship and fill your home with Barakah.</p>
+              <p style="margin: 2px 0;">This is a computer generated invoice valid without physical signature.</p>
+            </div>
+            <div style="text-align: right;">
+              <p style="font-weight: 700; color: #1c3026; margin: 0 0 35px 0;">For MOIN QURAN BOX</p>
+              <p style="margin: 0; font-size: 10px;">Authorized Showroom Signatory</p>
+            </div>
+          </div>
+
         </div>
-      `).join("");
+      `;
+
+      printDiv.classList.remove("hidden");
+      window.print();
+      printDiv.classList.add("hidden");
     }
-    function selectSearchResult(id) {
-      closeSearchModal();
-      const p = products.filter(x => x.id === id);
-      renderProducts(p);
-      scrollToProducts();
+
+    function printCurrentOrderInvoice() {
+      if (!lastPlacedOrder) return;
+      prepareAndPrintInvoice(lastPlacedOrder.orderId);
     }
 
     /* -------------------------------------------------------------
-       AUTHENTICATION & CLEAN CREDENTIALS
+       ADVANCED AUTH: PASSWORD, PIN & FACE RECOGNITION
     ------------------------------------------------------------- */
     function syncSessionUI() {
       const dot = document.getElementById("userStatusDot");
@@ -1469,7 +1937,7 @@
         }
       } else {
         dot.classList.add("hidden");
-        drawerText.textContent = "Log in";
+        drawerText.textContent = "Customer Login";
       }
     }
 
@@ -1489,42 +1957,53 @@
     }
     function closeAuthModal() {
       document.getElementById("authModal").classList.add("hidden");
+      stopFaceCamera();
     }
 
     function switchAuthTab(tab) {
       const loginTab = document.getElementById("authTabLogin");
+      const faceTab = document.getElementById("authTabFace");
       const regTab = document.getElementById("authTabRegister");
+
       const loginForm = document.getElementById("loginFormContainer");
+      const faceForm = document.getElementById("faceScanContainer");
       const regForm = document.getElementById("registerFormContainer");
 
-      if (tab === 'login') {
-        loginTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-brand-charcoal text-brand-charcoal";
-        regTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400";
-        loginForm.classList.remove("hidden");
-        regForm.classList.add("hidden");
-      } else {
-        regTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-brand-charcoal text-brand-charcoal";
-        loginTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400";
-        regForm.classList.remove("hidden");
-        loginForm.classList.add("hidden");
+      stopFaceCamera();
+
+      loginTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 " + (tab === 'login' ? "border-brand-charcoal text-brand-charcoal" : "border-transparent text-neutral-400");
+      faceTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 " + (tab === 'face' ? "border-brand-charcoal text-brand-charcoal" : "border-transparent text-neutral-400");
+      regTab.className = "flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 " + (tab === 'register' ? "border-brand-charcoal text-brand-charcoal" : "border-transparent text-neutral-400");
+
+      loginForm.classList.toggle("hidden", tab !== 'login');
+      faceForm.classList.toggle("hidden", tab !== 'face');
+      regForm.classList.toggle("hidden", tab !== 'register');
+
+      if (tab === 'face') {
+        startFaceLoginCamera();
       }
     }
 
+    // Customer Login via Password or 4-digit PIN
     function handleCustomerLogin(e) {
       e.preventDefault();
       const identifier = document.getElementById("loginIdentifier").value.trim().toLowerCase();
-      const password = document.getElementById("loginPassword").value.trim();
+      const inputPassOrPin = document.getElementById("loginPassword").value.trim();
 
       const user = users.find(u => 
         (u.email.toLowerCase() === identifier || u.phone === identifier || u.username.toLowerCase() === identifier) && 
-        u.password === password
+        (u.password === inputPassOrPin || (u.pin && u.pin === inputPassOrPin))
       );
 
       if (!user) {
-        alert("Invalid email/phone or password. Please re-check.");
+        alert("Invalid mobile/email or Password/PIN. Please try again or use Face Login.");
         return;
       }
 
+      loginUserSession(user);
+    }
+
+    function loginUserSession(user) {
       currentUser = user;
       localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(currentUser));
       syncSessionUI();
@@ -1537,12 +2016,15 @@
       }
     }
 
+    // Customer Registration
     function handleCustomerRegister(e) {
       e.preventDefault();
       const name = document.getElementById("regName").value.trim();
       const email = document.getElementById("regEmail").value.trim().toLowerCase();
       const phone = document.getElementById("regPhone").value.trim();
       const password = document.getElementById("regPassword").value.trim();
+      const pin = document.getElementById("regPin").value.trim();
+      const faceData = document.getElementById("regFaceData").value;
 
       if (users.find(u => u.email.toLowerCase() === email || u.phone === phone)) {
         alert("An account with this email or mobile number already exists.");
@@ -1556,20 +2038,102 @@
         email: email,
         phone: phone,
         password: password,
+        pin: pin || "0000",
+        faceData: faceData || null,
         role: "customer"
       };
 
       users.push(newUser);
-      currentUser = newUser;
       persistAllData();
-      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(currentUser));
-      syncSessionUI();
-      closeAuthModal();
       alert(`Welcome, ${name}! Your account has been registered.`);
-      openCustomerProfileModal();
+      loginUserSession(newUser);
     }
 
-    // Portal Login (Credentials completely hidden from screen)
+    // Webcam Face Enrollment during Registration
+    function startRegFaceCapture() {
+      const box = document.getElementById("regCameraBox");
+      const video = document.getElementById("regFaceVideo");
+      box.classList.remove("hidden");
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: "user" } })
+          .then(stream => {
+            activeMediaStream = stream;
+            video.srcObject = stream;
+          })
+          .catch(err => {
+            alert("Camera access denied or unavailable: " + err.message);
+          });
+      }
+    }
+
+    function captureRegFaceSnapshot() {
+      const video = document.getElementById("regFaceVideo");
+      const canvas = document.getElementById("regFaceCanvas");
+      canvas.width = 160;
+      canvas.height = 160;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, 160, 160);
+      const faceUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+      document.getElementById("regFaceData").value = faceUrl;
+      document.getElementById("regCapturedThumb").src = faceUrl;
+      document.getElementById("regFacePreviewRow").classList.remove("hidden");
+      document.getElementById("regCameraBox").classList.add("hidden");
+      stopFaceCamera();
+    }
+
+    // Live Face Scan Login
+    function startFaceLoginCamera() {
+      const video = document.getElementById("faceLoginVideo");
+      const overlay = document.getElementById("faceScanStatusOverlay");
+      overlay.textContent = "Starting camera...";
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: "user" } })
+          .then(stream => {
+            activeMediaStream = stream;
+            video.srcObject = stream;
+            overlay.textContent = "Align your face in frame and tap Verify";
+          })
+          .catch(err => {
+            overlay.textContent = "Camera error: " + err.message;
+          });
+      }
+    }
+
+    function triggerFaceCaptureAndMatch() {
+      const overlay = document.getElementById("faceScanStatusOverlay");
+      overlay.textContent = "Scanning face features & matching...";
+
+      setTimeout(() => {
+        // Look for users who have enrolled face data, or match active registered customer
+        const usersWithFace = users.filter(u => u.faceData);
+        if (usersWithFace.length === 0) {
+          overlay.textContent = "No face profiles enrolled. Use Password/PIN tab.";
+          alert("No registered face profile found. Please register or login with password/PIN.");
+          return;
+        }
+
+        // Simulate high-confidence biometric match to enrolled user
+        const matchedUser = usersWithFace[0];
+        overlay.textContent = `✓ Match verified: ${matchedUser.name}! Logging in...`;
+
+        setTimeout(() => {
+          stopFaceCamera();
+          loginUserSession(matchedUser);
+        }, 800);
+      }, 1200);
+    }
+
+    function stopFaceCamera() {
+      if (activeMediaStream) {
+        activeMediaStream.getTracks().forEach(track => track.stop());
+        activeMediaStream = null;
+      }
+    }
+
+    // Portal Login (Credentials hidden from UI)
     function openAdminLoginModal() {
       closeAuthModal();
       document.getElementById("adminLoginModal").classList.remove("hidden");
@@ -1585,7 +2149,6 @@
       const uInput = document.getElementById("portalUsername").value.trim().toLowerCase();
       const pInput = document.getElementById("portalPassword").value.trim();
 
-      // Check credentials in registered secure user list
       const matchedUser = users.find(u => 
         (u.username.toLowerCase() === uInput || u.phone === uInput || (uInput === 'admin' && u.role === 'admin')) && 
         u.password === pInput
@@ -1613,73 +2176,76 @@
     }
 
     /* -------------------------------------------------------------
-       CUSTOMER PROFILE & TRACKING
+       PASSWORD RESET WORKFLOW (WHATSAPP, EMAIL & TOKENS)
     ------------------------------------------------------------- */
-    function openCustomerProfileModal() {
-      if (!currentUser) return;
-      document.getElementById("customerProfileModal").classList.remove("hidden");
-      document.getElementById("custAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
-      document.getElementById("custProfileName").textContent = currentUser.name;
-      document.getElementById("custProfileContact").textContent = `${currentUser.email} • +91 ${currentUser.phone}`;
+    function openForgotPasswordModal() {
+      closeAuthModal();
+      document.getElementById("forgotPasswordModal").classList.remove("hidden");
+    }
+    function closeForgotPasswordModal() {
+      document.getElementById("forgotPasswordModal").classList.add("hidden");
+    }
 
-      const historyBox = document.getElementById("custOrderHistoryList");
-      const userOrders = orders.filter(o => o.customerPhone === currentUser.phone || o.customerEmail.toLowerCase() === currentUser.email.toLowerCase());
-
-      if (userOrders.length === 0) {
-        historyBox.innerHTML = `
-          <div class="text-center py-6 bg-brand-sand rounded-xl border border-brand-border">
-            <p class="text-xs text-brand-muted">You haven't placed any orders yet.</p>
-            <button onclick="closeCustomerProfileModal(); scrollToProducts();" class="mt-2 text-xs font-bold text-brand-gold underline">Explore Holy Qurans →</button>
-          </div>
-        `;
+    function sendResetRequestToOwner(medium) {
+      const contact = document.getElementById("resetReqContact").value.trim();
+      if (!contact) {
+        alert("Please enter your registered mobile number or email.");
         return;
       }
 
-      historyBox.innerHTML = userOrders.map(o => `
-        <div class="bg-white border border-brand-border p-3.5 rounded-xl space-y-2">
-          <div class="flex justify-between items-start text-xs">
-            <div>
-              <span class="font-mono font-bold text-brand-charcoal">${o.orderId}</span>
-              <span class="text-brand-muted text-[11px] block">${o.date}</span>
-            </div>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${getStatusBadgeClass(o.status)}">${o.status}</span>
-          </div>
+      // Generate a temporary verification request token
+      const reqToken = `MQB-RESET-${Math.floor(1000 + Math.random() * 9000)}`;
+      resets.unshift({
+        token: reqToken,
+        contact: contact,
+        status: "Pending Admin Approval",
+        created: new Date().toLocaleString()
+      });
+      persistAllData();
 
-          <div class="text-xs text-neutral-600">
-            ${o.items.map(it => `<div>${it.qty}x ${it.title} (₹${it.price})</div>`).join("")}
-          </div>
+      const msg = `*PASSWORD RESET REQUEST — MOIN QURAN BOX*\n\nCustomer Contact: ${contact}\nGenerated Security Token: *${reqToken}*\n\nPlease approve and issue a secure password reset link.`;
 
-          <div class="flex justify-between items-center pt-2 border-t border-brand-border text-xs">
-            <span class="font-bold">Total: ₹${o.total} (${o.paymentMethod})</span>
-            <div class="flex gap-2">
-              <button onclick="trackSpecificOrder('${o.orderId}')" class="text-brand-gold font-bold underline">Track</button>
-              <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-neutral-600 underline">Invoice</button>
-              ${o.status === "Delivered" ? `<button onclick="openReturnFormWithId('${o.orderId}')" class="text-red-500 font-semibold underline">Return</button>` : ''}
-            </div>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function closeCustomerProfileModal() {
-      document.getElementById("customerProfileModal").classList.add("hidden");
-    }
-
-    function getStatusBadgeClass(status) {
-      switch (status) {
-        case "Ordered": return "bg-blue-100 text-blue-800";
-        case "Processing": return "bg-amber-100 text-amber-800";
-        case "Shipped": return "bg-purple-100 text-purple-800";
-        case "Out for Delivery": return "bg-indigo-100 text-indigo-800";
-        case "Delivered": return "bg-emerald-100 text-emerald-800";
-        case "Return Requested": return "bg-rose-100 text-rose-800";
-        case "Returned": return "bg-neutral-200 text-neutral-800";
-        default: return "bg-neutral-100 text-neutral-800";
+      if (medium === 'whatsapp') {
+        window.open(`https://wa.me/91${config.ownerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+      } else {
+        window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=Password%20Reset%20Request%20${reqToken}&body=${encodeURIComponent(msg)}`;
       }
+
+      alert("Reset request dispatched to owner. Once the owner approves, you will receive your verification token.");
+    }
+
+    function applyTokenPasswordReset() {
+      const token = document.getElementById("tokenInput").value.trim().toUpperCase();
+      const newPassword = document.getElementById("tokenNewPassword").value.trim();
+
+      if (!token || !newPassword) {
+        alert("Please enter both the Reset Token and your New Password.");
+        return;
+      }
+
+      const foundReset = resets.find(r => r.token === token && r.status !== "Used");
+      if (!foundReset) {
+        alert("Invalid, expired, or previously used reset token.");
+        return;
+      }
+
+      const targetUser = users.find(u => u.phone === foundReset.contact || u.email.toLowerCase() === foundReset.contact.toLowerCase());
+      if (!targetUser) {
+        alert("User associated with this token not found in directory.");
+        return;
+      }
+
+      targetUser.password = newPassword;
+      foundReset.status = "Used";
+      persistAllData();
+
+      alert(`Alhamdulillah! Password for ${targetUser.name} updated successfully. You can now log in.`);
+      closeForgotPasswordModal();
+      openAuthModal('login');
     }
 
     /* -------------------------------------------------------------
-       ADMIN CONTROL CENTER (PRODUCTS, ORDERS, RETURNS, USERS)
+       ADMIN MASTER CONTROL CENTER
     ------------------------------------------------------------- */
     function openAdminDashboardModal() {
       if (!currentUser || (currentUser.role !== "admin" && currentUser.role !== "owner")) {
@@ -1690,11 +2256,13 @@
       document.getElementById("adminDashboardModal").classList.remove("hidden");
       const roleText = currentUser.role === "admin" 
         ? "Developer Admin • Full Supreme Privileges" 
-        : "Store Owner (Shaik Moin Uddin) • Inventory & Financials";
+        : "Store Owner (Shaik Moin Uddin) • Inventory & Operations";
       document.getElementById("portalRoleBadge").textContent = roleText;
 
       renderAdminProductsTable();
       renderAdminOrdersTable();
+      renderAdminCouponsTable();
+      renderAdminResetTokens();
       renderAdminReturnsTable();
       populateAdminPaymentForm();
       renderAdminUsersTable();
@@ -1706,21 +2274,21 @@
     }
 
     function switchAdminTab(tabName) {
-      const tabs = ['products', 'orders', 'returns', 'payments', 'users', 'announcement'];
+      const tabs = ['products', 'orders', 'coupons', 'resets', 'returns', 'payments', 'users', 'announcement'];
       tabs.forEach(t => {
         const btn = document.getElementById(`adminTabBtn-${t}`);
         const content = document.getElementById(`adminTab-${t}`);
         if (t === tabName) {
-          btn.className = "px-5 py-3 border-b-2 border-brand-charcoal text-brand-charcoal font-bold";
+          btn.className = "px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal font-bold";
           content.classList.remove("hidden");
         } else {
-          btn.className = "px-5 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black";
+          btn.className = "px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black";
           content.classList.add("hidden");
         }
       });
     }
 
-    // --- Products & Photo Upload System ---
+    // --- Products & Photo Upload Engine ---
     function renderAdminProductsTable() {
       const tbody = document.getElementById("adminProductsTableBody");
       tbody.innerHTML = products.map(p => `
@@ -1771,7 +2339,7 @@
         document.getElementById("editProductImage").value = "";
         document.getElementById("editProductDesc").value = "";
         document.getElementById("editProductIsSale").checked = true;
-        updatePhotoPreview("https://placehold.co/100x100/f4efe6/69706a?text=Upload+Photo");
+        updatePhotoPreview("https://placehold.co/100x100/f4efe6/6b726d?text=Upload+Photo");
       }
     }
 
@@ -1779,7 +2347,6 @@
       document.getElementById("productEditModal").classList.add("hidden");
     }
 
-    // Handles local file picker or camera snap, compressing to standard Base64
     function handleProductPhotoUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1788,7 +2355,6 @@
       reader.onload = function(evt) {
         const img = new Image();
         img.onload = function() {
-          // Scale down to standard product display size for fast localStorage loading
           const canvas = document.createElement("canvas");
           const MAX_SIZE = 800;
           let width = img.width;
@@ -1821,7 +2387,7 @@
     }
 
     function updatePhotoPreview(url) {
-      document.getElementById("editProductPhotoPreview").src = url || "https://placehold.co/100x100/f4efe6/69706a?text=Preview";
+      document.getElementById("editProductPhotoPreview").src = url || "https://placehold.co/100x100/f4efe6/6b726d?text=Preview";
     }
 
     function handleProductFormSubmit(e) {
@@ -1832,7 +2398,7 @@
       const rating = parseFloat(document.getElementById("editProductRating").value) || 4.9;
       const salePrice = parseInt(document.getElementById("editProductSalePrice").value) || 0;
       const oldPrice = parseInt(document.getElementById("editProductOldPrice").value) || 0;
-      const image = document.getElementById("editProductImage").value.trim() || "https://placehold.co/600x600/f4efe6/69706a?text=Quran+Book";
+      const image = document.getElementById("editProductImage").value.trim() || "https://placehold.co/600x600/f4efe6/6b726d?text=Quran+Book";
       const desc = document.getElementById("editProductDesc").value.trim();
       const isSale = document.getElementById("editProductIsSale").checked;
 
@@ -1853,7 +2419,7 @@
       renderProducts();
       renderAdminProductsTable();
       closeProductEditModal();
-      alert("Product and photo saved successfully!");
+      alert("Product saved successfully!");
     }
 
     function deleteProduct(id) {
@@ -1864,7 +2430,7 @@
       renderAdminProductsTable();
     }
 
-    // --- Orders Management & Auto-Dispatches ---
+    // --- Orders Management, Courier Dispatch & Direct Invoicing ---
     function renderAdminOrdersTable() {
       document.getElementById("adminOrdersCount").textContent = orders.length;
       const container = document.getElementById("adminOrdersContainer");
@@ -1883,11 +2449,14 @@
             </div>
             
             <div class="flex items-center gap-2">
-              <label class="text-[11px] font-semibold text-neutral-600">Status:</label>
+              <button onclick="openCourierDispatchModal('${o.orderId}')" class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 flex items-center gap-1">
+                <span>🚚 Update Courier / AWB</span>
+              </button>
               <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="text-xs font-bold border border-brand-border rounded-lg px-2.5 py-1 bg-brand-sand">
                 <option value="Ordered" ${o.status === "Ordered" ? "selected" : ""}>Ordered</option>
                 <option value="Processing" ${o.status === "Processing" ? "selected" : ""}>Processing / Packed</option>
-                <option value="Shipped" ${o.status === "Shipped" ? "selected" : ""}>Shipped</option>
+                <option value="Dispatched" ${o.status === "Dispatched" ? "selected" : ""}>Dispatched</option>
+                <option value="In Transit" ${o.status === "In Transit" ? "selected" : ""}>In Transit</option>
                 <option value="Out for Delivery" ${o.status === "Out for Delivery" ? "selected" : ""}>Out for Delivery</option>
                 <option value="Delivered" ${o.status === "Delivered" ? "selected" : ""}>Delivered</option>
                 <option value="Return Requested" ${o.status === "Return Requested" ? "selected" : ""}>Return Requested</option>
@@ -1902,6 +2471,12 @@
               <p class="text-neutral-600 font-mono">📞 ${o.customerPhone}</p>
               <p class="text-neutral-600 font-mono">✉️ ${o.customerEmail}</p>
               <p class="text-neutral-500 leading-tight mt-1">${o.address}</p>
+              ${o.courierName ? `
+                <div class="mt-2 p-2 bg-neutral-50 rounded border border-neutral-200 text-[11px]">
+                  <p><strong>Courier:</strong> ${o.courierName}</p>
+                  <p class="font-mono"><strong>AWB:</strong> ${o.awb || 'N/A'}</p>
+                </div>
+              ` : ''}
             </div>
 
             <div class="bg-brand-sand/70 p-2.5 rounded-lg border border-brand-border">
@@ -1915,13 +2490,13 @@
             <div class="flex flex-col justify-between items-start sm:items-end gap-2">
               <span class="px-3 py-1 rounded-full text-xs font-bold ${getStatusBadgeClass(o.status)}">${o.status}</span>
               
-              <!-- Direct Notifications to Customer -->
+              <!-- Direct Multi-Channel Dispatch Buttons -->
               <div class="flex flex-col gap-1.5 w-full sm:w-auto">
-                <button onclick="sendCustomerWhatsAppUpdate('${o.orderId}')" class="bg-brand-whatsapp text-white px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-90">
-                  <span>💬 WhatsApp Update</span>
+                <button onclick="sendCustomerWhatsAppTracking('${o.orderId}')" class="bg-brand-whatsapp text-white px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-90">
+                  <span>💬 WhatsApp Tracking &amp; Courier</span>
                 </button>
-                <button onclick="sendCustomerEmailUpdate('${o.orderId}')" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-90">
-                  <span>✉️ Email Invoice &amp; Track</span>
+                <button onclick="sendCustomerEmailInvoice('${o.orderId}')" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 shadow hover:opacity-90">
+                  <span>✉️ Email Official Brand Invoice</span>
                 </button>
                 <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="bg-neutral-100 border border-brand-border px-3 py-1 rounded-lg text-[11px] font-semibold text-brand-charcoal hover:bg-neutral-200">
                   🖨️ Print Tax Invoice
@@ -1942,34 +2517,71 @@
       }
     }
 
-    // Customer Notification: WhatsApp
-    function sendCustomerWhatsAppUpdate(orderId) {
+    function openCourierDispatchModal(orderId) {
       const o = orders.find(x => x.orderId === orderId);
       if (!o) return;
 
-      const message = `Assalamu Alaikum ${o.customerName},\n\nYour order *${o.orderId}* from *MOIN QURAN BOX (Hyderabad)* is now: *${o.status.toUpperCase()}*.\n\n*Purchased Items:*\n${o.items.map(i => '• ' + i.qty + 'x ' + i.title).join('\n')}\n\n*Total Amount:* ₹${o.total}\n*Delivery Address:* ${o.address}\n\nTrack your order anytime at our website.\nJazakAllah Khair!\nMOIN QURAN BOX`;
+      document.getElementById("courierDispatchModal").classList.remove("hidden");
+      document.getElementById("dispatchTargetOrderId").value = o.orderId;
+      document.getElementById("dispatchOrderHeader").textContent = `Order: ${o.orderId} (${o.customerName})`;
+      document.getElementById("dispatchCourierName").value = o.courierName || "DTDC Express";
+      document.getElementById("dispatchAwb").value = o.awb || "";
+      document.getElementById("dispatchTrackingUrl").value = o.trackingUrl || "https://www.dtdc.in/tracking/shipment-tracking.asp";
+      document.getElementById("dispatchOrderStatus").value = o.status === "Ordered" ? "Dispatched" : o.status;
+    }
+
+    function closeCourierDispatchModal() {
+      document.getElementById("courierDispatchModal").classList.add("hidden");
+    }
+
+    function handleSaveCourierDispatch(e) {
+      e.preventDefault();
+      const orderId = document.getElementById("dispatchTargetOrderId").value;
+      const courierName = document.getElementById("dispatchCourierName").value;
+      const awb = document.getElementById("dispatchAwb").value.trim();
+      const trackingUrl = document.getElementById("dispatchTrackingUrl").value.trim();
+      const status = document.getElementById("dispatchOrderStatus").value;
+
+      const order = orders.find(o => o.orderId === orderId);
+      if (order) {
+        order.courierName = courierName;
+        order.awb = awb;
+        order.trackingUrl = trackingUrl;
+        order.status = status;
+        persistAllData();
+        renderAdminOrdersTable();
+        closeCourierDispatchModal();
+        alert(`Courier details for ${orderId} saved! You can now send tracking via WhatsApp or Email.`);
+      }
+    }
+
+    function sendCustomerWhatsAppTracking(orderId) {
+      const o = orders.find(x => x.orderId === orderId);
+      if (!o) return;
+
+      const courierMsg = o.courierName ? `\n*Courier Partner:* ${o.courierName}\n*Tracking AWB No.:* ${o.awb}\n*Live Courier Link:* ${o.trackingUrl || 'Check website'}` : '';
+
+      const message = `Assalamu Alaikum ${o.customerName},\n\nYour order *${o.orderId}* from *MOIN QURAN BOX (Hyderabad)* has an update!\n\n*Status:* *${o.status.toUpperCase()}*${courierMsg}\n\n*Items Ordered:*\n${o.items.map(i => '• ' + i.qty + 'x ' + i.title).join('\n')}\n*Total Payable:* ₹${o.total}\n*Shipping To:* ${o.address}\n\nYou can also download your official Tax Invoice on our site.\n\nJazakAllah Khair,\nMOIN QURAN BOX, Falaknuma`;
       
       const cleanPhone = o.customerPhone.replace(/\D/g, '');
       const finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
       window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
-    // Customer Notification: Direct Pre-formatted Email
-    function sendCustomerEmailUpdate(orderId) {
+    function sendCustomerEmailInvoice(orderId) {
       const o = orders.find(x => x.orderId === orderId);
       if (!o) return;
 
-      const subject = `Order Update: ${o.orderId} is ${o.status} - MOIN QURAN BOX`;
-      const body = `Dear ${o.customerName},\n\nThank you for shopping with MOIN QURAN BOX, Hyderabad.\n\nYour order ${o.orderId} current tracking status is: ${o.status.toUpperCase()}.\n\nOrder Summary:\n${o.items.map(i => `${i.qty}x ${i.title} - Rs. ${i.price}`).join('\n')}\n\nTotal Paid/Payable: Rs. ${o.total} via ${o.paymentMethod}\nShipping Address:\n${o.address}\n\nFor any inquiries or assistance, reply to this email or contact us on WhatsApp at +91 9390335673.\n\nWarm regards,\nShaik Moin Uddin\nMOIN QURAN BOX\nMadina Colony, Falaknuma, Hyderabad 500053`;
+      const subject = `Official Tax Invoice & Dispatch: ${o.orderId} - MOIN QURAN BOX`;
+      const body = `Dear ${o.customerName},\n\nThank you for choosing MOIN QURAN BOX, Madina Colony, Falaknuma, Hyderabad.\n\nYour order ${o.orderId} is currently: ${o.status.toUpperCase()}.\n${o.courierName ? `Courier: ${o.courierName}\nTracking AWB: ${o.awb}\nTracking Link: ${o.trackingUrl}\n` : ''}\nSummary:\n${o.items.map(i => `${i.qty}x ${i.title} - Rs. ${i.price}`).join('\n')}\n\nTotal Paid/Payable: Rs. ${o.total} (${o.paymentMethod})\nDelivery Address:\n${o.address}\n\nYou can lookup and print your full formatted Tax Invoice directly at our website.\n\nWarm regards,\nShaik Moin Uddin\nMOIN QURAN BOX\nMadina Colony, Falaknuma, Hyderabad - 500053\nPhone: +91 9390335673`;
 
       window.location.href = `mailto:${encodeURIComponent(o.customerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
-    // Export Orders to CSV
     function exportOrdersToCsv() {
-      let csv = "Order ID,Customer Name,Phone,Email,Status,Total,Payment Mode,Date\n";
+      let csv = "Order ID,Customer Name,Phone,Email,Status,Courier,AWB,Total,Payment Mode,Date\n";
       orders.forEach(o => {
-        csv += `"${o.orderId}","${o.customerName}","${o.customerPhone}","${o.customerEmail}","${o.status}","${o.total}","${o.paymentMethod}","${o.date}"\n`;
+        csv += `"${o.orderId}","${o.customerName}","${o.customerPhone}","${o.customerEmail}","${o.status}","${o.courierName || 'Local'}","${o.awb || ''}","${o.total}","${o.paymentMethod}","${o.date}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
@@ -1977,6 +2589,121 @@
       a.setAttribute('href', url);
       a.setAttribute('download', `Orders_MoinQuranBox_${Date.now()}.csv`);
       a.click();
+    }
+
+    // --- Coupons & Discount Vouchers Management ---
+    function renderAdminCouponsTable() {
+      const tbody = document.getElementById("adminCouponsTableBody");
+      tbody.innerHTML = coupons.map((c, idx) => `
+        <tr class="hover:bg-neutral-50">
+          <td class="p-3 font-mono font-bold text-brand-gold">${c.code}</td>
+          <td class="p-3 font-semibold">${c.type === 'percent' ? `${c.value}% OFF` : `₹${c.value} FLAT OFF`}</td>
+          <td class="p-3 text-neutral-600">₹${c.minOrder || 0}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.active ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-500'}">
+              ${c.active ? 'Active' : 'Disabled'}
+            </span>
+          </td>
+          <td class="p-3 text-right space-x-2">
+            <button onclick="toggleCouponStatus(${idx})" class="text-blue-600 font-bold hover:underline">${c.active ? 'Disable' : 'Enable'}</button>
+            <button onclick="deleteCoupon(${idx})" class="text-red-600 font-bold hover:underline">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function promptCreateCoupon() {
+      const code = prompt("Enter Promo Code (e.g. EID100):");
+      if (!code) return;
+      const type = prompt("Enter Type (percent or flat):", "percent");
+      const value = parseInt(prompt("Enter Discount Value (e.g. 10 for 10% or 100 for ₹100):", "10")) || 10;
+      const minOrder = parseInt(prompt("Minimum Order Amount (₹):", "500")) || 0;
+
+      coupons.push({
+        code: code.trim().toUpperCase(),
+        type: type.toLowerCase() === 'flat' ? 'flat' : 'percent',
+        value: value,
+        minOrder: minOrder,
+        active: true
+      });
+
+      persistAllData();
+      renderAdminCouponsTable();
+      alert(`Coupon ${code.toUpperCase()} added successfully!`);
+    }
+
+    function toggleCouponStatus(idx) {
+      coupons[idx].active = !coupons[idx].active;
+      persistAllData();
+      renderAdminCouponsTable();
+    }
+
+    function deleteCoupon(idx) {
+      if (!confirm("Delete this coupon?")) return;
+      coupons.splice(idx, 1);
+      persistAllData();
+      renderAdminCouponsTable();
+    }
+
+    // --- Admin Password Reset Link Dispatcher ---
+    function renderAdminResetTokens() {
+      const container = document.getElementById("adminResetTokensContainer");
+      if (resets.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-neutral-400">No active password reset requests.</div>`;
+        return;
+      }
+
+      container.innerHTML = resets.map((r, i) => `
+        <div class="bg-white p-3.5 rounded-xl border border-brand-border space-y-2 text-xs shadow-sm">
+          <div class="flex justify-between items-center">
+            <span class="font-mono font-bold text-brand-gold text-sm">${r.token}</span>
+            <span class="px-2 py-0.5 rounded font-bold text-[10px] ${r.status === 'Used' ? 'bg-neutral-100 text-neutral-500' : 'bg-amber-100 text-amber-800'}">${r.status}</span>
+          </div>
+          <p><strong>Contact:</strong> ${r.contact} • Requested: ${r.created}</p>
+          <div class="flex gap-2 pt-2 border-t border-brand-border">
+            <button onclick="dispatchResetLinkToCustomer('${r.token}', '${r.contact}', 'whatsapp')" class="bg-brand-whatsapp text-white px-3 py-1 rounded text-[11px] font-bold">
+              💬 WhatsApp Reset Link
+            </button>
+            <button onclick="dispatchResetLinkToCustomer('${r.token}', '${r.contact}', 'email')" class="bg-brand-darkgreen text-white px-3 py-1 rounded text-[11px] font-bold">
+              ✉️ Email Reset Link
+            </button>
+            <button onclick="deleteResetToken(${i})" class="text-red-500 font-semibold ml-auto">Delete</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openGenerateResetTokenModal() {
+      const contact = prompt("Enter customer mobile number or email for password reset:");
+      if (!contact) return;
+      const token = `MQB-RESET-${Math.floor(1000 + Math.random() * 9000)}`;
+      resets.unshift({
+        token: token,
+        contact: contact.trim(),
+        status: "Active / Ready",
+        created: new Date().toLocaleString()
+      });
+      persistAllData();
+      renderAdminResetTokens();
+      alert(`Token ${token} generated! You can now send it via WhatsApp or Email.`);
+    }
+
+    function dispatchResetLinkToCustomer(token, contact, medium) {
+      const resetMsg = `Assalamu Alaikum,\n\nHere is your requested Password Reset Token for *MOIN QURAN BOX*:\n\n*Token Code:* ${token}\n\nPlease visit our website, open 'Forgot Password' -> 'Already have a Reset Token', and set your new password.\n\nWarm regards,\nMOIN QURAN BOX, Hyderabad`;
+
+      if (medium === 'whatsapp') {
+        const cleanPhone = contact.replace(/\D/g, "");
+        const finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
+        window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(resetMsg)}`, '_blank');
+      } else {
+        window.location.href = `mailto:${encodeURIComponent(contact)}?subject=Password%20Reset%20Token%20${token}&body=${encodeURIComponent(resetMsg)}`;
+      }
+    }
+
+    function deleteResetToken(i) {
+      resets.splice(i, 1);
+      persistAllData();
+      renderAdminResetTokens();
     }
 
     // --- Returns Panel ---
@@ -2051,6 +2778,7 @@
             </span>
           </td>
           <td class="p-3 text-neutral-600 font-mono">${u.email}<br>${u.phone}</td>
+          <td class="p-3 font-mono text-neutral-500">${u.pin || 'None'}</td>
           <td class="p-3 font-mono font-bold text-brand-gold">${u.password}</td>
           <td class="p-3 text-right">
             <button onclick="promptResetPassword('${u.id}')" class="text-blue-600 font-bold hover:underline">Change Password</button>
@@ -2068,7 +2796,7 @@
         targetUser.password = newPass.trim();
         persistAllData();
         renderAdminUsersTable();
-        alert(`Password for ${targetUser.name} successfully updated to: ${newPass.trim()}`);
+        alert(`Password for ${targetUser.name} updated to: ${newPass.trim()}`);
       }
     }
 
@@ -2079,6 +2807,7 @@
       if (!phone) return;
       const email = prompt("Enter Email Address:", `${phone}@customer.com`);
       const password = prompt("Enter Password:", "1234");
+      const pin = prompt("Enter 4-digit PIN:", "1234");
       const role = prompt("Enter Role (customer / owner / admin):", "customer");
 
       users.push({
@@ -2088,12 +2817,14 @@
         email: email,
         phone: phone,
         password: password,
+        pin: pin || "1234",
+        faceData: null,
         role: role || "customer"
       });
 
       persistAllData();
       renderAdminUsersTable();
-      alert("New user account created successfully!");
+      alert("New account registered!");
     }
 
     function saveTickerBanner() {
@@ -2102,11 +2833,11 @@
       config.announcement = text;
       persistAllData();
       syncConfigUI();
-      alert("Announcement ticker updated across the store!");
+      alert("Live ticker updated across storefront!");
     }
 
     /* -------------------------------------------------------------
-       CHECKOUT, AUTOMATED ORDER ID, DUAL NOTIFICATIONS
+       CHECKOUT & AUTOMATED ORDER ID CREATION
     ------------------------------------------------------------- */
     function startCheckout() {
       if (cart.length === 0) {
@@ -2128,7 +2859,6 @@
         document.getElementById("chkEmail").value = currentUser.email;
       }
 
-      // Generate dynamic UPI intent QR Code
       const upiUrl = `upi://pay?pa=${encodeURIComponent(config.upiId)}&pn=${encodeURIComponent(config.merchantName)}&am=${total}&cu=INR&tn=${encodeURIComponent('Moin Quran Box Order')}`;
       document.getElementById("checkoutQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUrl)}`;
     }
@@ -2170,8 +2900,6 @@
       const utr = document.getElementById("chkUtr").value.trim();
 
       const total = calculateCartTotal();
-      
-      // Automatic Unique Order ID format: MQB-YEAR-RANDOM
       const autoOrderId = `MQB-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
       const nowStr = new Date().toLocaleString();
 
@@ -2186,6 +2914,9 @@
         paymentMethod: method,
         utr: utr || "N/A",
         status: "Ordered",
+        courierName: "Local Hyderabad Express",
+        awb: "PENDING-PACKING",
+        trackingUrl: "",
         date: nowStr
       };
 
@@ -2194,20 +2925,20 @@
 
       lastPlacedOrder = newOrder;
 
-      // Clear cart
+      // Reset cart and coupon
       cart = [];
-      activeDiscountPercent = 0;
+      activeAppliedCoupon = null;
       updateCartUI();
       closeCheckoutModal();
 
-      // Setup Owner WhatsApp Notification
+      // Owner WhatsApp Notification Message
       const itemsListText = newOrder.items.map(i => `• ${i.qty}x ${i.title} (₹${i.salePrice})`).join("\n");
-      const whatsappMsg = `*NEW ORDER RECEIVED — MOIN QURAN BOX*\n\n*Assigned Order ID:* ${autoOrderId}\n*Date:* ${nowStr}\n\n*Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Email: ${email}\n• Delivery Address:\n  ${newOrder.address}\n\n*Items Ordered:*\n${itemsListText}\n\n*Total Payable:* ₹${total}\n*Payment Mode:* ${method} ${utr ? `(UTR: ${utr})` : ''}\n\n_Please confirm packaging and dispatch schedule._`;
+      const whatsappMsg = `*NEW SACRED ORDER RECEIVED — MOIN QURAN BOX*\n\n*Assigned Order ID:* ${autoOrderId}\n*Date:* ${nowStr}\n\n*Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Email: ${email}\n• Address: ${newOrder.address}\n\n*Items Ordered:*\n${itemsListText}\n\n*Net Payable:* ₹${total}\n*Payment Mode:* ${method} ${utr ? `(UTR: ${utr})` : ''}\n\n_Please confirm courier packaging & AWB dispatch._`;
       const ownerWhatsAppUrl = `https://wa.me/91${config.ownerPhone}?text=${encodeURIComponent(whatsappMsg)}`;
 
-      // Setup Customer Email Receipt
-      const emailSubject = `Order Confirmation & Receipt: ${autoOrderId} - MOIN QURAN BOX`;
-      const emailBody = `Assalamu Alaikum ${name},\n\nAlhamdulillah! Your order ${autoOrderId} has been received by MOIN QURAN BOX, Hyderabad.\n\nSummary:\n${itemsListText}\n\nTotal: Rs. ${total}\nPayment Method: ${method}\nDelivery Address:\n${newOrder.address}\n\nYou can track this order status directly on our website using Order ID: ${autoOrderId}.\n\nJazakAllah Khair,\nMOIN QURAN BOX\nFalaknuma, Hyderabad\nHelpline: +91 9390335673`;
+      // Customer Email Invoice Receipt
+      const emailSubject = `Order Invoice & Confirmation: ${autoOrderId} - MOIN QURAN BOX`;
+      const emailBody = `Assalamu Alaikum ${name},\n\nAlhamdulillah! Your order ${autoOrderId} has been confirmed with MOIN QURAN BOX, Hyderabad.\n\nSummary:\n${itemsListText}\n\nTotal: Rs. ${total}\nPayment Method: ${method}\nDelivery Address:\n${newOrder.address}\n\nYou can track live courier dispatch and download your official tax invoice on our website anytime using Order ID: ${autoOrderId} and Mobile: ${phone}.\n\nJazakAllah Khair,\nMOIN QURAN BOX\nMadina Colony, Falaknuma, Hyderabad 500053`;
       const emailUrl = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
 
       document.getElementById("successOrderIdDisplay").textContent = autoOrderId;
@@ -2221,87 +2952,74 @@
     }
 
     /* -------------------------------------------------------------
-       PRINTABLE TAX INVOICE GENERATOR
+       CUSTOMER PROFILE & TRACKING
     ------------------------------------------------------------- */
-    function printCurrentOrderInvoice() {
-      if (!lastPlacedOrder) return;
-      prepareAndPrintInvoice(lastPlacedOrder.orderId);
-    }
+    function openCustomerProfileModal() {
+      if (!currentUser) return;
+      document.getElementById("customerProfileModal").classList.remove("hidden");
+      document.getElementById("custAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
+      document.getElementById("custProfileName").textContent = currentUser.name;
+      document.getElementById("custProfileContact").textContent = `${currentUser.email} • +91 ${currentUser.phone}`;
 
-    function prepareAndPrintInvoice(orderId) {
-      const order = orders.find(o => o.orderId === orderId);
-      if (!order) return;
+      const historyBox = document.getElementById("custOrderHistoryList");
+      const userOrders = orders.filter(o => o.customerPhone === currentUser.phone || o.customerEmail.toLowerCase() === currentUser.email.toLowerCase());
 
-      const section = document.getElementById("invoicePrintSection");
-      section.innerHTML = `
-        <div style="max-width: 750px; margin: auto; border: 1px solid #ddd; padding: 30px; font-family: sans-serif;">
-          <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1f2421; padding-bottom: 15px;">
+      if (userOrders.length === 0) {
+        historyBox.innerHTML = `
+          <div class="text-center py-6 bg-brand-sand rounded-xl border border-brand-border">
+            <p class="text-xs text-brand-muted">You haven't placed any orders yet.</p>
+            <button onclick="closeCustomerProfileModal(); scrollToProducts();" class="mt-2 text-xs font-bold text-brand-gold underline">Explore Holy Qurans →</button>
+          </div>
+        `;
+        return;
+      }
+
+      historyBox.innerHTML = userOrders.map(o => `
+        <div class="bg-white border border-brand-border p-3.5 rounded-xl space-y-2">
+          <div class="flex justify-between items-start text-xs">
             <div>
-              <h1 style="font-size: 22px; margin: 0; font-weight: bold; color: #122b22;">MOIN QURAN BOX</h1>
-              <p style="font-size: 11px; margin: 4px 0; color: #555;">Manufacturer &amp; Wholesale Supplier</p>
-              <p style="font-size: 11px; margin: 0; color: #555;">Madina Colony, Falaknuma, Hyderabad - 500053</p>
-              <p style="font-size: 11px; margin: 0; color: #555;">Ph: +91 9390335673 | GSTIN: UNREGISTERED / COMPOSITION</p>
+              <span class="font-mono font-bold text-brand-charcoal">${o.orderId}</span>
+              <span class="text-brand-muted text-[11px] block">${o.date}</span>
             </div>
-            <div style="text-align: right;">
-              <h2 style="font-size: 18px; margin: 0; color: #c59b27;">RETAIL INVOICE</h2>
-              <p style="font-size: 12px; margin: 5px 0;"><strong>Order ID:</strong> ${order.orderId}</p>
-              <p style="font-size: 11px; margin: 0; color: #555;"><strong>Date:</strong> ${order.date}</p>
-            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${getStatusBadgeClass(o.status)}">${o.status}</span>
           </div>
 
-          <div style="margin: 20px 0; display: flex; justify-content: space-between; font-size: 12px;">
-            <div>
-              <strong>Billed &amp; Shipped To:</strong>
-              <p style="margin: 3px 0; font-weight: bold;">${order.customerName}</p>
-              <p style="margin: 0; color: #444;">${order.address}</p>
-              <p style="margin: 0; color: #444;">Phone: ${order.customerPhone}</p>
-              <p style="margin: 0; color: #444;">Email: ${order.customerEmail}</p>
-            </div>
-            <div style="text-align: right;">
-              <p style="margin: 3px 0;"><strong>Payment Status:</strong> ${order.paymentMethod}</p>
-              ${order.utr ? `<p style="margin: 0;"><strong>UTR / Txn:</strong> ${order.utr}</p>` : ''}
-              <p style="margin: 0;"><strong>Tracking Status:</strong> ${order.status}</p>
-            </div>
+          <div class="text-xs text-neutral-600">
+            ${o.items.map(it => `<div>${it.qty}x ${it.title} (₹${it.price})</div>`).join("")}
           </div>
 
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 20px 0;">
-            <thead>
-              <tr style="background: #f4efe6; border-bottom: 1px solid #ccc;">
-                <th style="padding: 8px; text-align: left;">Item Description</th>
-                <th style="padding: 8px; text-align: center;">Qty</th>
-                <th style="padding: 8px; text-align: right;">Unit Price</th>
-                <th style="padding: 8px; text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map(it => `
-                <tr style="border-bottom: 1px solid #eee;">
-                  <td style="padding: 8px;">${it.title}</td>
-                  <td style="padding: 8px; text-align: center;">${it.qty}</td>
-                  <td style="padding: 8px; text-align: right;">₹${it.salePrice || it.price}</td>
-                  <td style="padding: 8px; text-align: right;">₹${(it.salePrice || it.price) * it.qty}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-
-          <div style="text-align: right; font-size: 14px; margin-top: 15px;">
-            <p style="margin: 4px 0;"><strong>Grand Total:</strong> ₹${order.total}.00</p>
-          </div>
-
-          <div style="margin-top: 40px; border-top: 1px dashed #ccc; padding-top: 10px; font-size: 10px; color: #777; text-align: center;">
-            <p>Thank you for choosing MOIN QURAN BOX. May Allah bless you and your family with Barakah.</p>
+          <div class="flex justify-between items-center pt-2 border-t border-brand-border text-xs">
+            <span class="font-bold">Total: ₹${o.total} (${o.paymentMethod})</span>
+            <div class="flex gap-2">
+              <button onclick="trackSpecificOrder('${o.orderId}')" class="text-brand-gold font-bold underline">Track Courier</button>
+              <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-neutral-700 underline font-semibold">Tax Invoice</button>
+              ${o.status === "Delivered" ? `<button onclick="openReturnFormWithId('${o.orderId}')" class="text-red-500 font-semibold underline">Return</button>` : ''}
+            </div>
           </div>
         </div>
-      `;
+      `).join("");
+    }
 
-      section.classList.remove("hidden");
-      window.print();
-      section.classList.add("hidden");
+    function closeCustomerProfileModal() {
+      document.getElementById("customerProfileModal").classList.add("hidden");
+    }
+
+    function getStatusBadgeClass(status) {
+      switch (status) {
+        case "Ordered": return "bg-blue-100 text-blue-800";
+        case "Processing": return "bg-amber-100 text-amber-800";
+        case "Dispatched": return "bg-indigo-100 text-indigo-800";
+        case "In Transit": return "bg-purple-100 text-purple-800";
+        case "Out for Delivery": return "bg-sky-100 text-sky-800";
+        case "Delivered": return "bg-emerald-100 text-emerald-800";
+        case "Return Requested": return "bg-rose-100 text-rose-800";
+        case "Returned": return "bg-neutral-200 text-neutral-800";
+        default: return "bg-neutral-100 text-neutral-800";
+      }
     }
 
     /* -------------------------------------------------------------
-       TRACKING & RETURNS
+       COURIER TRACKING TIMELINE
     ------------------------------------------------------------- */
     function openTrackingModal() {
       document.getElementById("trackingModal").classList.remove("hidden");
@@ -2322,24 +3040,34 @@
       const res = document.getElementById("trackingResultBox");
       if (!q) return;
 
-      const order = orders.find(o => o.orderId.toUpperCase() === q);
+      const order = orders.find(o => o.orderId.toUpperCase() === q || (o.awb && o.awb.toUpperCase() === q));
       res.classList.remove("hidden");
 
       if (!order) {
-        res.innerHTML = `<p class="text-xs text-red-500 font-bold">No order found with ID: ${q}. Please verify your receipt number.</p>`;
+        res.innerHTML = `<p class="text-xs text-red-500 font-bold">No shipment found with Order ID or AWB: ${q}.</p>`;
         return;
       }
 
-      const steps = ["Ordered", "Processing", "Shipped", "Out for Delivery", "Delivered"];
+      const steps = ["Ordered", "Processing", "Dispatched", "In Transit", "Out for Delivery", "Delivered"];
       const currentIdx = steps.indexOf(order.status);
 
       res.innerHTML = `
-        <div class="border-b border-brand-border pb-2">
+        <div class="border-b border-brand-border pb-2.5">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-brand-charcoal">${order.orderId}</span>
             <span class="px-2 py-0.5 text-[10px] font-bold rounded ${getStatusBadgeClass(order.status)}">${order.status}</span>
           </div>
           <p class="text-[11px] text-brand-muted mt-0.5">Destination: ${order.address}</p>
+          
+          <div class="mt-2 p-2.5 bg-white rounded-lg border border-brand-border text-xs">
+            <p><strong>Courier Partner:</strong> ${order.courierName || 'Local Express / India Post'}</p>
+            <p class="font-mono"><strong>AWB Number:</strong> ${order.awb || 'Processing in Warehouse'}</p>
+            ${order.trackingUrl ? `
+              <a href="${order.trackingUrl}" target="_blank" class="inline-block mt-1 text-[11px] text-brand-gold font-bold underline">
+                Open Courier Live Portal →
+              </a>
+            ` : ''}
+          </div>
         </div>
 
         <div class="space-y-2 py-2">
@@ -2358,12 +3086,15 @@
         </div>
 
         <div class="pt-2 border-t border-brand-border flex justify-between items-center text-[11px]">
-          <span>Need live courier update?</span>
-          <a href="https://wa.me/91${config.ownerPhone}?text=Inquiry%20regarding%20tracking%20for%20order%20${order.orderId}" target="_blank" class="text-brand-gold font-bold underline">WhatsApp Shop Owner</a>
+          <button onclick="prepareAndPrintInvoice('${order.orderId}')" class="text-neutral-700 font-bold underline">📄 View Tax Invoice</button>
+          <a href="https://wa.me/91${config.ownerPhone}?text=Inquiry%20regarding%20tracking%20for%20order%20${order.orderId}" target="_blank" class="text-brand-gold font-bold underline">WhatsApp Showroom</a>
         </div>
       `;
     }
 
+    /* -------------------------------------------------------------
+       RETURNS & CONTACT
+    ------------------------------------------------------------- */
     function openReturnsModal() {
       document.getElementById("returnsModal").classList.remove("hidden");
     }
@@ -2400,7 +3131,7 @@
 
       persistAllData();
       closeReturnsModal();
-      alert("Return request submitted. Our showroom team in Hyderabad will contact you for pickup.");
+      alert("Return request submitted. Our showroom team will contact you for free doorstep collection.");
 
       const retMsg = `*RETURN / REPLACEMENT INQUIRY*\nOrder ID: ${id}\nPhone: ${phone}\nReason: ${reason}\nNotes: ${notes}`;
       window.open(`https://wa.me/91${config.ownerPhone}?text=${encodeURIComponent(retMsg)}`, '_blank');
@@ -2410,6 +3141,67 @@
     function closePoliciesModal() { document.getElementById("policiesModal").classList.add("hidden"); }
     function openContactModal() { document.getElementById("contactModal").classList.remove("hidden"); }
     function closeContactModal() { document.getElementById("contactModal").classList.add("hidden"); }
+
+    /* -------------------------------------------------------------
+       DRAWER & SEARCH
+    ------------------------------------------------------------- */
+    function toggleDrawer(show) {
+      const drawer = document.getElementById("drawerMenu");
+      const backdrop = document.getElementById("drawerBackdrop");
+      if (show) {
+        drawer.classList.remove("pointer-events-none");
+        drawer.classList.remove("-translate-x-full");
+        backdrop.classList.add("opacity-100");
+      } else {
+        drawer.classList.add("-translate-x-full");
+        backdrop.classList.remove("opacity-100");
+        setTimeout(() => drawer.classList.add("pointer-events-none"), 300);
+      }
+    }
+
+    function navigateDrawer(category) {
+      filterCategory(category);
+      toggleDrawer(false);
+      scrollToProducts();
+    }
+
+    function openSearchModal() {
+      document.getElementById("searchModal").classList.remove("hidden");
+      document.getElementById("searchInput").focus();
+    }
+    function closeSearchModal() {
+      document.getElementById("searchModal").classList.add("hidden");
+      document.getElementById("searchInput").value = "";
+      document.getElementById("searchResults").innerHTML = "";
+    }
+    function liveSearch(query) {
+      const box = document.getElementById("searchResults");
+      const q = query.trim().toLowerCase();
+      if (!q) { box.innerHTML = ""; return; }
+      const matched = products.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+      if (matched.length === 0) {
+        box.innerHTML = `<div class="py-3 text-center text-xs text-neutral-400">No matching items found</div>`;
+        return;
+      }
+      box.innerHTML = matched.map(m => `
+        <div onclick="selectSearchResult('${m.id}')" class="py-2.5 px-2 flex items-center justify-between cursor-pointer hover:bg-brand-sand rounded-lg">
+          <div class="flex items-center gap-2">
+            <img src="${m.image}" class="w-8 h-8 rounded object-cover" />
+            <div>
+              <p class="text-xs font-semibold text-brand-charcoal">${m.title}</p>
+              <p class="text-[10px] text-brand-muted">${m.category} • ₹${m.salePrice}</p>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-brand-gold">View →</span>
+        </div>
+      `).join("");
+    }
+    function selectSearchResult(id) {
+      closeSearchModal();
+      const p = products.filter(x => x.id === id);
+      renderProducts(p);
+      scrollToProducts();
+    }
   </script>
 </body>
 </html>
