@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MOIN QURAN BOX | Wholesale & Retail</title>
+  <style>
+    :root {
+      --primary: #0f3460;
+      --secondary: #d4af37;
+      --accent: #25d366;
+      --dark: #1a1a2e;
+      --light: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--light);
+      color: #333;
+    }
+
+    /* Header & Banner */
+    header {
+      background: linear-gradient(135deg, #0f2b48 0%, #00122e 100%);
+      color: #fff;
+      text-align: center;
+      padding: 40px 20px;
+      border-bottom: 5px solid var(--secondary);
+    }
+
+    .badge-bar {
+      display: inline-flex;
+      gap: 12px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .badge {
+      background: rgba(212, 175, 55, 0.2);
+      border: 1px solid var(--secondary);
+      color: var(--secondary);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .urdu-title {
+      font-size: 1.8rem;
+      color: var(--secondary);
+      margin: 10px 0;
+      direction: rtl;
+    }
+
+    .tagline {
+      font-size: 1.05rem;
+      color: #e2e8f0;
+      max-width: 700px;
+      margin: 10px auto 0;
+      line-height: 1.5;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 30px 20px;
+    }
+
+    /* Contact Bar / Quick Action Card */
+    .contact-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: -30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .address-info {
+      flex: 1 1 300px;
+    }
+
+    .address-info h3 {
+      color: var(--dark);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .address-info p {
+      color: #64748b;
+      line-height: 1.4;
+      font-size: 0.95rem;
+    }
+
+    .contact-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    .btn-call {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-whatsapp {
+      background-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Section Title */
+    .section-title {
+      text-align: center;
+      margin: 50px 0 30px;
+    }
+
+    .section-title h2 {
+      font-size: 1.8rem;
+      color: var(--dark);
+    }
+
+    .section-title p {
+      color: #64748b;
+      margin-top: 5px;
+    }
+
+    /* Products Grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    .product-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .product-card h3 {
+      font-size: 1.2rem;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+
+    .product-card p {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 16px;
+    }
+
+    .order-item-btn {
+      display: inline-block;
+      width: 100%;
+      background: var(--light);
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--dark);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .order-item-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--dark);
+      color: #94a3b8;
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: 60px;
+      font-size: 0.9rem;
+    }
+
+    footer p {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Banner -->
+  <header>
+    <div class="badge-bar">
+      <span class="badge">Manufacturer</span>
+      <span class="badge">Wholesale &amp; Retail[cite: 1]</span>
+    </div>
+    <h1>MOIN QURAN BOX</h1>
+    <div class="urdu-title">معین قرآن باکس</div>
+    <p class="tagline">
+      Specialist in Holy Quran - E - Majeed &amp; Islamic Books[cite: 1] • Stockist in Quran Box, Janamaz, Tasbih, Namaz Caps &amp; Rehal[cite: 1]
+    </p>
+  </header>
+
+  <div class="container">
+    <!-- Contact & Address Card -->
+    <section class="contact-card">
+      <div class="address-info">
+        <h3>📍 Store Location</h3>
+        <p>Madina Colony, Falaknuma, Hyderabad, Telangana 500053</p>
+        <p style="margin-top: 4px; font-weight: 500; color: #334155;">
+          Proprietor: Shaik Moin Uddin[cite: 1]
+        </p>
+      </div>
+
+      <div class="contact-buttons">
+        <!-- Main phone call link -->
+        <a href="tel:+919390335673" class="btn btn-call">
+          📞 Call: 9390335673[cite: 1]
+        </a>
+        <!-- Secondary phone call link -->
+        <a href="tel:+918142140905" class="btn btn-call" style="background-color: #334155;">
+          📞 8142140905[cite: 1]
+        </a>
+        <!-- WhatsApp direct chat link -->
+        <a href="https://wa.me/919390335673?text=Salam,%20I%20am%20interested%20in%20ordering%20from%20Moin%20Quran%20Box" target="_blank" class="btn btn-whatsapp">
+          💬 WhatsApp
+        </a>
+      </div>
+    </section>
+
+    <!-- Available Items Grid -->
+    <section>
+      <div class="section-title">
+        <h2>Our Products &amp; Collections</h2>
+        <p>Available for wholesale bulk purchase and retail orders[cite: 1]</p>
+      </div>
+
+      <div class="products-grid">
+        <div class="product-card">
+          <div class="product-icon">📦</div>
+          <h3>Quran Boxes[cite: 1]</h3>
+          <p>Handcrafted wooden, velvet, and metallic designer Quran storage boxes.</p>
+          <a href="https://wa.me/919390335673?text=Inquiry%20about%20Quran%20Boxes" target="_blank" class="order-item-btn">Inquire on WhatsApp</a>
+        </div>
+
+        <div class="product-card">
+          <div class="product-icon">📖</div>
+          <h3>Holy Quran[cite: 1]</h3>
+          <p>Quran-e-Majeed in various print sizes, scripts, and binding types[cite: 1].</p>
+          <a href="https://wa.me/919390335673?text=Inquiry%20about%20Holy%20Quran" target="_blank" class="order-item-btn">Inquire on WhatsApp</a>
+        </div>
+
+        <div class="product-card">
+          <div class="product-icon">🕌</div>
+          <h3>Janamaz (Prayer Mats)[cite: 1]</h3>
+          <p>Premium velvet, cushioned, and travel-friendly prayer carpets[cite: 1].</p>
+          <a href="https://wa.me/919390335673?text=Inquiry%20about%20Janamaz" target="_blank" class="order-item-btn">Inquire on WhatsApp</a>
+        </div>
+
+        <div class="product-card">
+          <div class="product-icon">📿</div>
+          <h3>Tasbih &amp; Accessories[cite: 1]</h3>
+          <p>Crystal, wooden, and digital counting tasbih beads in bulk quantities[cite: 1].</p>
+          <a href="https://wa.me/919390335673?text=Inquiry%20about%20Tasbih" target="_blank" class="order-item-btn">Inquire on WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p><strong>MOIN QURAN BOX</strong> — Hyderabad</p>
+    <p>Madina Colony, Falaknuma, Hyderabad, Telangana - 500053</p>
+    <p style="margin-top: 10px; font-size: 0.8rem;">Contact: +91 9390335673[cite: 1] | +91 8142140905[cite: 1]</p>
+  </footer>
+
+</body>
+</html>
