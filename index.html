@@ -187,7 +187,7 @@
           <p class="text-[10px] text-brand-muted truncate">My Orders &amp; Account</p>
         </div>
       </div>
-      <div onclick="openContactModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
+      <div onclick="scrollToContact()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
         <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-base">📍</div>
         <div class="truncate">
           <p class="font-bold text-brand-charcoal">Showrooms (2)</p>
@@ -223,6 +223,51 @@
 
     <!-- Products Grid -->
     <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
+
+    <!-- Customer to Owner Direct Message Section -->
+    <section id="contactSectionAnchor" class="mt-14 mb-8 bg-white p-6 sm:p-8 rounded-2xl border border-brand-border shadow-sm">
+      <div class="max-w-2xl mx-auto text-xs">
+        <div class="text-center mb-6">
+          <span class="text-xs uppercase tracking-widest text-brand-gold font-bold">Showroom Direct Desk</span>
+          <h3 class="serif-title text-xl font-bold text-brand-charcoal mt-1">Send a Message to the Owners</h3>
+          <p class="text-neutral-500 mt-1">Need customized Quran box engraving, bulk wedding gifts, or wholesale pricing? Contact Shaik Moin Uddin &amp; Shaik Muneer Uddin directly.</p>
+        </div>
+
+        <form id="custMessageForm" onsubmit="handleSendMessageToOwner(event)" class="space-y-3.5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold mb-1">Your Name *</label>
+              <input type="text" id="msgCustName" required placeholder="e.g. Brother Farhan" class="w-full bg-brand-sand border rounded-lg p-2.5 outline-none focus:border-brand-gold" />
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Your Mobile Number *</label>
+              <input type="tel" id="msgCustPhone" required placeholder="e.g. 7893961313" class="w-full bg-brand-sand border rounded-lg p-2.5 font-mono outline-none focus:border-brand-gold" />
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Inquiry Subject *</label>
+            <input type="text" id="msgCustSubject" required placeholder="e.g. Wholesale Velvet Box Order or Custom Quran Gift Set" class="w-full bg-brand-sand border rounded-lg p-2.5 outline-none focus:border-brand-gold" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Detailed Message / Requirements *</label>
+            <textarea id="msgCustMessage" required rows="3" placeholder="Specify sizes, quantities, or specific Arabic print requirements..." class="w-full bg-brand-sand border rounded-lg p-2.5 outline-none focus:border-brand-gold"></textarea>
+          </div>
+          <div class="flex items-center gap-4 pt-1">
+            <label class="flex items-center gap-2 cursor-pointer font-semibold">
+              <input type="radio" name="msgChannel" value="whatsapp" checked class="accent-brand-darkgreen" />
+              <span>💬 Send via WhatsApp (+91 7337464501)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer font-semibold">
+              <input type="radio" name="msgChannel" value="email" class="accent-brand-darkgreen" />
+              <span>✉️ Send via Official Email</span>
+            </label>
+          </div>
+          <button type="submit" class="w-full py-3 bg-brand-darkgreen hover:bg-black text-white font-bold uppercase rounded-lg shadow transition">
+            Dispatch Direct Message to Owners
+          </button>
+        </form>
+      </div>
+    </section>
   </main>
 
   <!-- ================= FOOTER ================= -->
@@ -235,10 +280,11 @@
           Dedicated manufacturer and wholesale distributor of Holy Quran, wooden velvet boxes, authentic transliterations, Janamaz prayer carpets, and Islamic gifts.
         </p>
         <div class="mt-3 text-xs space-y-1 text-brand-muted">
-          <p><strong class="text-brand-charcoal">Proprietor:</strong> <span id="footerProprietor">Shaik Moin Uddin</span></p>
+          <p><strong class="text-brand-charcoal">Proprietors:</strong> <span id="footerProprietor">Shaik Moin Uddin &amp; Shaik Muneer Uddin</span></p>
           <p><strong class="text-brand-charcoal">Showroom 1:</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
           <p><strong class="text-brand-charcoal">Showroom 2:</strong> Pathergatti, Near Medina Bldg, Charminar, Hyderabad 500002</p>
-          <p><strong class="text-brand-charcoal">Helpline:</strong> +91 9390335673 / +91 8142140905</p>
+          <p><strong class="text-brand-charcoal">Helpline:</strong> <span id="footerPhonesText">+91 7893961313 / +91 7337464501</span></p>
+          <p><strong class="text-brand-charcoal">Official Email:</strong> <span id="footerEmailText">moinquranbox@gmail.com</span></p>
         </div>
       </div>
 
@@ -271,7 +317,7 @@
   </footer>
 
   <!-- ================= FLOATING WHATSAPP BUTTON ================= -->
-  <a id="floatingWhatsAppLink" href="https://wa.me/919390335673" target="_blank" class="fixed bottom-6 right-6 z-40 bg-brand-whatsapp text-white p-3.5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all">
+  <a id="floatingWhatsAppLink" href="https://wa.me/917337464501" target="_blank" class="fixed bottom-6 right-6 z-40 bg-brand-whatsapp text-white p-3.5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all">
     <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="currentColor" viewBox="0 0 24 24">
       <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0012.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.23 8.23 0 012.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 01-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.24-.75-.67-1.25-1.49-1.4-1.74-.15-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.12-.14.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.71 4.3 3.8 2.53 1.09 2.53.73 2.99.69.46-.04 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.12-.22-.19-.47-.32z"/>
     </svg>
@@ -294,7 +340,7 @@
           <button onclick="navigateDrawer('Hajj & Umrah')" class="w-full py-3.5 text-left hover:text-brand-gold">Hajj &amp; Umrah</button>
           <button onclick="navigateDrawer('Namaz Caps & Tasbih')" class="w-full py-3.5 text-left hover:text-brand-gold">Namaz Caps &amp; Tasbih</button>
           <button onclick="openInvoiceLookupModal(); toggleDrawer(false);" class="w-full py-3.5 text-left text-amber-700 font-bold">📄 Download Invoice PDF</button>
-          <button onclick="openContactModal(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Contact &amp; Showrooms</button>
+          <button onclick="scrollToContact(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Message Owners Directly</button>
         </nav>
       </div>
       <div class="pt-6 border-t border-brand-border space-y-2">
@@ -447,7 +493,7 @@
     </div>
   </div>
 
-  <!-- ================= MASTER MANAGEMENT CONTROL CENTER ================= -->
+  <!-- ================= MASTER MANAGEMENT CONTROL CENTER (BENTO GRID TEMPLATE) ================= -->
   <div id="adminDashboardModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-6xl w-full h-[95vh] flex flex-col overflow-hidden">
       <!-- Top Bar -->
@@ -478,7 +524,7 @@
         <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
       </div>
 
-      <!-- Tab Content Area -->
+      <!-- Tab Content Area (Grid Template Way) -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fcfaf7]">
         
         <!-- TAB 0: BENTO GRID HUB & UNIVERSAL SEARCH -->
@@ -486,7 +532,7 @@
           <!-- Universal Search Bar -->
           <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
             <h4 class="font-bold text-xs uppercase text-brand-charcoal mb-2">🔍 Universal Search (Customer Phone, Email or Order ID)</h4>
-            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by phone, email, or order ID (e.g. 9390335673 or MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
+            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by phone, email, or order ID (e.g. 7893961313, 7337464501, or MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
             <div id="universalSearchResults"></div>
           </div>
 
@@ -512,12 +558,12 @@
           </div>
         </div>
 
-        <!-- TAB 1: ORDERS -->
+        <!-- TAB 1: ORDERS (GRID VIEW) -->
         <div id="adminTab-orders" class="hidden space-y-4">
           <div class="flex justify-between items-center">
             <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger</h4>
           </div>
-          <div id="adminOrdersContainer" class="space-y-3"></div>
+          <div id="adminOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
         <!-- TAB 2: INVENTORY -->
@@ -542,7 +588,7 @@
           </div>
         </div>
 
-        <!-- TAB: BRANCHES -->
+        <!-- TAB: BRANCHES (GRID VIEW) -->
         <div id="adminTab-branches" class="hidden space-y-4">
           <div class="flex justify-between items-center">
             <div>
@@ -651,7 +697,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: ANALYTICS -->
+        <!-- TAB 4: ANALYTICS (GRID VIEW) -->
         <div id="adminTab-analytics" class="hidden space-y-4">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Omnichannel Sales Analytics</h4>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -730,7 +776,7 @@
               <input type="text" id="cmsBrandName" required class="w-full bg-brand-sand border rounded p-2" />
             </div>
             <div>
-              <label class="block font-bold mb-1">Proprietor Name</label>
+              <label class="block font-bold mb-1">Proprietor Names (Both Owners)</label>
               <input type="text" id="cmsProprietor" required class="w-full bg-brand-sand border rounded p-2" />
             </div>
             <div>
@@ -739,12 +785,22 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block font-bold mb-1">Primary Call Phone</label>
+                <label class="block font-bold mb-1">Primary Phone</label>
                 <input type="tel" id="cmsPhone1" class="w-full bg-brand-sand border rounded p-2" />
               </div>
               <div>
-                <label class="block font-bold mb-1">Secondary Call Phone</label>
+                <label class="block font-bold mb-1">Secondary Phone</label>
                 <input type="tel" id="cmsPhone2" class="w-full bg-brand-sand border rounded p-2" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold mb-1">WhatsApp Phone Number</label>
+                <input type="tel" id="cmsWhatsApp" class="w-full bg-brand-sand border rounded p-2 font-mono" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">Official Owner Email</label>
+                <input type="email" id="cmsOwnerEmail" class="w-full bg-brand-sand border rounded p-2" />
               </div>
             </div>
             <div>
@@ -883,7 +939,7 @@
         </div>
         <div class="p-3 bg-brand-sand border rounded-lg">
           <span class="font-bold text-brand-forest">Showroom UPI Transfer</span>
-          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark">9390335673@ybl</strong></p>
+          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark" id="displayCheckoutUpi">7337464501@ybl</strong></p>
         </div>
         <div class="flex justify-between items-center text-sm font-bold pt-2 border-t">
           <span>Amount Payable:</span>
@@ -933,10 +989,10 @@
       <div class="bg-brand-sand p-3.5 rounded-xl space-y-2 border border-brand-border">
         <p><strong>📍 Branch 1 (Head Showroom):</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
         <p><strong>📍 Branch 2 (Outlet):</strong> Pathergatti, Near Medina Bldg, Charminar, Hyderabad 500002</p>
-        <p><strong>📞 Helpline:</strong> +91 9390335673 / +91 8142140905</p>
+        <p><strong>📞 Helpline:</strong> +91 7893961313 / +91 7337464501</p>
         <p><strong>⏰ Hours:</strong> 10:00 AM – 11:00 PM (All 7 Days)</p>
       </div>
-      <a href="https://wa.me/919390335673" target="_blank" class="block text-center py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold">Chat on WhatsApp</a>
+      <a href="https://wa.me/917337464501" target="_blank" class="block text-center py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold">Chat on WhatsApp</a>
     </div>
   </div>
 
