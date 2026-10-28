@@ -1,12 +1,12 @@
 /**
- * MOIN QURAN BOX - Multi-Branch Enterprise Controller v10.0
- * Roles & Credentials:
+ * MOIN QURAN BOX - Multi-Branch Enterprise Controller v11.0
+ * Credentials:
  *   Developer Admin: Username 'Admin'  | Password '9290'
  *   Store Owner:     Username 'Owner'  | Password '8341'
  *   Branch 2 Owner:  Username 'owner1' | Password '1234'
  */
 
-const STORAGE_PREFIX = "mqb_v10_";
+const STORAGE_PREFIX = "mqb_v11_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
@@ -52,20 +52,22 @@ async function loadInitialData() {
     } catch {
       config = {
         brandName: "MOIN QURAN BOX",
-        proprietor: "Shaik Moin Uddin",
+        proprietor: "Shaik Moin Uddin & Shaik Muneer Uddin",
         address: "Madina Colony, Falaknuma, Hyderabad, Telangana 500053",
-        phone1: "9390335673",
-        phone2: "8142140905",
-        whatsappPhone: "9390335673",
-        upiId: "9390335673@ybl",
+        phone1: "7893961313",
+        phone2: "7337464501",
+        whatsappPhone: "7337464501",
+        ownerEmail: "moinquranbox@gmail.com",
+        gst: "TEL-HYD-500053",
+        upiId: "7337464501@ybl",
         merchantName: "MOIN QURAN BOX",
         bankName: "State Bank of India",
         accountNum: "392810482910",
         ifsc: "SBIN0020145",
         announcement: "Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD & Instant UPI Available",
         branches: [
-          { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Falaknuma, Hyderabad 500053", phone: "9390335673", manager: "Shaik Moin Uddin", enabled: true },
-          { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Near Medina Building, Charminar, Hyderabad 500002", phone: "8142140905", manager: "Branch Manager (Owner 1)", enabled: true }
+          { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Near Engine Bowli, Falaknuma, Hyderabad, Telangana 500053", phone: "7893961313", manager: "Shaik Moin Uddin & Shaik Muneer Uddin", enabled: true },
+          { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Pathergatti Road, Near Medina Building, Charminar, Hyderabad, Telangana 500002", phone: "7337464501", manager: "Branch Manager (Owner 1)", enabled: true }
         ]
       };
     }
@@ -75,8 +77,8 @@ async function loadInitialData() {
   // Ensure default branches structure
   if (!config.branches || config.branches.length === 0) {
     config.branches = [
-      { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Falaknuma, Hyderabad 500053", phone: "9390335673", manager: "Shaik Moin Uddin", enabled: true },
-      { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Near Medina Building, Charminar, Hyderabad 500002", phone: "8142140905", manager: "Branch Manager (Owner 1)", enabled: true }
+      { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Falaknuma, Hyderabad 500053", phone: "7893961313", manager: "Shaik Moin Uddin & Shaik Muneer Uddin", enabled: true },
+      { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Near Medina Building, Charminar, Hyderabad 500002", phone: "7337464501", manager: "Branch Manager (Owner 1)", enabled: true }
     ];
   }
 
@@ -93,19 +95,19 @@ async function loadInitialData() {
     localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
   }
 
-  // Strict Roles & Credentials Configuration
+  // Set users
   const savedUsers = localStorage.getItem(KEY_USERS);
   if (savedUsers) {
     users = JSON.parse(savedUsers);
     ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
-    ensureUserExists("Owner", "8341", "Shaik Moin Uddin", "9390335673", "moinquranbox@gmail.com", "owner");
-    ensureUserExists("owner1", "1234", "Branch 2 Owner (Owner 1)", "8142140905", "owner1@moinquranbox.com", "owner1");
+    ensureUserExists("Owner", "8341", "Shaik Moin Uddin & Shaik Muneer Uddin", "7893961313", "moinquranbox@gmail.com", "owner");
+    ensureUserExists("owner1", "1234", "Branch 2 Owner (Owner 1)", "7337464501", "owner1@moinquranbox.com", "owner1");
   } else {
     users = [
       { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
-      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" },
-      { id: "usr-owner1", username: "owner1", password: "1234", name: "Branch 2 Owner (Owner 1)", phone: "8142140905", email: "owner1@moinquranbox.com", role: "owner1" },
-      { id: "usr-demo", username: "9390335673", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "9390335673", email: "farhan@example.com", role: "customer" }
+      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin & Shaik Muneer Uddin", phone: "7893961313", email: "moinquranbox@gmail.com", role: "owner" },
+      { id: "usr-owner1", username: "owner1", password: "1234", name: "Branch 2 Owner (Owner 1)", phone: "7337464501", email: "owner1@moinquranbox.com", role: "owner1" },
+      { id: "usr-demo", username: "7893961313", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "7893961313", email: "farhan@example.com", role: "customer" }
     ];
   }
 
@@ -186,6 +188,22 @@ function startSessionCountdownTimer(expiresAt) {
   sessionTimerInterval = setInterval(updateTimer, 1000);
 }
 
+// Autoscroll Utilities
+function autoScrollTo(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function scrollToProducts() {
+  autoScrollTo("catalogTopAnchor");
+}
+
+function scrollToContact() {
+  autoScrollTo("contactSectionAnchor");
+}
+
 // Welcome Greeting
 function checkWelcomeGreetingBanner() {
   const dismissed = sessionStorage.getItem("mqb_greeting_dismissed");
@@ -200,6 +218,31 @@ function checkWelcomeGreetingBanner() {
 function dismissGreetingBanner() {
   sessionStorage.setItem("mqb_greeting_dismissed", "true");
   document.getElementById("welcomeGreetingBanner")?.classList.add("hidden");
+}
+
+// Customer Direct Message to Owner (WhatsApp & Email)
+function handleSendMessageToOwner(e) {
+  e.preventDefault();
+  const name = document.getElementById("msgCustName").value.trim();
+  const phone = document.getElementById("msgCustPhone").value.trim();
+  const subject = document.getElementById("msgCustSubject").value.trim();
+  const message = document.getElementById("msgCustMessage").value.trim();
+  const channel = document.querySelector('input[name="msgChannel"]:checked')?.value || "whatsapp";
+
+  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*\n\n` +
+    `*From:* ${name}\n` +
+    `*Phone:* ${phone}\n` +
+    `*Subject:* ${subject}\n\n` +
+    `*Message:* ${message}`;
+
+  if (channel === "whatsapp") {
+    window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`, "_blank");
+  } else {
+    window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=${encodeURIComponent("Website Inquiry: " + subject)}&body=${encodeURIComponent(formattedMsg)}`;
+  }
+
+  alert("Inquiry prepared! Transferring to your selected channel.");
+  document.getElementById("custMessageForm")?.reset();
 }
 
 // Storefront Categories & Products
@@ -279,18 +322,22 @@ function renderBranchesOnStorefront() {
   }
   container.parentElement?.classList.remove("hidden");
   container.innerHTML = visibleBranches.map(b => `
-    <div class="bg-brand-sand/70 p-3.5 rounded-xl border border-brand-border space-y-1 text-xs">
-      <h5 class="font-bold text-brand-charcoal flex items-center gap-1.5">
+    <div class="bg-brand-sand/70 p-3.5 rounded-xl border border-brand-border space-y-1.5 text-xs">
+      <h5 class="font-bold text-brand-charcoal flex items-center gap-1.5 text-sm">
         <span>📍</span> ${b.name}
       </h5>
       <p class="text-neutral-600 leading-snug">${b.address}</p>
       <p class="text-[11px] font-mono text-brand-muted">📞 +91 ${b.phone} • Manager: ${b.manager}</p>
+      <div class="pt-1 flex gap-2">
+        <a href="https://wa.me/91${b.phone}?text=${encodeURIComponent(`Salam, I have an inquiry for ${b.name}`)}" target="_blank" class="px-2 py-1 bg-brand-whatsapp text-white rounded text-[10px] font-bold inline-flex items-center gap-1">
+          WhatsApp Showroom
+        </a>
+        <a href="tel:${b.phone}" class="px-2 py-1 bg-white border border-brand-border rounded text-[10px] font-semibold text-brand-charcoal">
+          Call Branch
+        </a>
+      </div>
     </div>
   `).join("");
-}
-
-function scrollToProducts() {
-  document.getElementById("catalogTopAnchor")?.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Shopping Bag
@@ -474,7 +521,7 @@ function handlePlaceOrder(e) {
 
 function closeSuccessModal() { document.getElementById("orderSuccessModal")?.classList.add("hidden"); }
 
-// Invoices & Customer Notifications
+// Invoice & Printing
 function openInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.remove("hidden"); }
 function closeInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.add("hidden"); }
 
@@ -543,7 +590,7 @@ function prepareAndPrintInvoice(orderId) {
   printDiv.classList.add("hidden");
 }
 
-// Shipping Label Generator (Online, Offline & Manual)
+// Shipping Labels (Thermal & A4)
 function printShippingLabel(orderId) {
   const order = orders.find(o => o.orderId === orderId);
   if (!order) return;
@@ -652,7 +699,7 @@ function sendOrderDetailsToCustomer(orderId, medium) {
   }
 }
 
-// Tracking
+// Tracking Modal
 function openTrackingModal() { document.getElementById("trackingModal")?.classList.remove("hidden"); }
 function closeTrackingModal() { document.getElementById("trackingModal")?.classList.add("hidden"); }
 
@@ -984,7 +1031,7 @@ function handlePortalLogin(e) {
     matchedName = "Developer Admin";
   } else if (u.toLowerCase() === "owner" && p === "8341") {
     matchedRole = "owner";
-    matchedName = "Shaik Moin Uddin (Head Branch)";
+    matchedName = "Shaik Moin Uddin & Shaik Muneer Uddin (Head Branch)";
   } else if (u.toLowerCase() === "owner1" && p === "1234") {
     matchedRole = "owner1";
     matchedName = "Branch 2 Owner (Charminar)";
@@ -994,7 +1041,7 @@ function handlePortalLogin(e) {
   }
 
   currentUser = { role: matchedRole, name: matchedName, username: u };
-  const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
   localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt }));
 
   startSessionCountdownTimer(expiresAt);
@@ -1030,6 +1077,7 @@ function openAdminDashboardModal() {
 
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
+// Bento Grid Hub Switching for Admin and Owner
 function switchAdminTab(tab) {
   const tabs = ['hub', 'orders', 'inventory', 'pos', 'analytics', 'branches', 'shipping', 'coupons', 'customers', 'salesmodifier', 'cms', 'payments'];
   tabs.forEach(t => {
@@ -1295,6 +1343,8 @@ function handleCmsSave(e) {
   config.address = document.getElementById("cmsAddress").value.trim();
   config.phone1 = document.getElementById("cmsPhone1")?.value.trim() || config.phone1;
   config.phone2 = document.getElementById("cmsPhone2")?.value.trim() || config.phone2;
+  config.whatsappPhone = document.getElementById("cmsWhatsApp")?.value.trim() || config.whatsappPhone;
+  config.ownerEmail = document.getElementById("cmsOwnerEmail")?.value.trim() || config.ownerEmail;
   config.announcement = document.getElementById("cmsAnnouncement")?.value.trim() || config.announcement;
 
   persist();
@@ -1348,7 +1398,7 @@ function deleteCoupon(i) {
   renderCouponsTable();
 }
 
-// Admin Password & Account Management (Staff & Customers)
+// Admin Credentials Management
 function renderAdminCustomers() {
   const tbody = document.getElementById("adminCustomersTableBody");
   if (!tbody) return;
@@ -1402,6 +1452,15 @@ function syncLiveCmsUI() {
   if (elProp) elProp.textContent = config.proprietor;
   if (elAddr) elAddr.textContent = config.address;
   if (elTicker) elTicker.textContent = config.announcement;
+
+  const waFloat = document.getElementById("floatingWhatsAppLink");
+  if (waFloat) waFloat.href = `https://wa.me/91${config.whatsappPhone}`;
+  
+  const footPhones = document.getElementById("footerPhonesText");
+  if (footPhones) footPhones.textContent = `+91 ${config.phone1} / +91 ${config.phone2}`;
+
+  const footEmail = document.getElementById("footerEmailText");
+  if (footEmail) footEmail.textContent = config.ownerEmail;
 }
 
 function logoutCurrentUser(sessionExpired = false) {
