@@ -4,7 +4,7 @@
     "title": "Holy Quran – Urdu translation in ROMAN Script",
     "category": "Tarjuma Qurans",
     "sku": "MQB-QUR-01",
-    "stock": 40,
+    "stock": 45,
     "salePrice": 999,
     "oldPrice": 1599,
     "wholesalePrice": 750,
@@ -46,5 +46,53 @@
     "wholesalePrice": 390,
     "image": "https://images.unsplash.com/photo-1590076215667-873d31295988?auto=format&fit=crop&w=600&q=80",
     "desc": "Folding rosewood Rehal with polished brass inlay."
+  },
+  {
+    "id": "prod-105",
+    "title": "Deluxe Hajj & Umrah Dua Pocket Cards Set",
+    "category": "Hajj & Umrah",
+    "sku": "MQB-HAJ-05",
+    "stock": 80,
+    "salePrice": 399,
+    "oldPrice": 699,
+    "wholesalePrice": 220,
+    "image": "https://images.unsplash.com/photo-1564769625905-50e93615e769?auto=format&fit=crop&w=600&q=80",
+    "desc": "Laminated authentic authentic supplication cards with neck lanyard."
+  },
+  {
+    "id": "prod-106",
+    "title": "Crystal Tasbih (99 Beads) with Velvet Pouch",
+    "category": "Namaz Caps & Tasbih",
+    "sku": "MQB-TAS-06",
+    "stock": 100,
+    "salePrice": 249,
+    "oldPrice": 499,
+    "wholesalePrice": 140,
+    "image": "https://images.unsplash.com/photo-1591206369811-4eeb2f03bc95?auto=format&fit=crop&w=600&q=80",
+    "desc": "Hand-strung faceted crystal beads with golden tassel."
+  },
+  {
+    "id": "prod-107",
+    "title": "Luxury Bridal Quran Gift Box with Scented Attar",
+    "category": "Quran Boxes & Rehal",
+    "sku": "MQB-GFT-07",
+    "stock": 15,
+    "salePrice": 2499,
+    "oldPrice": 3499,
+    "wholesalePrice": 1800,
+    "image": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80",
+    "desc": "Complete wedding gift set: Gold-foil Holy Quran, prayer rug, crystal tasbih, and attar."
+  },
+  {
+    "id": "prod-108",
+    "title": "Handmade Omani Namaz Cap (Barkati Keffiyeh)",
+    "category": "Namaz Caps & Tasbih",
+    "sku": "MQB-CAP-08",
+    "stock": 90,
+    "salePrice": 299,
+    "oldPrice": 550,
+    "wholesalePrice": 180,
+    "image": "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=600&q=80",
+    "desc": "Breathable cotton prayer cap with authentic geometric embroidery."
   }
 ]
