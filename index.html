@@ -57,6 +57,9 @@
           <span id="announcementText" class="truncate text-[11px] sm:text-xs">Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD &amp; Instant UPI Available</span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
+          <span id="staffSessionTimerBadge" class="hidden text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-400/30">
+            ⏱️ Session: 24:00:00
+          </span>
           <button onclick="openAdminLoginModal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition flex items-center gap-1 border border-amber-400/40">
             🔐 Staff Login
           </button>
@@ -151,7 +154,7 @@
         <h1 class="serif-title text-2xl sm:text-4xl font-bold leading-tight mb-2">Preserving The Divine Word With Sacred Grace</h1>
         <p class="font-arabic text-xl sm:text-2xl text-amber-200 mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
         <p class="text-xs sm:text-sm text-neutral-300 mb-6 leading-relaxed">
-          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Falaknuma, Hyderabad.
+          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Falaknuma &amp; Charminar, Hyderabad.
         </p>
         <div class="flex flex-wrap gap-2.5">
           <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Shop Collection</button>
@@ -187,10 +190,16 @@
       <div onclick="openContactModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
         <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-base">📍</div>
         <div class="truncate">
-          <p class="font-bold text-brand-charcoal">Hyderabad Store</p>
-          <p class="text-[10px] text-brand-muted truncate">Madina Colony, Falaknuma</p>
+          <p class="font-bold text-brand-charcoal">Showrooms (2)</p>
+          <p class="text-[10px] text-brand-muted truncate">Falaknuma &amp; Charminar</p>
         </div>
       </div>
+    </div>
+
+    <!-- Active Showroom Branches Section -->
+    <div class="mb-8">
+      <h3 class="serif-title text-sm font-bold text-brand-charcoal uppercase tracking-wider mb-2">Our Hyderabad Showrooms</h3>
+      <div id="storefrontBranchesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </div>
 
     <!-- Product Grid Header -->
@@ -227,7 +236,8 @@
         </p>
         <div class="mt-3 text-xs space-y-1 text-brand-muted">
           <p><strong class="text-brand-charcoal">Proprietor:</strong> <span id="footerProprietor">Shaik Moin Uddin</span></p>
-          <p><strong class="text-brand-charcoal">Showroom:</strong> <span id="footerAddress">Madina Colony, Falaknuma, Hyderabad, Telangana 500053</span></p>
+          <p><strong class="text-brand-charcoal">Showroom 1:</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
+          <p><strong class="text-brand-charcoal">Showroom 2:</strong> Pathergatti, Near Medina Bldg, Charminar, Hyderabad 500002</p>
           <p><strong class="text-brand-charcoal">Helpline:</strong> +91 9390335673 / +91 8142140905</p>
         </div>
       </div>
@@ -249,14 +259,14 @@
           <li><button onclick="openCustomerAuthModal('login')" class="hover:text-brand-gold">Customer Login / Register</button></li>
           <li><button onclick="openInvoiceLookupModal()" class="hover:text-brand-gold">Download Official Invoice</button></li>
           <li><button onclick="openTrackingModal()" class="hover:text-brand-gold">Courier Shipment Track</button></li>
-          <li><button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline">Staff Portal (Admin/Owner)</button></li>
+          <li><button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline">Staff Portal (Admin / Owners)</button></li>
         </ul>
       </div>
     </div>
 
     <div class="max-w-6xl mx-auto px-4 mt-8 pt-4 border-t border-brand-border text-center text-[11px] text-brand-muted flex flex-col sm:flex-row justify-between items-center gap-2">
       <p>&copy; 2026 MOIN QURAN BOX. All rights reserved.</p>
-      <p class="font-mono text-[10px]">Madina Colony, Falaknuma • Direct Manufacturer &amp; Wholesale Distribution</p>
+      <p class="font-mono text-[10px]">Falaknuma &amp; Charminar • Direct Manufacturer &amp; Wholesale Distribution</p>
     </div>
   </footer>
 
@@ -284,7 +294,7 @@
           <button onclick="navigateDrawer('Hajj & Umrah')" class="w-full py-3.5 text-left hover:text-brand-gold">Hajj &amp; Umrah</button>
           <button onclick="navigateDrawer('Namaz Caps & Tasbih')" class="w-full py-3.5 text-left hover:text-brand-gold">Namaz Caps &amp; Tasbih</button>
           <button onclick="openInvoiceLookupModal(); toggleDrawer(false);" class="w-full py-3.5 text-left text-amber-700 font-bold">📄 Download Invoice PDF</button>
-          <button onclick="openContactModal(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Contact &amp; Showroom</button>
+          <button onclick="openContactModal(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Contact &amp; Showrooms</button>
         </nav>
       </div>
       <div class="pt-6 border-t border-brand-border space-y-2">
@@ -292,7 +302,7 @@
           Customer Account Login
         </button>
         <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="w-full py-2 bg-brand-darkgreen text-white text-xs font-bold uppercase rounded">
-          Staff Portal (Admin/Owner)
+          Staff Portal (Admin / Owners)
         </button>
       </div>
     </div>
@@ -419,13 +429,14 @@
         <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto mb-2 font-bold text-lg">
           🔐
         </div>
-        <h3 class="serif-title text-xl font-bold text-brand-charcoal">Management Portal</h3>
-        <p class="text-[11px] text-brand-muted mt-1">Authorized Developer Admin &amp; Store Owner Access</p>
+        <h3 class="serif-title text-xl font-bold text-brand-charcoal">Staff Portal Login</h3>
+        <p class="text-[11px] text-brand-muted mt-1">Admin (9290) • Owner (8341) • Owner 1 (1234)</p>
+        <p class="text-[10px] text-emerald-700 font-semibold mt-0.5">Saves active login session for 24 hours</p>
       </div>
       <form onsubmit="handlePortalLogin(event)" class="space-y-3.5 text-xs">
         <div>
           <label class="block font-semibold mb-1">Username / ID</label>
-          <input type="text" id="portalUsername" required placeholder="Admin or Owner" class="w-full bg-white border rounded-lg px-3 py-2" />
+          <input type="text" id="portalUsername" required placeholder="Admin, Owner, or owner1" class="w-full bg-white border rounded-lg px-3 py-2" />
         </div>
         <div>
           <label class="block font-semibold mb-1">Security PIN / Password</label>
@@ -436,7 +447,7 @@
     </div>
   </div>
 
-  <!-- ================= MASTER MANAGEMENT CONTROL CENTER (GRID TEMPLATE) ================= -->
+  <!-- ================= MASTER MANAGEMENT CONTROL CENTER ================= -->
   <div id="adminDashboardModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-6xl w-full h-[95vh] flex flex-col overflow-hidden">
       <!-- Top Bar -->
@@ -456,10 +467,12 @@
         <button onclick="switchAdminTab('hub')" id="adminTabBtn-hub" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">⚡ Grid Hub</button>
         <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
         <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock</button>
+        <button onclick="switchAdminTab('branches')" id="adminTabBtn-branches" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏢 Branches (2)</button>
+        <button onclick="switchAdminTab('shipping')" id="adminTabBtn-shipping" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Shipping Labels</button>
         <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 Showroom POS</button>
         <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Analytics</button>
         <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts</button>
-        <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Customers</button>
+        <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Passwords &amp; Users</button>
         <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Override</button>
         <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Live CMS</button>
         <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
@@ -473,7 +486,7 @@
           <!-- Universal Search Bar -->
           <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
             <h4 class="font-bold text-xs uppercase text-brand-charcoal mb-2">🔍 Universal Search (Customer Phone, Email or Order ID)</h4>
-            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by customer phone (e.g. 9390335673), email, or order number (e.g. MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
+            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by phone, email, or order ID (e.g. 9390335673 or MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
             <div id="universalSearchResults"></div>
           </div>
 
@@ -482,7 +495,7 @@
             <div class="bg-white p-4 rounded-xl border shadow-sm">
               <span class="text-neutral-500 font-bold uppercase text-[10px]">Total Gross Revenue</span>
               <h3 id="hubTotalRevenue" class="text-2xl font-bold font-mono text-brand-darkgreen mt-1">₹0</h3>
-              <p class="text-[11px] text-emerald-600 mt-1">Online &amp; In-Store Walk-in sales</p>
+              <p class="text-[11px] text-emerald-600 mt-1">Combined online &amp; walk-in sales</p>
             </div>
             <div class="bg-white p-4 rounded-xl border shadow-sm">
               <span class="text-neutral-500 font-bold uppercase text-[10px]">Total Orders Logged</span>
@@ -491,8 +504,8 @@
             </div>
             <div class="bg-white p-4 rounded-xl border shadow-sm flex flex-col justify-between">
               <div>
-                <span class="text-neutral-500 font-bold uppercase text-[10px]">Falaknuma Showroom Walk-in</span>
-                <p class="font-bold mt-1">Open POS Billing Terminal</p>
+                <span class="text-neutral-500 font-bold uppercase text-[10px]">Showroom POS Billing</span>
+                <p class="font-bold mt-1">Launch Instant Terminal</p>
               </div>
               <button onclick="switchAdminTab('pos')" class="mt-2 py-2 bg-brand-darkgreen text-white font-bold rounded uppercase text-[10px]">Launch POS</button>
             </div>
@@ -519,13 +532,91 @@
                 <tr>
                   <th class="p-3">Product Name</th>
                   <th class="p-3">Category</th>
-                  <th class="p-3">Stock Units</th>
+                  <th class="p-3">Current Stock</th>
                   <th class="p-3">Retail Price</th>
                   <th class="p-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody id="adminInventoryTableBody" class="divide-y divide-brand-border"></tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- TAB: BRANCHES -->
+        <div id="adminTab-branches" class="hidden space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h4 class="serif-title text-base font-bold text-brand-charcoal">Showroom Branches Management (2 Branches)</h4>
+              <p class="text-xs text-brand-muted">Update branch addresses, contact numbers, and toggle customer visibility.</p>
+            </div>
+          </div>
+          <div id="adminBranchesList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- TAB: SHIPPING LABELS -->
+        <div id="adminTab-shipping" class="hidden space-y-5">
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator (Thermal &amp; A4 Ready)</h4>
+          <div class="bg-white p-5 rounded-xl border border-brand-border shadow-sm max-w-2xl text-xs space-y-3">
+            <h5 class="font-bold uppercase text-brand-darkgreen">Create Manual Label (For Online &amp; Offline Orders)</h5>
+            <form onsubmit="handleManualShippingLabelPrint(event)" class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold mb-0.5">Order ID</label>
+                  <input type="text" id="lblOrderId" placeholder="MQB-MAN-01" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+                <div>
+                  <label class="block font-semibold mb-0.5">Recipient Name *</label>
+                  <input type="text" id="lblCustomerName" required placeholder="Customer Full Name" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold mb-0.5">Mobile Phone *</label>
+                  <input type="tel" id="lblCustomerPhone" required placeholder="10-digit mobile" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+                <div>
+                  <label class="block font-semibold mb-0.5">Email Address</label>
+                  <input type="email" id="lblCustomerEmail" placeholder="name@example.com" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+              </div>
+              <div>
+                <label class="block font-semibold mb-0.5">Complete Address *</label>
+                <textarea id="lblAddress" rows="2" required placeholder="House No, Landmark, Area, City" class="w-full bg-brand-sand border rounded p-2"></textarea>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block font-semibold mb-0.5">Postal Code *</label>
+                  <input type="text" id="lblPostalCode" required placeholder="500053" class="w-full bg-brand-sand border rounded p-2 font-mono font-bold" />
+                </div>
+                <div>
+                  <label class="block font-semibold mb-0.5">Payment Type *</label>
+                  <select id="lblPaymentType" class="w-full bg-brand-sand border rounded p-2 font-bold">
+                    <option value="Prepaid Online">Prepaid Online</option>
+                    <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-0.5">Amount (₹)</label>
+                  <input type="number" id="lblAmount" placeholder="999" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold mb-0.5">Channel</label>
+                  <select id="lblChannel" class="w-full bg-brand-sand border rounded p-2">
+                    <option value="Online Order">Online Order</option>
+                    <option value="Offline Store Dispatch">Offline Store Dispatch</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-0.5">Items/Pieces</label>
+                  <input type="number" id="lblPackagePieces" value="1" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2.5 bg-brand-charcoal text-white font-bold uppercase rounded shadow">
+                🖨️ Generate &amp; Print Shipping Label
+              </button>
+            </form>
           </div>
         </div>
 
@@ -541,6 +632,7 @@
                 <h5 class="font-bold border-b pb-2 uppercase text-brand-charcoal">Active POS Bill</h5>
                 <input type="text" id="posCustName" placeholder="Customer Name (optional)" class="w-full border rounded p-1.5 mt-2" />
                 <input type="tel" id="posCustPhone" placeholder="Mobile Number" class="w-full border rounded p-1.5 mt-1" />
+                <input type="text" id="posCustPincode" placeholder="Pincode (e.g. 500053)" class="w-full border rounded p-1.5 mt-1" />
                 <div id="posTicketItems" class="divide-y my-2 max-h-36 overflow-y-auto"></div>
               </div>
               <div class="border-t pt-2 space-y-2">
@@ -595,14 +687,16 @@
           </div>
         </div>
 
-        <!-- TAB 6: CUSTOMER 360° INSPECTOR (ADMIN ONLY) -->
+        <!-- TAB 6: CUSTOMER & STAFF PASSWORD DESK (ADMIN ONLY) -->
         <div id="adminTab-customers" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Accounts &amp; Password Management</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Staff &amp; Customer Credentials Manager</h4>
+          <p class="text-xs text-brand-muted">Admin can change passwords for all staff members (Owner, Owner 1) and all registered customers.</p>
           <div class="bg-white rounded-xl border overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-brand-sand border-b uppercase">
                 <tr>
-                  <th class="p-3">Customer Name</th>
+                  <th class="p-3">Name / Role</th>
+                  <th class="p-3">Role</th>
                   <th class="p-3">Phone</th>
                   <th class="p-3">Email</th>
                   <th class="p-3">Password</th>
@@ -692,7 +786,7 @@
     </div>
   </div>
 
-  <!-- ================= PRODUCT EDIT MODAL (PHOTO UPLOAD INCLUDED) ================= -->
+  <!-- ================= PRODUCT EDIT MODAL ================= -->
   <div id="productEditModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
       <button onclick="closeProductEditModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
@@ -760,17 +854,36 @@
             <input type="email" id="chkEmail" class="w-full bg-brand-sand border rounded-lg p-2.5" />
           </div>
         </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="col-span-2">
+            <label class="block font-semibold mb-1">Delivery Address *</label>
+            <input type="text" id="chkAddress" required placeholder="House No, Landmark, Area" class="w-full bg-brand-sand border rounded-lg p-2.5" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Postal Code *</label>
+            <input type="text" id="chkPostalCode" required placeholder="500053" class="w-full bg-brand-sand border rounded-lg p-2.5 font-mono font-bold" />
+          </div>
+        </div>
         <div>
-          <label class="block font-semibold mb-1">Delivery Address *</label>
-          <textarea id="chkAddress" required rows="2" class="w-full bg-brand-sand border rounded-lg p-2.5"></textarea>
+          <label class="block font-semibold mb-1">Payment Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="p-2 border rounded-lg bg-white flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="chkPaymentMethod" value="Online" checked />
+              <span>Prepaid UPI / Online</span>
+            </label>
+            <label class="p-2 border rounded-lg bg-white flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="chkPaymentMethod" value="COD" />
+              <span>Cash on Delivery (COD)</span>
+            </label>
+          </div>
         </div>
         <div>
           <label class="block font-semibold mb-1">Discount Coupon Code (Optional)</label>
           <input type="text" id="chkCouponInput" placeholder="e.g. RAMADAN50" class="w-full bg-brand-sand border rounded-lg p-2 font-mono uppercase" />
         </div>
         <div class="p-3 bg-brand-sand border rounded-lg">
-          <span class="font-bold text-brand-forest">Instant UPI Transfer</span>
-          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark" id="displayCheckoutUpi">9390335673@ybl</strong></p>
+          <span class="font-bold text-brand-forest">Showroom UPI Transfer</span>
+          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark">9390335673@ybl</strong></p>
         </div>
         <div class="flex justify-between items-center text-sm font-bold pt-2 border-t">
           <span>Amount Payable:</span>
@@ -817,9 +930,10 @@
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-xs space-y-3">
       <button onclick="closeContactModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
       <h3 class="serif-title text-base font-bold text-brand-charcoal">Contact MOIN QURAN BOX</h3>
-      <div class="bg-brand-sand p-3.5 rounded-xl space-y-1.5 border border-brand-border">
-        <p><strong>📍 Showroom:</strong> Madina Colony, Falaknuma, Hyderabad, Telangana 500053</p>
-        <p><strong>📞 Phone:</strong> +91 9390335673 / +91 8142140905</p>
+      <div class="bg-brand-sand p-3.5 rounded-xl space-y-2 border border-brand-border">
+        <p><strong>📍 Branch 1 (Head Showroom):</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
+        <p><strong>📍 Branch 2 (Outlet):</strong> Pathergatti, Near Medina Bldg, Charminar, Hyderabad 500002</p>
+        <p><strong>📞 Helpline:</strong> +91 9390335673 / +91 8142140905</p>
         <p><strong>⏰ Hours:</strong> 10:00 AM – 11:00 PM (All 7 Days)</p>
       </div>
       <a href="https://wa.me/919390335673" target="_blank" class="block text-center py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold">Chat on WhatsApp</a>
@@ -839,6 +953,7 @@
   </div>
 
   <div id="invoicePrintSection" class="hidden"></div>
+  <div id="shippingLabelPrintSection" class="hidden"></div>
 
   <!-- Application Controller -->
   <script src="js/app.js"></script>
