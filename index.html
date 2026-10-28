@@ -480,7 +480,7 @@
     </div>
   </div>
 
-  <!-- ================= CUSTOMER PROFILE MODAL (FEATURE CONTROLLED) ================= -->
+  <!-- ================= CUSTOMER PROFILE MODAL ================= -->
   <div id="customerProfileModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col relative text-xs overflow-hidden">
       <div class="bg-brand-darkgreen text-white p-4 flex items-center justify-between shrink-0">
@@ -610,7 +610,7 @@
     </div>
   </div>
 
-  <!-- ================= MASTER MANAGEMENT CONTROL CENTER (GRID TEMPLATE & FEATURE CONTROLS) ================= -->
+  <!-- ================= MASTER MANAGEMENT CONTROL CENTER ================= -->
   <div id="adminDashboardModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-6xl w-full h-[95vh] flex flex-col overflow-hidden">
       <!-- Top Bar with Staff Logout Button -->
@@ -625,7 +625,7 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs (Grid Template for All Options + Feature Controls) -->
+      <!-- Navigation Tabs -->
       <div class="bg-brand-sand border-b flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
         <button onclick="switchAdminTab('hub')" id="adminTabBtn-hub" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">⚡ Grid Hub</button>
         <button onclick="switchAdminTab('features')" id="adminTabBtn-features" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Feature Controls</button>
@@ -642,7 +642,7 @@
         <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 Payments Grid</button>
       </div>
 
-      <!-- Tab Content Area (Grid Template Way) -->
+      <!-- Tab Content Area -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fcfaf7]">
         
         <!-- TAB 0: BENTO GRID HUB -->
@@ -685,10 +685,25 @@
           <div id="adminFeatureTogglesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"></div>
         </div>
 
-        <!-- TAB 1: ORDERS GRID -->
+        <!-- TAB 1: ORDERS GRID & KPIs -->
         <div id="adminTab-orders" class="hidden space-y-4">
-          <div class="flex justify-between items-center">
-            <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger (Grid Template)</h4>
+          <div class="flex justify-between items-center mb-1">
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger</h4>
+          </div>
+          <!-- Order KPIs -->
+          <div class="grid grid-cols-3 gap-3 mb-2">
+            <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-center shadow-sm">
+              <p class="text-[10px] uppercase font-bold text-amber-800">Pending</p>
+              <h4 class="text-xl font-bold font-mono text-amber-900" id="kpiPendingOrders">0</h4>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center shadow-sm">
+              <p class="text-[10px] uppercase font-bold text-emerald-800">Completed</p>
+              <h4 class="text-xl font-bold font-mono text-emerald-900" id="kpiCompletedOrders">0</h4>
+            </div>
+            <div class="bg-red-50 border border-red-200 p-3 rounded-xl text-center shadow-sm">
+              <p class="text-[10px] uppercase font-bold text-red-800">Cancelled</p>
+              <h4 class="text-xl font-bold font-mono text-red-900" id="kpiCancelledOrders">0</h4>
+            </div>
           </div>
           <div id="adminOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
@@ -840,10 +855,13 @@
           </div>
         </div>
 
-        <!-- TAB 8: USERS GRID -->
+        <!-- TAB 8: USERS GRID (With Create Staff & Manage Capabilities) -->
         <div id="adminTab-customers" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Staff &amp; Customer Credentials Grid Manager</h4>
-          <div class="bg-white rounded-xl border overflow-x-auto">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Staff &amp; Customer Manager</h4>
+            <button onclick="openCreateStaffModal()" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase shadow">+ Add Staff Account</button>
+          </div>
+          <div class="bg-white rounded-xl border overflow-x-auto shadow-sm">
             <table class="w-full text-left text-xs">
               <thead class="bg-brand-sand border-b uppercase">
                 <tr>
@@ -851,8 +869,7 @@
                   <th class="p-3">Role</th>
                   <th class="p-3">Phone</th>
                   <th class="p-3">Email</th>
-                  <th class="p-3">Password</th>
-                  <th class="p-3">PIN</th>
+                  <th class="p-3">Status</th>
                   <th class="p-3 text-right">Action</th>
                 </tr>
               </thead>
@@ -951,6 +968,76 @@
 
         <button type="submit" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded mt-2">Save Product</button>
       </form>
+    </div>
+  </div>
+
+  <!-- ================= CREATE STAFF MODAL ================= -->
+  <div id="createStaffModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border rounded-2xl shadow-2xl max-w-sm w-full p-5 relative text-xs">
+      <button onclick="closeCreateStaffModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
+      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-3">Create Staff Account</h3>
+      <form onsubmit="handleCreateStaff(event)" class="space-y-3">
+        <div>
+          <label class="block font-bold mb-1">Full Name</label>
+          <input type="text" id="csName" required class="w-full bg-brand-sand border rounded p-2" />
+        </div>
+        <div>
+          <label class="block font-bold mb-1">Username / Phone</label>
+          <input type="text" id="csUsername" required class="w-full bg-brand-sand border rounded p-2" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold mb-1">Role</label>
+            <select id="csRole" class="w-full bg-brand-sand border rounded p-2">
+              <option value="owner">Owner (Head)</option>
+              <option value="owner1">Branch Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">Password</label>
+            <input type="text" id="csPassword" required class="w-full bg-brand-sand border rounded p-2 font-mono" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded mt-2">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MANAGE USER MODAL ================= -->
+  <div id="manageUserModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
+      <button onclick="closeManageUserModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
+      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-1">Manage Account</h3>
+      <p class="text-neutral-500 mb-4" id="manageUserMeta">User Details</p>
+      
+      <input type="hidden" id="muId" />
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold mb-1">Full Name</label>
+            <input type="text" id="muName" class="w-full bg-brand-sand border rounded p-2" />
+          </div>
+          <div>
+            <label class="block font-bold mb-1">Phone / Username</label>
+            <input type="text" id="muPhone" class="w-full bg-brand-sand border rounded p-2" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold mb-1">Reset Password / PIN</label>
+          <input type="text" id="muPassword" class="w-full bg-brand-sand border rounded p-2 font-mono" />
+        </div>
+        <div class="flex items-center gap-2 pt-2 border-t mt-3">
+          <label class="flex items-center gap-1.5 cursor-pointer font-bold text-red-600">
+            <input type="checkbox" id="muBlocked" class="accent-red-600 w-4 h-4" />
+            <span>Block / Revoke User Access</span>
+          </label>
+        </div>
+        <div class="flex gap-2 pt-3">
+          <button onclick="saveUserManagement()" class="flex-1 py-2 bg-brand-charcoal text-white rounded font-bold uppercase">Save Changes</button>
+          <button onclick="deleteUserAccount()" class="px-3 py-2 bg-red-100 text-red-700 rounded font-bold uppercase hover:bg-red-200">Delete</button>
+        </div>
+      </div>
     </div>
   </div>
 
