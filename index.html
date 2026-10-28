@@ -49,7 +49,7 @@
 
   <!-- ================= TOP FIXED HEADER SECTION ================= -->
   <div class="sticky top-0 z-40 w-full shadow-sm">
-    <!-- Announcement Ticker with Staff Login & Logout Options -->
+    <!-- Announcement Ticker with Staff Login Option -->
     <div id="announcementBar" class="bg-brand-darkgreen text-brand-cream text-xs py-2 px-3 border-b border-[#2b483a]">
       <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 overflow-hidden mx-auto text-center truncate font-medium">
@@ -60,11 +60,8 @@
           <span id="staffSessionTimerBadge" class="hidden text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-400/30">
             ⏱️ Session: 24:00:00
           </span>
-          <button id="staffLoginNavBtn" onclick="openAdminLoginModal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition flex items-center gap-1 border border-amber-400/40">
+          <button onclick="openAdminLoginModal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition flex items-center gap-1 border border-amber-400/40">
             🔐 Staff Login
-          </button>
-          <button id="staffLogoutNavBtn" onclick="logoutCurrentUser()" class="hidden text-[10px] sm:text-[11px] font-bold text-red-300 bg-red-950 hover:bg-red-900 px-2.5 py-1 rounded transition flex items-center gap-1 border border-red-500/40">
-            🚪 Staff Logout
           </button>
           <button onclick="openInvoiceLookupModal()" class="text-[10px] sm:text-[11px] font-semibold text-neutral-300 hover:text-white transition underline whitespace-nowrap">
             📄 Invoice
@@ -124,30 +121,9 @@
       </div>
     </header>
 
-    <!-- Category Ribbon & Easy Shopping Bar -->
-    <div class="bg-brand-sand/90 border-b border-brand-border py-2 px-4 flex items-center justify-between text-xs overflow-x-auto no-scrollbar gap-4">
-      <div class="flex gap-2 uppercase tracking-wider font-semibold whitespace-nowrap" id="categoryChips"></div>
-      <div class="flex items-center gap-3 shrink-0 font-medium text-[11px]">
-        <button onclick="openPrayerTimesModal()" class="hover:text-brand-gold flex items-center gap-1">🕌 <span class="hidden sm:inline">Prayer Times</span></button>
-        <button onclick="openCurrencyModal()" class="hover:text-brand-gold flex items-center gap-1">💱 <span class="hidden sm:inline">Currency</span></button>
-        <button onclick="openQuizModal()" class="hover:text-brand-gold flex items-center gap-1">🎁 <span class="hidden sm:inline">Gift Quiz</span></button>
-        <button onclick="openCompareDrawer()" class="hover:text-brand-gold flex items-center gap-1">⚖️ <span class="hidden sm:inline">Compare (<span id="compareCount">0</span>)</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= EASY SHOPPING ADVANCED OPTIONS BAR ================= -->
-  <div class="bg-brand-darkgreen text-amber-200 py-1.5 px-4 text-[11px] border-b border-brand-border/20">
-    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-4 overflow-x-auto no-scrollbar">
-        <span onclick="openFlashSaleModal()" class="cursor-pointer hover:underline flex items-center gap-1">⚡ <strong class="text-white">Flash Deals Active</strong></span>
-        <span onclick="openWholesaleCalculatorModal()" class="cursor-pointer hover:underline flex items-center gap-1">📊 <strong class="text-white">Wholesale Bulk Calculator</strong></span>
-        <span onclick="openWallpaperModal()" class="cursor-pointer hover:underline flex items-center gap-1">🖼️ <strong class="text-white">Islamic Wallpapers</strong></span>
-        <span onclick="openPincodeCheckerModal()" class="cursor-pointer hover:underline flex items-center gap-1">📍 <strong class="text-white">Hyderabad Delivery Checker</strong></span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span id="activeCurrencyBadge" class="bg-amber-400/20 px-2 py-0.5 rounded text-white font-mono">INR (₹)</span>
-      </div>
+    <!-- Category Ribbon -->
+    <div class="bg-brand-sand/90 border-b border-brand-border py-2 overflow-x-auto no-scrollbar">
+      <div class="max-w-6xl mx-auto px-4 flex gap-2 text-xs uppercase tracking-wider font-semibold whitespace-nowrap" id="categoryChips"></div>
     </div>
   </div>
 
@@ -178,7 +154,7 @@
         <h1 class="serif-title text-2xl sm:text-4xl font-bold leading-tight mb-2">Preserving The Divine Word With Sacred Grace</h1>
         <p class="font-arabic text-xl sm:text-2xl text-amber-200 mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
         <p class="text-xs sm:text-sm text-neutral-300 mb-6 leading-relaxed">
-          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic essentials at Falaknuma Head Showroom, Hyderabad.
+          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Falaknuma &amp; Charminar, Hyderabad.
         </p>
         <div class="flex flex-wrap gap-2.5">
           <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Shop Collection</button>
@@ -188,7 +164,7 @@
       </div>
     </div>
 
-    <!-- Quick Services Bar (Branch 2 Removed) -->
+    <!-- Quick Services Bar -->
     <div class="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
       <div onclick="openInvoiceLookupModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
         <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-base">📄</div>
@@ -201,7 +177,7 @@
         <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-base">🚚</div>
         <div class="truncate">
           <p class="font-bold text-brand-charcoal">Courier Track</p>
-          <p class="text-[10px] text-brand-muted truncate">BlueDart, DTDC, Express</p>
+          <p class="text-[10px] text-brand-muted truncate">BlueDart, DTDC, Porter</p>
         </div>
       </div>
       <div onclick="openCustomerAuthModal('login')" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
@@ -214,16 +190,16 @@
       <div onclick="scrollToContact()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
         <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-base">📍</div>
         <div class="truncate">
-          <p class="font-bold text-brand-charcoal">Head Showroom</p>
-          <p class="text-[10px] text-brand-muted truncate">Falaknuma, Hyderabad</p>
+          <p class="font-bold text-brand-charcoal">Showrooms (2)</p>
+          <p class="text-[10px] text-brand-muted truncate">Falaknuma &amp; Charminar</p>
         </div>
       </div>
     </div>
 
-    <!-- Active Showroom Branches Section (Head Showroom Only) -->
+    <!-- Active Showroom Branches Section -->
     <div class="mb-8">
-      <h3 class="serif-title text-sm font-bold text-brand-charcoal uppercase tracking-wider mb-2">Our Head Showroom</h3>
-      <div id="storefrontBranchesContainer" class="grid grid-cols-1 gap-3"></div>
+      <h3 class="serif-title text-sm font-bold text-brand-charcoal uppercase tracking-wider mb-2">Our Hyderabad Showrooms</h3>
+      <div id="storefrontBranchesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </div>
 
     <!-- Product Grid Header -->
@@ -247,12 +223,6 @@
 
     <!-- Products Grid -->
     <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
-
-    <!-- Recently Viewed Products Section -->
-    <div id="recentlyViewedSection" class="mt-12 hidden">
-      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-3">Recently Viewed Items</h3>
-      <div id="recentlyViewedGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-    </div>
 
     <!-- Customer to Owner Direct Message Section -->
     <section id="contactSectionAnchor" class="mt-14 mb-8 bg-white p-6 sm:p-8 rounded-2xl border border-brand-border shadow-sm">
@@ -300,7 +270,7 @@
     </section>
   </main>
 
-  <!-- ================= FOOTER (Branch 2 Removed) ================= -->
+  <!-- ================= FOOTER ================= -->
   <footer class="bg-brand-sand border-t border-brand-border mt-12 pt-10 pb-20 sm:pb-10 text-brand-charcoal">
     <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
       <div class="md:col-span-2">
@@ -311,7 +281,8 @@
         </p>
         <div class="mt-3 text-xs space-y-1 text-brand-muted">
           <p><strong class="text-brand-charcoal">Proprietors:</strong> <span id="footerProprietor">Shaik Moin Uddin &amp; Shaik Muneer Uddin</span></p>
-          <p><strong class="text-brand-charcoal">Head Showroom:</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
+          <p><strong class="text-brand-charcoal">Showroom 1:</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
+          <p><strong class="text-brand-charcoal">Showroom 2:</strong> Pathergatti, Near Medina Bldg, Charminar, Hyderabad 500002</p>
           <p><strong class="text-brand-charcoal">Helpline:</strong> <span id="footerPhonesText">+91 7893961313 / +91 7337464501</span></p>
           <p><strong class="text-brand-charcoal">Official Email:</strong> <span id="footerEmailText">moinquranbox@gmail.com</span></p>
         </div>
@@ -341,7 +312,7 @@
 
     <div class="max-w-6xl mx-auto px-4 mt-8 pt-4 border-t border-brand-border text-center text-[11px] text-brand-muted flex flex-col sm:flex-row justify-between items-center gap-2">
       <p>&copy; 2026 MOIN QURAN BOX. All rights reserved.</p>
-      <p class="font-mono text-[10px]">Falaknuma, Hyderabad • Direct Manufacturer &amp; Wholesale Distribution</p>
+      <p class="font-mono text-[10px]">Falaknuma &amp; Charminar • Direct Manufacturer &amp; Wholesale Distribution</p>
     </div>
   </footer>
 
@@ -481,109 +452,22 @@
 
   <!-- ================= CUSTOMER PROFILE MODAL ================= -->
   <div id="customerProfileModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col relative text-xs overflow-hidden">
-      <div class="bg-brand-darkgreen text-white p-4 flex items-center justify-between shrink-0">
-        <div>
-          <h3 class="serif-title text-base font-bold" id="custProfName">Customer 360 Dashboard</h3>
-          <p class="text-[10px] text-amber-300" id="custProfContact">Phone • Email</p>
-        </div>
-        <button onclick="closeCustomerProfileModal()" class="text-white text-base">✕</button>
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-6 relative text-xs">
+      <button onclick="closeCustomerProfileModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
+      <div class="border-b pb-3 mb-4">
+        <h3 class="serif-title text-base font-bold text-brand-charcoal" id="custProfName">Customer Profile</h3>
+        <p class="text-neutral-500" id="custProfContact">Phone • Email</p>
       </div>
-
-      <!-- Customer Profile Tabs -->
-      <div id="customerProfileTabsContainer" class="bg-brand-sand border-b flex overflow-x-auto no-scrollbar font-bold uppercase text-[10px] shrink-0">
-        <button onclick="switchCustomerTab('orders')" id="cxTabBtn-orders" class="px-3.5 py-2.5 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">1. Orders &amp; Tracking</button>
-        <button onclick="switchCustomerTab('wishlist')" id="cxTabBtn-wishlist" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">2. Wishlist</button>
-        <button onclick="switchCustomerTab('addresses')" id="cxTabBtn-addresses" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">3. Addresses</button>
-        <button onclick="switchCustomerTab('wallet')" id="cxTabBtn-wallet" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">4. Wallet &amp; Rewards</button>
-        <button onclick="switchCustomerTab('tickets')" id="cxTabBtn-tickets" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">5. Support Tickets</button>
-        <button onclick="switchCustomerTab('vouchers')" id="cxTabBtn-vouchers" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">6. Vouchers</button>
-        <button onclick="switchCustomerTab('reorder')" id="cxTabBtn-reorder" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">7. Reorder</button>
-        <button onclick="switchCustomerTab('warranty')" id="cxTabBtn-warranty" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">8. Warranty</button>
-        <button onclick="switchCustomerTab('security')" id="cxTabBtn-security" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">9. Security</button>
-        <button onclick="switchCustomerTab('statement')" id="cxTabBtn-statement" class="px-3.5 py-2.5 border-b-2 border-transparent text-neutral-500 whitespace-nowrap">10. Statement</button>
-      </div>
-
-      <!-- Customer Tab Content Area -->
-      <div class="flex-1 overflow-y-auto p-5 bg-[#fcfaf7]">
-        <div id="cxContent-orders" class="space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Real-Time Order Status &amp; Live Tracking</h4>
-          <div id="custOrderList" class="space-y-2"></div>
-        </div>
-        <div id="cxContent-wishlist" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Saved Wishlist Items</h4>
-          <div id="custWishlistGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-        </div>
-        <div id="cxContent-addresses" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Saved Delivery Addresses</h4>
-          <div id="custAddressesList" class="space-y-2"></div>
-          <button onclick="promptAddCustomerAddress()" class="px-3 py-1.5 bg-brand-darkgreen text-white rounded font-bold uppercase text-[10px]">+ Add New Address</button>
-        </div>
-        <div id="cxContent-wallet" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Digital Wallet &amp; Barakah Reward Points</h4>
-          <div class="bg-white p-4 rounded-xl border space-y-2">
-            <p><strong>CashBack Balance:</strong> <span class="font-mono text-emerald-700 font-bold text-base">₹250.00</span></p>
-            <p><strong>Loyalty Reward Points:</strong> <span class="font-mono font-bold text-amber-700">1,250 Points</span> (= ₹125 redeemable)</p>
-          </div>
-        </div>
-        <div id="cxContent-tickets" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Customer Support Live Tickets</h4>
-          <div id="custTicketsList" class="space-y-2"></div>
-          <button onclick="promptCreateSupportTicket()" class="px-3 py-1.5 bg-brand-charcoal text-white rounded font-bold uppercase text-[10px]">+ Open New Support Ticket</button>
-        </div>
-        <div id="cxContent-vouchers" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Exclusive Member Vouchers</h4>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="p-3 bg-brand-sand border rounded-lg border-dashed border-brand-gold">
-              <strong class="font-mono text-brand-gold text-sm">RAMADAN50</strong>
-              <p>Flat ₹50 OFF on orders above ₹500</p>
-            </div>
-            <div class="p-3 bg-brand-sand border rounded-lg border-dashed border-brand-gold">
-              <strong class="font-mono text-brand-gold text-sm">BARAKAH10</strong>
-              <p>10% OFF on all Quran Boxes &amp; Rehal</p>
-            </div>
-          </div>
-        </div>
-        <div id="cxContent-reorder" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">One-Click Reorder Past Items</h4>
-          <div id="custReorderContainer" class="space-y-2"></div>
-        </div>
-        <div id="cxContent-warranty" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Digital Product Warranty &amp; Authentication Certificates</h4>
-          <div class="p-3 bg-white border rounded-lg font-mono">
-            <p><strong>Certificate ID:</strong> CERT-MQB-2026-991</p>
-            <p><strong>Item:</strong> Gold-Foil Velvet Quran Box Set</p>
-            <p><strong>Issued by:</strong> Shaik Moin Uddin &amp; Shaik Muneer Uddin</p>
-          </div>
-        </div>
-        <div id="cxContent-security" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Account Security &amp; PIN Settings</h4>
-          <form onsubmit="handleCustomerSecurityUpdate(event)" class="space-y-2 max-w-sm">
-            <div>
-              <label class="block font-semibold mb-0.5">New Password</label>
-              <input type="password" id="cxNewPass" class="w-full bg-white border rounded p-2" />
-            </div>
-            <div>
-              <label class="block font-semibold mb-0.5">New 4-Digit PIN</label>
-              <input type="password" maxlength="4" id="cxNewPin" class="w-full bg-white border rounded p-2 font-mono" />
-            </div>
-            <button type="submit" class="py-1.5 px-3 bg-brand-charcoal text-white rounded font-bold uppercase text-[10px]">Update Credentials</button>
-          </form>
-        </div>
-        <div id="cxContent-statement" class="hidden space-y-3">
-          <h4 class="font-bold text-sm text-brand-charcoal">Download Account Statement &amp; Purchase Ledger</h4>
-          <button onclick="alert('Account Statement PDF downloaded successfully.')" class="py-2 px-4 bg-brand-darkgreen text-white rounded font-bold uppercase text-[10px]">Download PDF Statement</button>
-        </div>
-      </div>
-
-      <div class="p-4 bg-brand-sand border-t flex justify-between items-center shrink-0">
-        <button onclick="logoutCurrentUser()" class="px-3 py-1.5 bg-red-50 text-red-600 rounded font-bold uppercase text-[10px]">Log Out</button>
-        <button onclick="closeCustomerProfileModal()" class="px-3 py-1.5 bg-white border rounded font-semibold text-[10px]">Close</button>
+      <h4 class="font-bold mb-2 uppercase text-neutral-600">My Orders &amp; Delivery Tracking</h4>
+      <div id="custOrderList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
+      <div class="flex justify-between items-center pt-3 border-t">
+        <button onclick="logoutCurrentUser()" class="px-3 py-1.5 bg-red-50 text-red-600 rounded font-bold uppercase">Log Out</button>
+        <button onclick="closeCustomerProfileModal()" class="px-3 py-1.5 bg-neutral-100 rounded font-semibold">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= STAFF PORTAL LOGIN MODAL (FIXED & SECURE) ================= -->
+  <!-- ================= STAFF PORTAL LOGIN MODAL ================= -->
   <div id="adminLoginModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
       <button onclick="closeAdminLoginModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
@@ -592,68 +476,68 @@
           🔐
         </div>
         <h3 class="serif-title text-xl font-bold text-brand-charcoal">Staff Portal Login</h3>
-        <p class="text-[11px] text-brand-muted mt-1">Authorized Store Personnel Only</p>
-        <p class="text-[10px] text-emerald-700 font-semibold mt-0.5">Secure 24-hour authenticated staff session</p>
+        <p class="text-[11px] text-brand-muted mt-1">Admin (9290) • Owner (8341) • Owner 1 (1234)</p>
+        <p class="text-[10px] text-emerald-700 font-semibold mt-0.5">Saves active login session for 24 hours</p>
       </div>
-      <form id="portalLoginForm" onsubmit="handlePortalLogin(event)" class="space-y-3.5 text-xs">
+      <form onsubmit="handlePortalLogin(event)" class="space-y-3.5 text-xs">
         <div>
           <label class="block font-semibold mb-1">Username / ID</label>
-          <input type="text" id="portalUsername" required autocomplete="username" placeholder="Enter staff username" class="w-full bg-white border rounded-lg px-3 py-2 outline-none focus:border-brand-gold" />
+          <input type="text" id="portalUsername" required placeholder="Admin, Owner, or owner1" class="w-full bg-white border rounded-lg px-3 py-2" />
         </div>
         <div>
           <label class="block font-semibold mb-1">Security PIN / Password</label>
-          <input type="password" id="portalPassword" required autocomplete="current-password" placeholder="Enter password" class="w-full bg-white border rounded-lg px-3 py-2 outline-none focus:border-brand-gold" />
+          <input type="password" id="portalPassword" required placeholder="Enter password" class="w-full bg-white border rounded-lg px-3 py-2" />
         </div>
-        <div id="portalLoginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200"></div>
-        <button type="submit" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded-lg hover:bg-black transition shadow">Unlock Dashboard</button>
+        <button type="submit" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded-lg">Unlock Dashboard</button>
       </form>
     </div>
   </div>
 
-  <!-- ================= MASTER MANAGEMENT CONTROL CENTER ================= -->
+  <!-- ================= MASTER MANAGEMENT CONTROL CENTER (BENTO GRID TEMPLATE) ================= -->
   <div id="adminDashboardModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-6xl w-full h-[95vh] flex flex-col overflow-hidden">
-      <!-- Top Bar with Staff Logout Button -->
+      <!-- Top Bar -->
       <div class="bg-brand-darkgreen text-white p-3 sm:p-4 flex items-center justify-between shrink-0">
         <div>
           <h3 class="serif-title text-sm sm:text-base font-bold">Moin Quran Box — Master Operations &amp; POS</h3>
           <p class="text-[10px] text-amber-300" id="portalRoleBadge">Authenticated Session</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="logoutCurrentUser()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-bold uppercase shadow">🚪 Staff Logout</button>
-          <button onclick="closeAdminDashboardModal()" class="text-white text-base">✕</button>
+          <button onclick="logoutCurrentUser()" class="bg-red-500/20 hover:bg-red-500/40 text-red-200 px-3 py-1 rounded text-xs font-bold uppercase">Exit</button>
+          <button onclick="closeAdminDashboardModal()" class="text-white">✕</button>
         </div>
       </div>
 
-      <!-- Navigation Tabs (Grid Template for All Options) -->
+      <!-- Navigation Tabs -->
       <div class="bg-brand-sand border-b flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
         <button onclick="switchAdminTab('hub')" id="adminTabBtn-hub" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">⚡ Grid Hub</button>
-        <button onclick="switchAdminTab('expert')" id="adminTabBtn-expert" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Expert Tools</button>
-        <button onclick="switchAdminTab('features')" id="adminTabBtn-features" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🎛️ Toggles</button>
-        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders Grid (<span id="adminOrdersCount">0</span>)</button>
-        <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock Grid</button>
-        <button onclick="switchAdminTab('branches')" id="adminTabBtn-branches" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏢 Showroom</button>
-        <button onclick="switchAdminTab('shipping')" id="adminTabBtn-shipping" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Shipping Grid</button>
-        <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 POS Grid</button>
-        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Analytics Grid</button>
-        <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts Grid</button>
-        <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Users Grid</button>
-        <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Override Grid</button>
-        <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ CMS Grid</button>
-        <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 Payments Grid</button>
+        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
+        <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock</button>
+        <button onclick="switchAdminTab('branches')" id="adminTabBtn-branches" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏢 Branches (2)</button>
+        <button onclick="switchAdminTab('shipping')" id="adminTabBtn-shipping" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Shipping Labels</button>
+        <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 Showroom POS</button>
+        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Analytics</button>
+        <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts</button>
+        <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Passwords &amp; Users</button>
+        <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Override</button>
+        <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Live CMS</button>
+        <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
+        <button onclick="switchAdminTab('features')" id="adminTabBtn-features" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✨ Features & Modules</button>
       </div>
 
-      <!-- Tab Content Area -->
+      <!-- Tab Content Area (Grid Template Way) -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fcfaf7]">
         
-        <!-- TAB 0: BENTO GRID HUB -->
+        <!-- TAB 0: BENTO GRID HUB & UNIVERSAL SEARCH -->
         <div id="adminTab-hub" class="space-y-5">
+          <!-- Universal Search Bar -->
           <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
-            <h4 class="font-bold text-xs uppercase text-brand-charcoal mb-2">🔍 Universal Search &amp; Quick Dispatch Grid</h4>
-            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by phone, email, or order ID..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold" />
+            <h4 class="font-bold text-xs uppercase text-brand-charcoal mb-2">🔍 Universal Search (Customer Phone, Email or Order ID)</h4>
+            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by phone, email, or order ID (e.g. 7893961313, 7337464501, or MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
             <div id="universalSearchResults"></div>
           </div>
 
+          <!-- Executive Grid View Template -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <div class="bg-white p-4 rounded-xl border shadow-sm">
               <span class="text-neutral-500 font-bold uppercase text-[10px]">Total Gross Revenue</span>
@@ -675,156 +559,31 @@
           </div>
         </div>
 
-        <!-- NEW TAB: EXPERT TOOLS & DATA EXPORT HUB -->
-        <div id="adminTab-expert" class="hidden space-y-4">
-          <div class="flex justify-between items-center mb-3 border-b pb-3">
-            <div>
-              <h4 class="serif-title text-base font-bold text-brand-charcoal">Expert Tools &amp; Data Export Hub</h4>
-              <p class="text-xs text-neutral-500">Download system data in Excel (CSV) and configure advanced administrative controls.</p>
-            </div>
-            <!-- Auto Sync Toggle -->
-            <label class="flex items-center gap-2 cursor-pointer bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase shadow">
-              <input type="checkbox" id="expertAutoSync" onchange="toggleAutoSync(this.checked)" class="accent-amber-400 w-4 h-4" />
-              <span>🔄 Cloud Auto-Sync</span>
-            </label>
-          </div>
-
-          <!-- 10 Advanced Expert Features Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-            <!-- 1. Export Hub -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">1. Excel Data Export Hub</strong>
-                <p class="text-[10px] text-neutral-500">Download complete logs of sales, inventory, and users.</p>
-              </div>
-              <div class="grid grid-cols-2 gap-1 mt-2">
-                <button onclick="exportToCSV('sales')" class="bg-brand-sand py-1 rounded font-bold hover:bg-brand-gold hover:text-white transition">Sales (CSV)</button>
-                <button onclick="exportToCSV('users')" class="bg-brand-sand py-1 rounded font-bold hover:bg-brand-gold hover:text-white transition">Users (CSV)</button>
-                <button onclick="exportToCSV('inventory')" class="col-span-2 bg-brand-sand py-1 rounded font-bold hover:bg-brand-gold hover:text-white transition">Inventory (CSV)</button>
-              </div>
-            </div>
-
-            <!-- 2. Database Backup -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">2. Secure DB Backup</strong>
-                <p class="text-[10px] text-neutral-500">Generate a raw JSON dump of the entire system state.</p>
-              </div>
-              <button onclick="downloadSystemBackup()" class="w-full bg-brand-darkgreen text-white py-1.5 rounded font-bold uppercase text-[10px] hover:bg-black transition">Download Backup JSON</button>
-            </div>
-
-            <!-- 3. Staff Audit Logs -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">3. Staff Activity Audit</strong>
-                <p class="text-[10px] text-neutral-500">Track POS sales, log-ins, and data modifications.</p>
-              </div>
-              <button onclick="openAuditLogsModal()" class="w-full bg-blue-50 text-blue-700 border border-blue-200 py-1.5 rounded font-bold uppercase text-[10px] hover:bg-blue-100 transition">View Audit Logs</button>
-            </div>
-
-            <!-- 4. SMS / WhatsApp API -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">4. Messaging API Gateway</strong>
-                <p class="text-[10px] text-neutral-500">Configure Twilio or WhatsApp Business Webhooks.</p>
-              </div>
-              <button onclick="openApiGatewayModal()" class="w-full bg-brand-sand py-1.5 rounded font-bold text-[10px] hover:bg-neutral-200 transition">Configure Gateway</button>
-            </div>
-
-            <!-- 5. Maintenance Mode -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">5. Store Maintenance Mode</strong>
-                <p class="text-[10px] text-neutral-500">Temporarily lock the storefront for live updates.</p>
-              </div>
-              <button id="btnMaintenanceToggle" onclick="toggleMaintenanceMode()" class="w-full bg-red-100 text-red-700 py-1.5 rounded font-bold uppercase text-[10px] hover:bg-red-200 transition">Lock Storefront</button>
-            </div>
-
-            <!-- 6. AI Sales Insights -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">6. AI Demand Forecast</strong>
-                <p class="text-[10px] text-neutral-500">Analyze patterns to forecast Ramadan &amp; seasonal demand.</p>
-              </div>
-              <button onclick="runAiDemandForecast()" class="w-full bg-purple-50 text-purple-700 border border-purple-200 py-1.5 rounded font-bold text-[10px] hover:bg-purple-100 transition">Generate Forecast</button>
-            </div>
-
-            <!-- 7. Dynamic Surge Pricing -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">7. Dynamic Pricing Engine</strong>
-                <p class="text-[10px] text-neutral-500">Auto-adjust pricing margins on low-stock items.</p>
-              </div>
-              <button id="btnSurgePricingToggle" onclick="toggleSurgePricing()" class="w-full bg-brand-sand py-1.5 rounded font-bold text-[10px] hover:bg-neutral-200 transition">Enable Margins</button>
-            </div>
-
-            <!-- 8. SEO Meta Manager -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">8. Advanced SEO Manager</strong>
-                <p class="text-[10px] text-neutral-500">Modify global meta tags, OpenGraph, and structured tags.</p>
-              </div>
-              <button onclick="openSeoManagerModal()" class="w-full bg-brand-sand py-1.5 rounded font-bold text-[10px] hover:bg-neutral-200 transition">Edit Meta Tags</button>
-            </div>
-
-            <!-- 9. Abandoned Cart Recovery -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">9. Abandoned Cart Recovery</strong>
-                <p class="text-[10px] text-neutral-500">Auto-dispatch reminders to customers with active bags.</p>
-              </div>
-              <button onclick="triggerAbandonedCartRecovery()" class="w-full bg-brand-whatsapp text-white py-1.5 rounded font-bold uppercase text-[10px] hover:opacity-90 transition">Send Reminders</button>
-            </div>
-
-            <!-- 10. Express Dispatch Automation -->
-            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
-              <div>
-                <strong class="text-brand-charcoal block mb-1">10. Express Dispatch Rules</strong>
-                <p class="text-[10px] text-neutral-500">Auto-assign Hyderabad courier partner by Pincode range.</p>
-              </div>
-              <button onclick="toggleExpressRouting()" id="btnExpressRouting" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-1.5 rounded font-bold uppercase text-[10px] hover:bg-emerald-100 transition">Enable Auto-Routing</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB: FEATURE TOGGLES -->
+        <!-- TAB: FEATURE TOGGLES & CONTROL CENTER -->
         <div id="adminTab-features" class="hidden space-y-4">
           <div class="flex justify-between items-center">
             <div>
-              <h4 class="serif-title text-base font-bold text-brand-charcoal">Admin Role &amp; Feature Control Center</h4>
-              <p class="text-xs text-neutral-500">Enable or disable specific features across customer profiles, owner permissions, and website widgets.</p>
+              <h4 class="serif-title text-base font-bold text-brand-charcoal">Admin Role & Feature Control Center</h4>
+              <p class="text-xs text-brand-muted">Instantly activate or deactivate store modules, AI features, and staff permissions.</p>
             </div>
           </div>
-          <div id="adminFeatureTogglesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"></div>
+          <div class="bg-white rounded-xl border border-brand-border shadow-sm">
+            <div id="adminTogglesContainer" class="divide-y divide-brand-border max-h-[60vh] overflow-y-auto"></div>
+          </div>
         </div>
 
-        <!-- TAB 1: ORDERS GRID & KPIs -->
+        <!-- TAB 1: ORDERS (GRID VIEW) -->
         <div id="adminTab-orders" class="hidden space-y-4">
-          <div class="flex justify-between items-center mb-1">
+          <div class="flex justify-between items-center">
             <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger</h4>
-          </div>
-          <!-- Order KPIs -->
-          <div class="grid grid-cols-3 gap-3 mb-2">
-            <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-center shadow-sm">
-              <p class="text-[10px] uppercase font-bold text-amber-800">Pending</p>
-              <h4 class="text-xl font-bold font-mono text-amber-900" id="kpiPendingOrders">0</h4>
-            </div>
-            <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center shadow-sm">
-              <p class="text-[10px] uppercase font-bold text-emerald-800">Completed</p>
-              <h4 class="text-xl font-bold font-mono text-emerald-900" id="kpiCompletedOrders">0</h4>
-            </div>
-            <div class="bg-red-50 border border-red-200 p-3 rounded-xl text-center shadow-sm">
-              <p class="text-[10px] uppercase font-bold text-red-800">Cancelled</p>
-              <h4 class="text-xl font-bold font-mono text-red-900" id="kpiCancelledOrders">0</h4>
-            </div>
           </div>
           <div id="adminOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
-        <!-- TAB 2: INVENTORY GRID -->
+        <!-- TAB 2: INVENTORY -->
         <div id="adminTab-inventory" class="hidden space-y-4">
           <div class="flex justify-between items-center">
-            <h4 class="serif-title text-base font-bold text-brand-charcoal">Stock &amp; Pricing Inventory Grid</h4>
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Stock &amp; Pricing Inventory</h4>
             <button onclick="openProductEditModal(null)" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase">+ Add Product</button>
           </div>
           <div class="bg-white rounded-xl border border-brand-border overflow-x-auto shadow-sm">
@@ -843,17 +602,22 @@
           </div>
         </div>
 
-        <!-- TAB 3: SHOWROOM MANAGEMENT (Branch 2 Removed) -->
+        <!-- TAB: BRANCHES (GRID VIEW) -->
         <div id="adminTab-branches" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Falaknuma Head Showroom Details</h4>
-          <div id="adminBranchesList" class="grid grid-cols-1 gap-4"></div>
+          <div class="flex justify-between items-center">
+            <div>
+              <h4 class="serif-title text-base font-bold text-brand-charcoal">Showroom Branches Management (2 Branches)</h4>
+              <p class="text-xs text-brand-muted">Update branch addresses, contact numbers, and toggle customer visibility.</p>
+            </div>
+          </div>
+          <div id="adminBranchesList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- TAB 4: SHIPPING GRID -->
+        <!-- TAB: SHIPPING LABELS -->
         <div id="adminTab-shipping" class="hidden space-y-5">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator Grid</h4>
-          <div class="bg-white p-5 rounded-xl border shadow-sm max-w-2xl text-xs space-y-3">
-            <h5 class="font-bold uppercase text-brand-darkgreen">Create Manual Label</h5>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator (Thermal &amp; A4 Ready)</h4>
+          <div class="bg-white p-5 rounded-xl border border-brand-border shadow-sm max-w-2xl text-xs space-y-3">
+            <h5 class="font-bold uppercase text-brand-darkgreen">Create Manual Label (For Online &amp; Offline Orders)</h5>
             <form onsubmit="handleManualShippingLabelPrint(event)" class="space-y-3">
               <div class="grid grid-cols-2 gap-2">
                 <div>
@@ -896,14 +660,29 @@
                   <input type="number" id="lblAmount" placeholder="999" class="w-full bg-brand-sand border rounded p-2" />
                 </div>
               </div>
-              <button type="submit" class="w-full py-2.5 bg-brand-charcoal text-white font-bold uppercase rounded shadow">🖨️ Generate &amp; Print Label</button>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold mb-0.5">Channel</label>
+                  <select id="lblChannel" class="w-full bg-brand-sand border rounded p-2">
+                    <option value="Online Order">Online Order</option>
+                    <option value="Offline Store Dispatch">Offline Store Dispatch</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-0.5">Items/Pieces</label>
+                  <input type="number" id="lblPackagePieces" value="1" class="w-full bg-brand-sand border rounded p-2" />
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2.5 bg-brand-charcoal text-white font-bold uppercase rounded shadow">
+                🖨️ Generate &amp; Print Shipping Label
+              </button>
             </form>
           </div>
         </div>
 
-        <!-- TAB 5: POS GRID -->
+        <!-- TAB 3: SHOWROOM POS BILLING -->
         <div id="adminTab-pos" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Falaknuma Showroom POS Grid Terminal</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Falaknuma Showroom Walk-in Point of Sale (POS)</h4>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2 bg-white p-3 rounded-xl border space-y-3">
               <div id="posCatalogGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto"></div>
@@ -911,9 +690,9 @@
             <div class="bg-white p-4 rounded-xl border flex flex-col justify-between space-y-3 text-xs">
               <div>
                 <h5 class="font-bold border-b pb-2 uppercase text-brand-charcoal">Active POS Bill</h5>
-                <input type="text" id="posCustName" placeholder="Customer Name" class="w-full border rounded p-1.5 mt-2" />
+                <input type="text" id="posCustName" placeholder="Customer Name (optional)" class="w-full border rounded p-1.5 mt-2" />
                 <input type="tel" id="posCustPhone" placeholder="Mobile Number" class="w-full border rounded p-1.5 mt-1" />
-                <input type="text" id="posCustPincode" placeholder="Pincode (500053)" class="w-full border rounded p-1.5 mt-1" />
+                <input type="text" id="posCustPincode" placeholder="Pincode (e.g. 500053)" class="w-full border rounded p-1.5 mt-1" />
                 <div id="posTicketItems" class="divide-y my-2 max-h-36 overflow-y-auto"></div>
               </div>
               <div class="border-t pt-2 space-y-2">
@@ -932,9 +711,9 @@
           </div>
         </div>
 
-        <!-- TAB 6: ANALYTICS GRID -->
+        <!-- TAB 4: ANALYTICS (GRID VIEW) -->
         <div id="adminTab-analytics" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Omnichannel Sales Analytics Grid</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Omnichannel Sales Analytics</h4>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-xl border shadow-sm">
               <p class="text-[11px] font-bold text-brand-muted uppercase">Gross Revenue</p>
@@ -947,10 +726,10 @@
           </div>
         </div>
 
-        <!-- TAB 7: DISCOUNTS GRID -->
+        <!-- TAB 5: COUPONS & DISCOUNTS -->
         <div id="adminTab-coupons" class="hidden space-y-4">
           <div class="flex justify-between items-center">
-            <h4 class="serif-title text-base font-bold text-brand-charcoal">Store Discount Engine Grid</h4>
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Store Discount Engine</h4>
             <button onclick="promptCreateCoupon()" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded text-xs font-bold uppercase">+ Add Discount Code</button>
           </div>
           <div class="bg-white rounded-xl border overflow-x-auto">
@@ -968,13 +747,11 @@
           </div>
         </div>
 
-        <!-- TAB 8: USERS GRID (Manage Staff & Customers) -->
+        <!-- TAB 6: CUSTOMER & STAFF PASSWORD DESK (ADMIN ONLY) -->
         <div id="adminTab-customers" class="hidden space-y-4">
-          <div class="flex justify-between items-center mb-3">
-            <h4 class="serif-title text-base font-bold text-brand-charcoal">Staff &amp; Customer Manager</h4>
-            <button onclick="openCreateStaffModal()" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase shadow">+ Add Staff Account</button>
-          </div>
-          <div class="bg-white rounded-xl border overflow-x-auto shadow-sm">
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Staff &amp; Customer Credentials Manager</h4>
+          <p class="text-xs text-brand-muted">Admin can change passwords for all staff members (Owner, Owner 1) and all registered customers.</p>
+          <div class="bg-white rounded-xl border overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-brand-sand border-b uppercase">
                 <tr>
@@ -982,7 +759,8 @@
                   <th class="p-3">Role</th>
                   <th class="p-3">Phone</th>
                   <th class="p-3">Email</th>
-                  <th class="p-3">Status</th>
+                  <th class="p-3">Password</th>
+                  <th class="p-3">PIN</th>
                   <th class="p-3 text-right">Action</th>
                 </tr>
               </thead>
@@ -991,18 +769,21 @@
           </div>
         </div>
 
-        <!-- TAB 9: OVERRIDE GRID -->
+        <!-- TAB 7: SALES OVERRIDE (ADMIN ONLY) -->
         <div id="adminTab-salesmodifier" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Developer Admin Sales Override Grid</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Developer Admin Sales Override</h4>
           <div class="bg-red-50 border border-red-200 p-4 rounded-xl space-y-3">
             <h5 class="text-xs font-bold text-red-900 uppercase">Reset All Recorded Sales To Zero</h5>
-            <button onclick="resetAllSalesToZero()" class="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold uppercase shadow">🧹 Reset All Sales To Zero (₹0)</button>
+            <p class="text-xs text-red-700">Wipe test orders and revenue metrics back to ₹0 with one click.</p>
+            <button onclick="resetAllSalesToZero()" class="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold uppercase shadow">
+              🧹 Reset All Sales To Zero (₹0)
+            </button>
           </div>
         </div>
 
-        <!-- TAB 10: CMS GRID -->
+        <!-- TAB 8: FULL TEXT CMS (ADMIN ONLY) -->
         <div id="adminTab-cms" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Live CMS Grid Editor</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Edit Store Details &amp; Live Text</h4>
           <form onsubmit="handleCmsSave(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-2xl text-xs">
             <div>
               <label class="block font-bold mb-1">Store Name</label>
@@ -1016,13 +797,37 @@
               <label class="block font-bold mb-1">Showroom Address</label>
               <textarea id="cmsAddress" rows="2" required class="w-full bg-brand-sand border rounded p-2"></textarea>
             </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold mb-1">Primary Phone</label>
+                <input type="tel" id="cmsPhone1" class="w-full bg-brand-sand border rounded p-2" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">Secondary Phone</label>
+                <input type="tel" id="cmsPhone2" class="w-full bg-brand-sand border rounded p-2" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold mb-1">WhatsApp Phone Number</label>
+                <input type="tel" id="cmsWhatsApp" class="w-full bg-brand-sand border rounded p-2 font-mono" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">Official Owner Email</label>
+                <input type="email" id="cmsOwnerEmail" class="w-full bg-brand-sand border rounded p-2" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Announcement Ticker Banner</label>
+              <input type="text" id="cmsAnnouncement" class="w-full bg-brand-sand border rounded p-2" />
+            </div>
             <button type="submit" class="bg-brand-charcoal text-white px-5 py-2 rounded font-bold uppercase">Save Live Text</button>
           </form>
         </div>
 
-        <!-- TAB 11: PAYMENTS GRID -->
+        <!-- TAB 9: PAYMENTS -->
         <div id="adminTab-payments" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Payment Receiving Details Grid</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Payment Receiving Details</h4>
           <form onsubmit="savePaymentSettings(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-xl text-xs">
             <div>
               <label class="block font-bold mb-1">Store UPI ID</label>
@@ -1031,6 +836,18 @@
             <div>
               <label class="block font-bold mb-1">Beneficiary Name</label>
               <input type="text" id="cfgUpiName" required class="w-full bg-brand-sand border rounded p-2" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Bank Name</label>
+              <input type="text" id="cfgBankName" class="w-full bg-brand-sand border rounded p-2" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Account Number</label>
+              <input type="text" id="cfgAccountNum" class="w-full bg-brand-sand border rounded p-2 font-mono" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1">IFSC Code</label>
+              <input type="text" id="cfgIfsc" class="w-full bg-brand-sand border rounded p-2 font-mono uppercase" />
             </div>
             <button type="submit" class="bg-brand-darkgreen text-white px-5 py-2 rounded font-bold uppercase">Save Payment Info</button>
           </form>
@@ -1071,6 +888,7 @@
           <input type="number" id="editProductSalePrice" required class="w-full bg-brand-sand border rounded p-2 font-bold" />
         </div>
         
+        <!-- Photo Upload & URL -->
         <div class="p-3 bg-brand-sand border rounded-lg space-y-2">
           <label class="block font-bold">Product Photo</label>
           <input type="file" accept="image/*" onchange="handlePhotoFileInput(event)" class="w-full text-[11px]" />
@@ -1084,233 +902,6 @@
     </div>
   </div>
 
-  <!-- ================= CREATE STAFF MODAL ================= -->
-  <div id="createStaffModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-sm w-full p-5 relative text-xs">
-      <button onclick="closeCreateStaffModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-3">Create Staff Account</h3>
-      <form onsubmit="handleCreateStaff(event)" class="space-y-3">
-        <div>
-          <label class="block font-bold mb-1">Full Name</label>
-          <input type="text" id="csName" required class="w-full bg-brand-sand border rounded p-2" />
-        </div>
-        <div>
-          <label class="block font-bold mb-1">Username / Phone</label>
-          <input type="text" id="csUsername" required class="w-full bg-brand-sand border rounded p-2" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">Role</label>
-            <select id="csRole" class="w-full bg-brand-sand border rounded p-2">
-              <option value="owner">Store Owner</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold mb-1">Password</label>
-            <input type="text" id="csPassword" required class="w-full bg-brand-sand border rounded p-2 font-mono" />
-          </div>
-        </div>
-        <button type="submit" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded mt-2">Create Account</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ================= MANAGE USER MODAL ================= -->
-  <div id="manageUserModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
-      <button onclick="closeManageUserModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-1">Manage Account</h3>
-      <p class="text-neutral-500 mb-4" id="manageUserMeta">User Details</p>
-      
-      <input type="hidden" id="muId" />
-      <div class="space-y-3">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold mb-1">Full Name</label>
-            <input type="text" id="muName" class="w-full bg-brand-sand border rounded p-2" />
-          </div>
-          <div>
-            <label class="block font-bold mb-1">Phone / Username</label>
-            <input type="text" id="muPhone" class="w-full bg-brand-sand border rounded p-2" />
-          </div>
-        </div>
-        <div>
-          <label class="block font-bold mb-1">Reset Password / PIN</label>
-          <input type="text" id="muPassword" class="w-full bg-brand-sand border rounded p-2 font-mono" />
-        </div>
-        <div class="flex items-center gap-2 pt-2 border-t mt-3">
-          <label class="flex items-center gap-1.5 cursor-pointer font-bold text-red-600">
-            <input type="checkbox" id="muBlocked" class="accent-red-600 w-4 h-4" />
-            <span>Block / Revoke User Access</span>
-          </label>
-        </div>
-        <div class="flex gap-2 pt-3">
-          <button onclick="saveUserManagement()" class="flex-1 py-2 bg-brand-charcoal text-white rounded font-bold uppercase">Save Changes</button>
-          <button onclick="deleteUserAccount()" class="px-3 py-2 bg-red-100 text-red-700 rounded font-bold uppercase hover:bg-red-200">Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= ADMIN CUSTOMER 360 PROFILE MODAL (From Search) ================= -->
-  <div id="adminCustomer360Modal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col relative text-xs overflow-hidden">
-      <!-- Header -->
-      <div class="bg-brand-charcoal text-white p-4 flex items-center justify-between shrink-0">
-        <div>
-          <h3 class="serif-title text-base font-bold">Customer 360° Profile Hub</h3>
-          <p class="text-[10px] text-amber-300">Advanced Admin &amp; Owner View</p>
-        </div>
-        <button onclick="closeCustomer360Modal()" class="text-white text-base font-bold hover:text-red-400 transition">✕</button>
-      </div>
-      
-      <!-- Alert Banner for Blocked Accounts -->
-      <div id="c360StatusAlert" class="hidden bg-red-600 text-white p-2 text-center font-bold uppercase tracking-wider text-[10px] shadow-inner">
-        🚨 WARNING: THIS ACCOUNT IS CURRENTLY BLOCKED / SUSPENDED 🚨
-      </div>
-
-      <!-- Scrollable Content Body -->
-      <div class="flex-1 overflow-y-auto p-5 bg-[#fcfaf7] space-y-4">
-        <!-- Top Row: KPIs and Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Details -->
-          <div class="bg-white p-4 border rounded-xl shadow-sm">
-            <h4 class="font-bold border-b pb-2 mb-2 text-brand-darkgreen">Account Details</h4>
-            <p class="mb-1"><strong>Name:</strong> <span id="c360Name">---</span></p>
-            <p class="mb-1"><strong>Phone:</strong> <span id="c360Phone" class="font-mono">---</span></p>
-            <p class="mb-1"><strong>Email:</strong> <span id="c360Email">---</span></p>
-            <p><strong>Role:</strong> <span id="c360Role" class="uppercase font-bold text-brand-gold">---</span></p>
-          </div>
-          
-          <!-- Security & Status -->
-          <div class="bg-white p-4 border rounded-xl shadow-sm">
-            <h4 class="font-bold border-b pb-2 mb-2 text-brand-darkgreen">Security &amp; Access</h4>
-            <p class="mb-1"><strong>Password:</strong> <span id="c360Password" class="font-mono font-bold">---</span></p>
-            <p class="mb-1"><strong>PIN:</strong> <span id="c360Pin" class="font-mono font-bold">---</span></p>
-            <p><strong>Status:</strong> <span id="c360StatusText" class="font-bold">---</span></p>
-            <div class="mt-3 flex gap-2">
-              <button id="c360ToggleBlockBtn" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-1.5 rounded font-bold transition">Block Account</button>
-              <button onclick="alert('Password reset link sent to customer via WhatsApp!')" class="flex-1 bg-neutral-100 hover:bg-neutral-200 text-brand-charcoal py-1.5 rounded font-bold transition">Reset Pass</button>
-            </div>
-          </div>
-
-          <!-- Financials / LTV -->
-          <div class="bg-white p-4 border rounded-xl shadow-sm flex flex-col justify-between">
-            <div>
-              <h4 class="font-bold border-b pb-2 mb-2 text-brand-darkgreen">Value &amp; Activity</h4>
-              <div class="flex justify-between items-center mb-1">
-                <p><strong>Total Orders:</strong></p>
-                <span id="c360OrderCount" class="font-mono font-bold text-base">0</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <p><strong>Lifetime Spent:</strong></p>
-                <span id="c360LTV" class="font-mono font-bold text-base text-emerald-700">₹0</span>
-              </div>
-            </div>
-            <div class="mt-3 bg-brand-sand p-2 rounded text-[10px]">
-              <strong>Primary Address:</strong> <span id="c360Address">---</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom Row: Order History & Advanced Admin Notes -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <!-- Full Ledger of Past Orders -->
-          <div class="lg:col-span-2 bg-white border rounded-xl shadow-sm flex flex-col h-full">
-            <h4 class="font-bold bg-brand-sand px-4 py-2 border-b rounded-t-xl text-brand-charcoal">Customer Order History Ledger</h4>
-            <div id="c360OrderList" class="p-4 space-y-2 overflow-y-auto max-h-64 flex-1">
-              <!-- Orders injected here via JS -->
-            </div>
-          </div>
-          
-          <!-- Admin Notes -->
-          <div class="bg-white border rounded-xl shadow-sm flex flex-col h-full">
-            <h4 class="font-bold bg-brand-sand px-4 py-2 border-b rounded-t-xl text-brand-charcoal">Admin CRM &amp; Actions</h4>
-            <div class="p-4 flex-1 flex flex-col gap-2">
-              <textarea class="w-full flex-1 border bg-brand-sand/50 p-2 rounded resize-none focus:outline-brand-gold text-[11px]" placeholder="Add private staff notes for this customer here (e.g., VIP buyer, requires custom gift packaging)..."></textarea>
-              <button class="w-full bg-brand-darkgreen hover:bg-black text-white py-2 rounded font-bold uppercase shadow transition" onclick="alert('CRM Note saved to customer profile!')">Save CRM Note</button>
-              <button class="w-full border border-brand-whatsapp text-brand-whatsapp py-2 rounded font-bold uppercase hover:bg-brand-whatsapp hover:text-white transition" onclick="alert('Initiating WhatsApp chat...')">💬 Chat on WhatsApp</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= AUDIT LOGS MODAL ================= -->
-  <div id="auditLogsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-2xl w-full p-5 relative text-xs">
-      <button onclick="closeAuditLogsModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-2">Staff Activity &amp; Audit Logs</h3>
-      <p class="text-neutral-500 mb-3">Chronological trace of modifications, POS checkouts, and logins.</p>
-      <div id="auditLogsContainer" class="bg-brand-sand/50 p-3 rounded-xl border max-h-64 overflow-y-auto space-y-2 font-mono text-[11px]">
-        <!-- Logs injected dynamically -->
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= API GATEWAY MODAL ================= -->
-  <div id="apiGatewayModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
-      <button onclick="closeApiGatewayModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-3">Messaging API Gateway Settings</h3>
-      <div class="space-y-3">
-        <div>
-          <label class="block font-bold mb-1">WhatsApp Webhook URL</label>
-          <input type="text" id="cfgWhatsAppWebhook" placeholder="https://api.whatsapp.com/webhook/..." class="w-full bg-brand-sand border rounded p-2" />
-        </div>
-        <div>
-          <label class="block font-bold mb-1">SMS Provider API Key</label>
-          <input type="password" id="cfgSmsApiKey" placeholder="Enter API Key" class="w-full bg-brand-sand border rounded p-2" />
-        </div>
-        <button onclick="saveApiGatewaySettings()" class="w-full py-2 bg-brand-darkgreen text-white font-bold uppercase rounded">Save Gateway Config</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= SEO MANAGER MODAL ================= -->
-  <div id="seoManagerModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
-      <button onclick="closeSeoManagerModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-base font-bold text-brand-charcoal mb-3">Advanced SEO Meta Manager</h3>
-      <div class="space-y-3">
-        <div>
-          <label class="block font-bold mb-1">Meta Title</label>
-          <input type="text" id="seoMetaTitle" class="w-full bg-brand-sand border rounded p-2" />
-        </div>
-        <div>
-          <label class="block font-bold mb-1">Meta Description</label>
-          <textarea id="seoMetaDesc" rows="2" class="w-full bg-brand-sand border rounded p-2"></textarea>
-        </div>
-        <div>
-          <label class="block font-bold mb-1">Keywords (Comma Separated)</label>
-          <input type="text" id="seoMetaKeywords" class="w-full bg-brand-sand border rounded p-2" />
-        </div>
-        <button onclick="saveSeoMetadata()" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded">Update Meta Tags</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= AI DEMAND FORECAST MODAL ================= -->
-  <div id="aiDemandForecastModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs space-y-3">
-      <button onclick="closeAiForecastModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-base font-bold text-brand-charcoal">AI Demand &amp; Stock Forecast</h3>
-      <div id="aiForecastContent" class="space-y-2 bg-brand-sand p-3.5 rounded-xl border text-[11px] leading-relaxed">
-        <!-- Injected via JS -->
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= QUICK VIEW MODAL ================= -->
-  <div id="quickViewModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-lg w-full p-6 relative text-xs">
-      <button onclick="closeQuickViewModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <div id="quickViewContent" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-    </div>
-  </div>
-
   <!-- ================= CHECKOUT MODAL ================= -->
   <div id="checkoutModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-xl w-full p-6 max-h-[95vh] overflow-y-auto relative text-xs">
@@ -1319,11 +910,6 @@
       <p class="text-brand-muted mb-4">Direct manufacturer dispatch from Madina Colony, Falaknuma, Hyderabad</p>
 
       <form onsubmit="handlePlaceOrder(event)" class="space-y-3">
-        <!-- Notification of Auto Order ID Generation -->
-        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-lg text-center font-semibold mb-2">
-          ℹ️ Your tracking Order ID will be auto-assigned instantly upon confirmation.
-        </div>
-        
         <div>
           <label class="block font-semibold mb-1">Customer Full Name *</label>
           <input type="text" id="chkName" required class="w-full bg-brand-sand border rounded-lg p-2.5" />
@@ -1378,23 +964,25 @@
     </div>
   </div>
 
-  <!-- Order Success Modal -->
+  <!-- ================= ORDER SUCCESS MODAL ================= -->
   <div id="orderSuccessModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4">
       <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
       <h3 class="serif-title text-xl font-bold text-brand-charcoal">Alhamdulillah! Order Placed</h3>
       <div class="bg-brand-sand p-3 rounded-xl border text-xs">
-        <span class="text-brand-muted block">Auto-Assigned Tracking Order ID</span>
+        <span class="text-brand-muted block">Tracking Order ID</span>
         <div id="successOrderIdDisplay" class="font-mono text-base font-bold text-brand-charcoal select-all">MQB-2026-0000</div>
       </div>
       <div class="space-y-2 pt-2 text-xs">
-        <a id="successWhatsAppOrderBtn" href="#" target="_blank" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold flex items-center justify-center gap-2">💬 Send Order Receipt to Owner on WhatsApp</a>
+        <a id="successWhatsAppOrderBtn" href="#" target="_blank" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold flex items-center justify-center gap-2">
+          💬 Send Order Receipt to Owner on WhatsApp
+        </a>
         <button onclick="closeSuccessModal()" class="w-full py-2 bg-neutral-100 rounded font-semibold">Done</button>
       </div>
     </div>
   </div>
 
-  <!-- Tracking Modal -->
+  <!-- ================= TRACKING MODAL ================= -->
   <div id="trackingModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
       <button onclick="closeTrackingModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
@@ -1407,9 +995,24 @@
     </div>
   </div>
 
-  <!-- Search Modal -->
+  <!-- ================= CONTACT MODAL ================= -->
+  <div id="contactModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-xs space-y-3">
+      <button onclick="closeContactModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
+      <h3 class="serif-title text-base font-bold text-brand-charcoal">Contact MOIN QURAN BOX</h3>
+      <div class="bg-brand-sand p-3.5 rounded-xl space-y-2 border border-brand-border">
+        <p><strong>📍 Branch 1 (Head Showroom):</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
+        <p><strong>📍 Branch 2 (Outlet):</strong> Pathergatti, Near Medina Bldg, Charminar, Hyderabad 500002</p>
+        <p><strong>📞 Helpline:</strong> +91 7893961313 / +91 7337464501</p>
+        <p><strong>⏰ Hours:</strong> 10:00 AM – 11:00 PM (All 7 Days)</p>
+      </div>
+      <a href="https://wa.me/917337464501" target="_blank" class="block text-center py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold">Chat on WhatsApp</a>
+    </div>
+  </div>
+
+  <!-- ================= SEARCH MODAL ================= -->
   <div id="searchModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center pt-20 px-4">
-    <div class="bg-white border rounded-2xl shadow-2xl max-w-lg w-full p-5">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-5">
       <div class="flex justify-between items-center mb-3">
         <h3 class="serif-title text-base font-bold text-brand-charcoal">Search Store Products</h3>
         <button onclick="closeSearchModal()" class="text-neutral-500">✕</button>
