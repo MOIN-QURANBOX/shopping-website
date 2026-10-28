@@ -31,7 +31,6 @@ let sessionTimerInterval = null;
 
 // Default Admin Feature Controls
 const DEFAULT_TOGGLES = {
-  // Customer Features
   customerWishlist: true,
   customerWallet: true,
   customerSupportTickets: true,
@@ -39,11 +38,9 @@ const DEFAULT_TOGGLES = {
   customerReorder: true,
   customerWarranty: true,
   customerStatements: true,
-  // Owner Features
   ownerInventoryEdit: true,
   ownerBranchEdit: true,
   ownerPosAccess: true,
-  // Easy Shopping & Website Advanced Features
   quickViewShopping: true,
   expressCheckout: true,
   compareTool: true,
@@ -179,7 +176,8 @@ function formatPrice(priceInInr) {
 
 function setCurrency(code, symbol, rate) {
   currentCurrency = { code, symbol, rate };
-  document.getElementById("activeCurrencyBadge").textContent = `${code} (${symbol})`;
+  const badge = document.getElementById("activeCurrencyBadge");
+  if (badge) badge.textContent = `${code} (${symbol})`;
   closeCurrencyModal();
   renderProducts();
   updateCartUI();
@@ -277,13 +275,7 @@ function handleSendMessageToOwner(e) {
   const message = document.getElementById("msgCustMessage").value.trim();
   const channel = document.querySelector('input[name="msgChannel"]:checked')?.value || "whatsapp";
 
-  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*
-
-*From:* ${name}
-*Phone:* ${phone}
-*Subject:* ${subject}
-
-*Message:* ${message}`;
+  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*\n\n*From:* ${name}\n*Phone:* ${phone}\n*Subject:* ${subject}\n\n*Message:* ${message}`;
 
   if (channel === "whatsapp") window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`, "_blank");
   else window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=${encodeURIComponent("Website Inquiry: " + subject)}&body=${encodeURIComponent(formattedMsg)}`;
@@ -293,7 +285,7 @@ function handleSendMessageToOwner(e) {
 }
 
 // ==========================================
-// 3. STOREFRONT & EASY SHOPPING RENDERERS
+// 3. STOREFRONT & PRODUCTS RENDERERS
 // ==========================================
 const CATEGORIES = ["All", "Tarjuma Qurans", "Quran Boxes & Rehal", "Janamaz", "Hajj & Umrah", "Namaz Caps & Tasbih"];
 
@@ -420,7 +412,6 @@ function renderRecentlyViewed() {
 // ==========================================
 // 4. EASY SHOPPING MODALS
 // ==========================================
-
 function openQuickView(prodId) {
   if (!config.featureToggles.quickViewShopping) return alert("Quick View is currently disabled by Admin.");
   const p = products.find(x => x.id === prodId);
@@ -699,18 +690,7 @@ function handlePlaceOrder(e) {
 
   document.getElementById("successOrderIdDisplay").textContent = orderId;
   const waMsg = encodeURIComponent(
-    `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*
-
-*Order ID:* ${orderId}
-*Customer:* ${name}
-*Phone:* ${phone}
-*Address:* ${address} (Pincode: ${postalCode})
-*Payment:* ${paymentMethod}
-*Total:* ${formatPrice(total)}
-
-*Items:*
-` + newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join('
-')
+    `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*\n\n*Order ID:* ${orderId}\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${address} (Pincode: ${postalCode})\n*Payment:* ${paymentMethod}\n*Total:* ${formatPrice(total)}\n\n*Items:*\n` + newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join('\n')
   );
   document.getElementById("successWhatsAppOrderBtn").href = `https://wa.me/91${config.whatsappPhone}?text=${waMsg}`;
   document.getElementById("orderSuccessModal")?.classList.remove("hidden");
@@ -852,6 +832,7 @@ function switchCustomerTab(tab) {
   if (tab === 'reorder') renderCustProfileReorder();
 }
 
+// Order Management for Customer (Including Cancel Option)
 function renderCustProfileOrders() {
   const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
   const container = document.getElementById("custOrderList");
@@ -1092,7 +1073,7 @@ function openCustomer360Modal(userId) {
   document.getElementById('c360Email').textContent = u.email || 'N/A';
   document.getElementById('c360Role').textContent = u.role;
   
-  // Security Hide Passwords from Owners, visible only to Admin
+  // Security: Hide Passwords from Owners, visible only to Admin
   if (currentUser.role === 'admin') {
     document.getElementById('c360Password').textContent = u.role === 'customer' ? 'Hidden (PIN Active)' : u.password;
     document.getElementById('c360Pin').textContent = u.pin || 'N/A';
@@ -1180,25 +1161,19 @@ function exportToCSV(type) {
   let csvContent = "data:text/csv;charset=utf-8,";
   
   if (type === 'sales') {
-    csvContent += "OrderID,Date,Customer,Phone,Status,Total,PaymentMethod
-";
+    csvContent += "OrderID,Date,Customer,Phone,Status,Total,PaymentMethod\n";
     orders.forEach(o => {
-      csvContent += `${o.orderId},${o.date},"${o.customerName}",${o.customerPhone},${o.status},${o.total},${o.paymentMethod}
-`;
+      csvContent += `${o.orderId},${o.date},"${o.customerName}",${o.customerPhone},${o.status},${o.total},${o.paymentMethod}\n`;
     });
   } else if (type === 'users') {
-    csvContent += "ID,Name,Role,Phone,Email,Status
-";
+    csvContent += "ID,Name,Role,Phone,Email,Status\n";
     users.forEach(u => {
-      csvContent += `${u.id},"${u.name}",${u.role},${u.phone},${u.email},${u.isBlocked ? 'Blocked' : 'Active'}
-`;
+      csvContent += `${u.id},"${u.name}",${u.role},${u.phone},${u.email},${u.isBlocked ? 'Blocked' : 'Active'}\n`;
     });
   } else if (type === 'inventory') {
-    csvContent += "ID,Title,Category,Stock,SalePrice
-";
+    csvContent += "ID,Title,Category,Stock,SalePrice\n";
     products.forEach(p => {
-      csvContent += `${p.id},"${p.title}",${p.category},${p.stock},${p.salePrice}
-`;
+      csvContent += `${p.id},"${p.title}",${p.category},${p.stock},${p.salePrice}\n`;
     });
   }
 
@@ -1544,7 +1519,6 @@ function completePosSale() {
 // ==========================================
 // 9. ADMIN: MANAGE USERS & STAFF
 // ==========================================
-
 function renderAdminCustomers() {
   const tbody = document.getElementById("adminCustomersTableBody");
   if (!tbody) return;
@@ -1665,7 +1639,6 @@ function deleteUserAccount() {
   closeManageUserModal();
   alert("User account has been permanently deleted.");
 }
-
 
 // CMS & Payments Updates
 function handleCmsSave(e) {
