@@ -77,7 +77,7 @@ async function loadInitialData() {
     config = JSON.parse(savedConfig);
   } else {
     try {
-      const res = await fetch("data/config.json");[cite: 3]
+      const res = await fetch("data/config.json");
       config = await res.json();
     } catch {
       config = {
@@ -128,7 +128,7 @@ async function loadInitialData() {
     products = JSON.parse(savedProducts);
   } else {
     try {
-      const res = await fetch("data/products.json");[cite: 5]
+      const res = await fetch("data/products.json");
       products = await res.json();
     } catch {
       products = [];
@@ -1614,7 +1614,7 @@ function handleProductFormSubmit(e) {
   const category = document.getElementById("editProductCategory")?.value || "Tarjuma Qurans";
   const stock = parseInt(document.getElementById("editProductStock")?.value) || 0;
   const salePrice = parseInt(document.getElementById("editProductSalePrice")?.value) || 0;
-  const image = document.getElementById("editProductImage")?.value.trim() || "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80";[cite: 5]
+  const image = document.getElementById("editProductImage")?.value.trim() || "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80";
 
   if (id) {
     const p = products.find(x => x.id === id);
@@ -1833,4 +1833,69 @@ function syncLiveCmsUI() {
   if (waLink) waLink.href = `https://wa.me/91${config.whatsappPhone}`;
   if (elPhones) elPhones.textContent = `+91 ${config.phone1} / +91 ${config.phone2}`;
   if (elEmail) elEmail.textContent = config.ownerEmail;
+}
+
+// ==========================================
+// 11. MISSING RENDER COMPONENTS RESTORED
+// ==========================================
+function renderAdminOrders() {
+  const tbody = document.getElementById("adminOrdersTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = orders.length === 0 ? `<tr><td colspan="6" class="p-4 text-center text-xs text-neutral-400">No active orders found.</td></tr>` : orders.map(o => `
+    <tr class="border-b hover:bg-neutral-50 text-xs">
+      <td class="p-3 font-bold">${o.orderId}</td>
+      <td class="p-3">${new Date(o.date).toLocaleDateString()}</td>
+      <td class="p-3">${o.customerName}</td>
+      <td class="p-3 font-mono font-bold">${formatPrice(o.total)}</td>
+      <td class="p-3"><span class="${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'} font-bold">${o.status}</span></td>
+      <td class="p-3 text-right">
+        <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="text-[10px] border border-neutral-300 p-1.5 rounded cursor-pointer">
+          <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+          <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+          <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+          <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+        </select>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function renderAdminInventory() {
+  const tbody = document.getElementById("adminInventoryTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = products.map(p => `
+    <tr class="border-b hover:bg-neutral-50 text-xs">
+      <td class="p-3 flex items-center gap-2"><img src="${p.image}" class="w-8 h-8 rounded object-cover border" alt="${p.title}"> <span class="font-bold truncate w-32 md:w-auto">${p.title}</span></td>
+      <td class="p-3">${p.category}</td>
+      <td class="p-3 font-mono font-bold">${formatPrice(p.salePrice)}</td>
+      <td class="p-3 font-bold ${p.stock <= 5 ? 'text-red-600' : 'text-emerald-700'}">${p.stock}</td>
+      <td class="p-3 text-right"><button onclick="openProductEditModal('${p.id}')" class="text-blue-600 font-bold hover:underline bg-blue-50 px-2 py-1 rounded">Edit</button></td>
+    </tr>
+  `).join("");
+}
+
+function renderPosCatalog() {
+  const grid = document.getElementById("posCatalogGrid");
+  if (!grid) return;
+  grid.innerHTML = products.map(p => `
+    <div class="p-2 border rounded-lg bg-white cursor-pointer hover:bg-neutral-50 shadow-sm transition" onclick="addToCart('${p.id}')">
+      <p class="text-[11px] font-bold text-brand-charcoal truncate">${p.title}</p>
+      <p class="text-[11px] font-mono text-brand-gold mt-1">${formatPrice(p.salePrice)} <span class="text-[9px] text-neutral-400 ml-1">Stock: ${p.stock}</span></p>
+    </div>
+  `).join("");
+}
+
+function renderAdminFeatureToggles() {
+  const container = document.getElementById("adminTogglesContainer");
+  if (!container) return;
+  const flags = Object.keys(config.featureToggles || {});
+  container.innerHTML = flags.map(key => `
+    <div class="flex justify-between items-center p-3 border-b text-xs hover:bg-neutral-50">
+      <span class="font-mono font-semibold">${key}</span>
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" class="sr-only peer" ${config.featureToggles[key] ? 'checked' : ''} onchange="toggleFeatureFlag('${key}', this.checked)">
+        <div class="w-8 h-4 bg-red-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+      </label>
+    </div>
+  `).join("");
 }
