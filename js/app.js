@@ -1,11 +1,16 @@
 /**
- * MOIN QURAN BOX - Modular Production Controller
+ * MOIN QURAN BOX - Modular Production Controller v7.5
+ * Roles:
+ *   Developer Admin: Username 'Admin' | Password '9290'
+ *   Store Owner:     Username 'Owner' | Password '8341'
  */
-const STORAGE_PREFIX = "mqb_v7_";
+
+const STORAGE_PREFIX = "mqb_v75_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
 const KEY_ORDERS = STORAGE_PREFIX + "orders";
+const KEY_COUPONS = STORAGE_PREFIX + "coupons";
 const KEY_CART = STORAGE_PREFIX + "cart";
 const KEY_WISHLIST = STORAGE_PREFIX + "wishlist";
 const KEY_SESSION = STORAGE_PREFIX + "session";
@@ -15,10 +20,12 @@ let config = {};
 let products = [];
 let users = [];
 let orders = [];
+let coupons = [];
 let cart = [];
 let wishlist = [];
 let currentUser = null;
 let currentCategory = "All";
+let posTicket = [];
 let activeMediaStream = null;
 
 // Initialize on DOM Ready
@@ -72,17 +79,35 @@ async function loadInitialData() {
     localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
   }
 
-  // Seed default admin/owner if not exists
+  // Strict Credentials: Admin (9290) & Owner (8341)
   const savedUsers = localStorage.getItem(KEY_USERS);
-  users = savedUsers ? JSON.parse(savedUsers) : [
-    { id: "usr-admin", username: "9290", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
-    { id: "usr-owner", username: "owner", password: "1234", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" }
-  ];
+  if (savedUsers) {
+    users = JSON.parse(savedUsers);
+    // Ensure credentials match your exact specifications
+    const adm = users.find(u => u.role === "admin");
+    if (adm) { adm.username = "Admin"; adm.password = "9290"; }
+    else users.push({ id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" });
+
+    const own = users.find(u => u.role === "owner");
+    if (own) { own.username = "Owner"; own.password = "8341"; }
+    else users.push({ id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" });
+  } else {
+    users = [
+      { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
+      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" }
+    ];
+  }
 
   orders = JSON.parse(localStorage.getItem(KEY_ORDERS)) || [];
+  coupons = JSON.parse(localStorage.getItem(KEY_COUPONS)) || [
+    { code: "RAMADAN50", discount: 50, type: "flat", minOrder: 500 },
+    { code: "BARAKAH10", discount: 10, type: "percent", minOrder: 1000 }
+  ];
   cart = JSON.parse(localStorage.getItem(KEY_CART)) || [];
   wishlist = JSON.parse(localStorage.getItem(KEY_WISHLIST)) || [];
   currentUser = JSON.parse(localStorage.getItem(KEY_SESSION)) || null;
+
+  persist();
 }
 
 function persist() {
@@ -90,18 +115,19 @@ function persist() {
   localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
   localStorage.setItem(KEY_USERS, JSON.stringify(users));
   localStorage.setItem(KEY_ORDERS, JSON.stringify(orders));
+  localStorage.setItem(KEY_COUPONS, JSON.stringify(coupons));
   localStorage.setItem(KEY_CART, JSON.stringify(cart));
   localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist));
 }
 
-// Category Management
+// Category Navigation
 const CATEGORIES = ["All", "Tarjuma Qurans", "Quran Boxes & Rehal", "Janamaz", "Hajj & Umrah", "Namaz Caps & Tasbih"];
 
 function renderCategoryChips() {
   const container = document.getElementById("categoryChips");
   if (!container) return;
   container.innerHTML = CATEGORIES.map(cat => `
-    <button onclick="filterCategory('${cat}')" class="px-3 py-1.5 rounded-full transition ${currentCategory === cat ? 'bg-brand-charcoal text-white font-bold' : 'bg-white text-brand-charcoal border border-brand-border hover:bg-neutral-100'}">
+    <button onclick="filterCategory('${cat}')" class="px-3 py-1.5 rounded-full transition text-xs font-semibold whitespace-nowrap ${currentCategory === cat ? 'bg-brand-charcoal text-white shadow' : 'bg-white text-brand-charcoal border border-brand-border hover:bg-neutral-100'}">
       ${cat}
     </button>
   `).join("");
@@ -132,9 +158,11 @@ function renderProducts() {
     <div class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition">
       <div class="relative bg-neutral-100 pt-[100%] overflow-hidden">
         <img src="${p.image}" alt="${p.title}" class="absolute inset-0 w-full h-full object-cover" />
-        <button onclick="toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full text-xs hover:scale-110 transition">
+        <button onclick="toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full text-xs hover:scale-110 transition shadow">
           ${wishlist.includes(p.id) ? '❤️' : '🤍'}
         </button>
+        ${p.stock <= 5 && p.stock > 0 ? `<span class="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Only ${p.stock} left</span>` : ''}
+        ${p.stock <= 0 ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Out of Stock</span>` : ''}
       </div>
       <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
         <div>
@@ -146,9 +174,14 @@ function renderProducts() {
             <span class="text-xs line-through text-neutral-400">₹${p.oldPrice || p.salePrice + 400}</span>
             <span class="text-sm sm:text-base font-bold text-brand-charcoal">₹${p.salePrice}</span>
           </div>
-          <button onclick="addToCart('${p.id}')" class="w-full py-2 bg-brand-charcoal hover:bg-neutral-800 text-white rounded-lg text-xs font-bold uppercase transition">
-            Add to Cart
-          </button>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button onclick="addToCart('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full py-1.5 bg-brand-charcoal hover:bg-neutral-800 text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
+              Add to Cart
+            </button>
+            <a href="https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(`Salam, I want to order: ${p.title} (Price: ₹${p.salePrice})`)}" target="_blank" class="w-full py-1.5 bg-brand-whatsapp text-white rounded text-[11px] font-bold uppercase text-center flex items-center justify-center shadow">
+              WhatsApp
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -159,7 +192,7 @@ function scrollToProducts() {
   document.getElementById("catalogTopAnchor")?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Cart Operations
+// Shopping Bag
 function addToCart(prodId) {
   const p = products.find(x => x.id === prodId);
   if (!p) return;
@@ -247,7 +280,7 @@ function navigateDrawer(cat) {
   scrollToProducts();
 }
 
-// Checkout & Order Placement
+// Checkout & Orders
 function startCheckout() {
   if (cart.length === 0) { alert("Your cart is empty!"); return; }
   toggleCart(false);
@@ -265,7 +298,19 @@ function handlePlaceOrder(e) {
   const phone = document.getElementById("chkPhone").value.trim();
   const email = document.getElementById("chkEmail").value.trim();
   const address = document.getElementById("chkAddress").value.trim();
-  const total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  const couponCode = document.getElementById("chkCouponInput")?.value.trim().toUpperCase();
+  
+  let total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+
+  // Apply discount if entered
+  if (couponCode) {
+    const cp = coupons.find(c => c.code === couponCode);
+    if (cp && total >= (cp.minOrder || 0)) {
+      const disc = cp.type === "percent" ? Math.round((total * cp.discount) / 100) : cp.discount;
+      total = Math.max(0, total - disc);
+    }
+  }
+
   const orderId = `MQB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
   const newOrder = {
@@ -277,16 +322,24 @@ function handlePlaceOrder(e) {
     total,
     date: new Date().toISOString(),
     status: "Processing",
+    channel: "Online",
     courierName: "Hyderabad Express Dispatch",
     awb: "PENDING-AWB",
     paymentMethod: "UPI",
     items: [...cart]
   };
 
+  // Deduct stock
+  cart.forEach(item => {
+    const p = products.find(x => x.id === item.id);
+    if (p) p.stock = Math.max(0, p.stock - item.qty);
+  });
+
   orders.unshift(newOrder);
   cart = [];
   persist();
   updateCartUI();
+  renderProducts();
   closeCheckoutModal();
 
   const successId = document.getElementById("successOrderIdDisplay");
@@ -341,17 +394,20 @@ function prepareAndPrintInvoice(orderId) {
   printDiv.innerHTML = `
     <div style="font-family: system-ui, sans-serif; padding: 25px; border: 1px solid #ddd; max-width: 800px; margin: auto;">
       <h2 style="margin: 0; color: #1c3026;">${config.brandName}</h2>
-      <p style="margin: 2px 0;">${config.address} • Ph: +91 ${config.phone1}</p>
+      <p style="margin: 2px 0; font-size: 13px;">${config.address} • Ph: +91 ${config.phone1} / ${config.phone2}</p>
+      <p style="margin: 2px 0; font-size: 12px; color: #555;">Proprietor: ${config.proprietor} • GST: ${config.gst}</p>
       <hr style="margin: 15px 0;" />
       <p><strong>Order ID:</strong> ${order.orderId} | <strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
+      <p><strong>Channel:</strong> ${order.channel || 'Online'} | <strong>Status:</strong> ${order.status}</p>
       <p><strong>Customer:</strong> ${order.customerName} (${order.customerPhone})</p>
       <p><strong>Address:</strong> ${order.address}</p>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
         <thead>
           <tr style="background: #f4efe6; text-align: left;">
-            <th style="padding: 8px;">Item</th>
+            <th style="padding: 8px;">Item Description</th>
             <th style="padding: 8px; text-align: center;">Qty</th>
             <th style="padding: 8px; text-align: right;">Price</th>
+            <th style="padding: 8px; text-align: right;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -359,12 +415,14 @@ function prepareAndPrintInvoice(orderId) {
             <tr style="border-bottom: 1px solid #eee;">
               <td style="padding: 8px;">${it.title}</td>
               <td style="padding: 8px; text-align: center;">${it.qty}</td>
+              <td style="padding: 8px; text-align: right;">₹${it.salePrice}</td>
               <td style="padding: 8px; text-align: right;">₹${it.salePrice * it.qty}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
-      <h3 style="text-align: right; margin-top: 20px;">Total: ₹${order.total}</h3>
+      <h3 style="text-align: right; margin-top: 20px; color: #1c3026;">Grand Total: ₹${order.total}</h3>
+      <p style="text-align: center; margin-top: 30px; font-size: 11px; color: #777;">Thank you for ordering with Moin Quran Box, Hyderabad.</p>
     </div>
   `;
   printDiv.classList.remove("hidden");
@@ -372,7 +430,7 @@ function prepareAndPrintInvoice(orderId) {
   printDiv.classList.add("hidden");
 }
 
-// Tracking
+// Courier Tracking
 function openTrackingModal() { document.getElementById("trackingModal")?.classList.remove("hidden"); }
 function closeTrackingModal() { document.getElementById("trackingModal")?.classList.add("hidden"); }
 
@@ -383,181 +441,116 @@ function trackOrderById() {
   const order = orders.find(o => o.orderId.toUpperCase() === id);
   res.classList.remove("hidden");
   if (!order) {
-    res.innerHTML = `<p class="text-red-600 font-bold">No order found with ID: ${id}</p>`;
+    res.innerHTML = `<p class="text-red-600 font-bold">No shipment found with Order ID: ${id}</p>`;
     return;
   }
   res.innerHTML = `
     <p><strong>Status:</strong> <span class="text-emerald-700 font-bold">${order.status}</span></p>
-    <p><strong>Courier:</strong> ${order.courierName || 'Local Handover'}</p>
-    <p><strong>AWB Code:</strong> ${order.awb || 'Pending'}</p>
+    <p><strong>Courier:</strong> ${order.courierName || 'Local Dispatch'}</p>
+    <p><strong>Tracking AWB:</strong> ${order.awb || 'Processing'}</p>
   `;
 }
 
-// Contact, Search, Wishlist
-function openContactModal() { document.getElementById("contactModal")?.classList.remove("hidden"); }
-function closeContactModal() { document.getElementById("contactModal")?.classList.add("hidden"); }
-
-function openSearchModal() {
-  document.getElementById("searchModal")?.classList.remove("hidden");
-  document.getElementById("searchInput")?.focus();
-}
-function closeSearchModal() { document.getElementById("searchModal")?.classList.add("hidden"); }
-
-function liveSearch(q) {
-  const box = document.getElementById("searchResults");
-  if (!box) return;
-  const query = q.trim().toLowerCase();
-  if (!query) { box.innerHTML = ""; return; }
-  const matched = products.filter(p => p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
-  box.innerHTML = matched.map(m => `
-    <div onclick="selectSearchResult('${m.id}')" class="p-2 flex justify-between items-center cursor-pointer hover:bg-brand-sand rounded">
-      <span>${m.title}</span>
-      <span class="font-bold">₹${m.salePrice}</span>
+// In-Store POS System (Online & Offline)
+function renderPosCatalog() {
+  const grid = document.getElementById("posCatalogGrid");
+  if (!grid) return;
+  grid.innerHTML = products.map(p => `
+    <div class="p-2 border rounded bg-white flex flex-col justify-between text-xs">
+      <div>
+        <strong class="line-clamp-1">${p.title}</strong>
+        <span class="text-neutral-500 block">Stock: ${p.stock} • ₹${p.salePrice}</span>
+      </div>
+      <button onclick="addPosTicketItem('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="mt-2 py-1 bg-brand-charcoal text-white rounded font-bold text-[10px] uppercase">
+        + Add Bill
+      </button>
     </div>
   `).join("");
 }
 
-function selectSearchResult(id) {
-  closeSearchModal();
-  renderProducts();
-  scrollToProducts();
+function addPosTicketItem(prodId) {
+  const p = products.find(x => x.id === prodId);
+  if (!p) return;
+  const exist = posTicket.find(x => x.id === prodId);
+  if (exist) exist.qty += 1;
+  else posTicket.push({ id: p.id, title: p.title, salePrice: p.salePrice, qty: 1 });
+  renderPosTicket();
 }
 
-function openWishlistModal() {
-  const box = document.getElementById("wishlistContainer");
-  if (!box) return;
-  const list = products.filter(p => wishlist.includes(p.id));
-  box.innerHTML = list.length === 0 ? `<p class="text-neutral-400 text-center py-4">No items saved yet.</p>` : list.map(it => `
-    <div class="flex justify-between items-center p-2 border rounded">
-      <span>${it.title}</span>
-      <button onclick="addToCart('${it.id}'); closeWishlistModal();" class="text-xs bg-brand-charcoal text-white px-2 py-1 rounded">Add to Bag</button>
+function renderPosTicket() {
+  const box = document.getElementById("posTicketItems");
+  const totalEl = document.getElementById("posTicketTotal");
+  if (!box || !totalEl) return;
+
+  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  totalEl.textContent = `₹${total}`;
+
+  box.innerHTML = posTicket.map(it => `
+    <div class="flex justify-between items-center py-1">
+      <span class="truncate max-w-[150px]">${it.title} (x${it.qty})</span>
+      <span class="font-bold">₹${it.salePrice * it.qty}</span>
     </div>
   `).join("");
-  document.getElementById("wishlistModal")?.classList.remove("hidden");
 }
-function closeWishlistModal() { document.getElementById("wishlistModal")?.classList.add("hidden"); }
 
-function toggleWishlist(id) {
-  if (wishlist.includes(id)) wishlist = wishlist.filter(x => x !== id);
-  else wishlist.push(id);
+function completePosSale() {
+  if (posTicket.length === 0) { alert("Ticket is empty."); return; }
+  const custName = document.getElementById("posCustName")?.value.trim() || "Walk-in Customer";
+  const custPhone = document.getElementById("posCustPhone")?.value.trim() || "Showroom Walk-in";
+  const paymentMethod = document.getElementById("posPaymentMethod")?.value || "Cash";
+  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  const orderId = `POS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const orderData = {
+    orderId,
+    customerName: custName,
+    customerPhone: custPhone,
+    address: "Showroom Walk-in Purchase (Falaknuma)",
+    total,
+    date: new Date().toISOString(),
+    status: "Delivered",
+    channel: "Offline Walk-in",
+    paymentMethod,
+    items: [...posTicket]
+  };
+
+  // Deduct stock
+  posTicket.forEach(item => {
+    const p = products.find(x => x.id === item.id);
+    if (p) p.stock = Math.max(0, p.stock - item.qty);
+  });
+
+  orders.unshift(orderData);
+  posTicket = [];
   persist();
+  renderPosTicket();
+  renderPosCatalog();
   renderProducts();
+  renderAdminOrders();
+  updateAnalytics();
+  alert("Walk-in POS Sale completed!");
+  prepareAndPrintInvoice(orderId);
 }
 
-// Authentication & Staff Portal
-function openAuthModal(tab = 'login') {
-  document.getElementById("authModal")?.classList.remove("hidden");
-  switchAuthTab(tab);
-}
-function closeAuthModal() {
-  document.getElementById("authModal")?.classList.add("hidden");
-  stopFaceCamera();
-}
-
-function switchAuthTab(tab) {
-  stopFaceCamera();
-  document.getElementById("loginFormContainer")?.classList.toggle("hidden", tab !== 'login');
-  document.getElementById("faceScanContainer")?.classList.toggle("hidden", tab !== 'face');
-  document.getElementById("registerFormContainer")?.classList.toggle("hidden", tab !== 'register');
-  const tL = document.getElementById("authTabLogin");
-  const tF = document.getElementById("authTabFace");
-  const tR = document.getElementById("authTabRegister");
-  if (tL) tL.className = "flex-1 pb-3 text-center text-xs font-bold uppercase " + (tab === 'login' ? 'border-b-2 border-brand-charcoal text-brand-charcoal' : 'text-neutral-400');
-  if (tF) tF.className = "flex-1 pb-3 text-center text-xs font-bold uppercase " + (tab === 'face' ? 'border-b-2 border-brand-charcoal text-brand-charcoal' : 'text-neutral-400');
-  if (tR) tR.className = "flex-1 pb-3 text-center text-xs font-bold uppercase " + (tab === 'register' ? 'border-b-2 border-brand-charcoal text-brand-charcoal' : 'text-neutral-400');
-  if (tab === 'face') startFaceCamera();
-}
-
-function handleCustomerLogin(e) {
-  e.preventDefault();
-  const id = document.getElementById("loginIdentifier").value.trim().toLowerCase();
-  const pass = document.getElementById("loginPassword").value.trim();
-  const user = users.find(u => (u.email?.toLowerCase() === id || u.phone === id || u.username === id) && (u.password === pass || u.pin === pass));
-  if (!user) { alert("Invalid credentials."); return; }
-  currentUser = user;
-  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
-  closeAuthModal();
-  handleUserAccountClick();
-}
-
-function handleCustomerRegister(e) {
-  e.preventDefault();
-  const name = document.getElementById("regName").value.trim();
-  const email = document.getElementById("regEmail").value.trim();
-  const phone = document.getElementById("regPhone").value.trim();
-  const password = document.getElementById("regPassword").value.trim();
-  const pin = document.getElementById("regPin").value.trim();
-
-  const newUser = { id: "cust-" + Date.now(), username: phone, name, email, phone, password, pin: pin || "1234", role: "customer" };
-  users.push(newUser);
-  currentUser = newUser;
-  persist();
-  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
-  closeAuthModal();
-  alert(`Welcome, ${name}!`);
-  handleUserAccountClick();
-}
-
-function startFaceCamera() {
-  const video = document.getElementById("faceLoginVideo");
-  const overlay = document.getElementById("faceScanStatusOverlay");
-  if (overlay) overlay.textContent = "Starting camera...";
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: "user" } })
-      .then(stream => { activeMediaStream = stream; if (video) video.srcObject = stream; if (overlay) overlay.textContent = "Ready to verify face."; })
-      .catch(err => { if (overlay) overlay.textContent = "Camera error: " + err.message; });
-  }
-}
-
-function stopFaceCamera() {
-  if (activeMediaStream) {
-    activeMediaStream.getTracks().forEach(t => t.stop());
-    activeMediaStream = null;
-  }
-}
-
-function triggerFaceCaptureAndMatch() {
-  const id = document.getElementById("faceLoginIdentifier")?.value.trim().toLowerCase();
-  const overlay = document.getElementById("faceScanStatusOverlay");
-  if (!id) { alert("Please enter your Phone or Email first."); return; }
-  const user = users.find(u => (u.email && u.email.toLowerCase() === id) || (u.phone && u.phone === id));
-  if (!user) { alert("No account found for that Mobile/Email."); return; }
-  if (overlay) overlay.textContent = `Verifying identity strictly for ${user.name}...`;
-  setTimeout(() => {
-    stopFaceCamera();
-    currentUser = user;
-    localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
-    closeAuthModal();
-    alert(`Welcome back, ${user.name}!`);
-    handleUserAccountClick();
-  }, 1000);
-}
-
-function handleUserAccountClick() {
-  if (!currentUser) openAuthModal('login');
-  else if (currentUser.role === 'admin' || currentUser.role === 'owner') openAdminDashboardModal();
-  else alert(`Logged in as: ${currentUser.name}`);
-}
-
-function openAdminLoginModal() {
-  closeAuthModal();
-  document.getElementById("adminLoginModal")?.classList.remove("hidden");
-}
+// Staff Portal Login & Roles
+function openAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.remove("hidden"); }
 function closeAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.add("hidden"); }
 
 function handlePortalLogin(e) {
   e.preventDefault();
-  const u = document.getElementById("portalUsername").value.trim().toLowerCase();
+  const u = document.getElementById("portalUsername").value.trim();
   const p = document.getElementById("portalPassword").value.trim();
 
-  if ((u === "admin" || u === "9290") && p === "9290") {
+  // Strict credentials check
+  if (u.toLowerCase() === "admin" && p === "9290") {
     currentUser = { role: "admin", name: "Developer Admin" };
-  } else if (u === "owner" && p === "1234") {
+  } else if (u.toLowerCase() === "owner" && p === "8341") {
     currentUser = { role: "owner", name: "Shaik Moin Uddin" };
   } else {
     alert("Access Denied: Invalid credentials.");
     return;
   }
+
   localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
   closeAdminLoginModal();
   openAdminDashboardModal();
@@ -567,39 +560,35 @@ function openAdminDashboardModal() {
   const modal = document.getElementById("adminDashboardModal");
   if (!modal) return;
   modal.classList.remove("hidden");
-  const badge = document.getElementById("portalRoleBadge");
-  if (badge) badge.textContent = currentUser.role === 'admin' ? "Developer Admin • Full Supreme Privileges" : "Store Owner (Shaik Moin Uddin)";
-  
-  const elBrand = document.getElementById("cmsBrandName");
-  const elProp = document.getElementById("cmsProprietor");
-  const elAddr = document.getElementById("cmsAddress");
-  const elUpi = document.getElementById("cfgUpiId");
-  const elUpiNm = document.getElementById("cfgUpiName");
-  const elBnk = document.getElementById("cfgBankName");
-  const elAcc = document.getElementById("cfgAccountNum");
-  const elIfsc = document.getElementById("cfgIfsc");
 
-  if (elBrand) elBrand.value = config.brandName;
-  if (elProp) elProp.value = config.proprietor;
-  if (elAddr) elAddr.value = config.address;
-  if (elUpi) elUpi.value = config.upiId;
-  if (elUpiNm) elUpiNm.value = config.merchantName;
-  if (elBnk) elBnk.value = config.bankName;
-  if (elAcc) elAcc.value = config.accountNum;
-  if (elIfsc) elIfsc.value = config.ifsc;
+  const badge = document.getElementById("portalRoleBadge");
+  if (badge) {
+    badge.textContent = currentUser.role === "admin" 
+      ? "Developer Admin • Full Supreme Privileges" 
+      : "Store Owner (Shaik Moin Uddin) • Operations";
+  }
+
+  // Hide developer tabs if Owner
+  const isOwner = currentUser.role === "owner";
+  document.getElementById("adminTabBtn-salesmodifier")?.classList.toggle("hidden", isOwner);
+  document.getElementById("adminTabBtn-cms")?.classList.toggle("hidden", isOwner);
+  document.getElementById("adminTabBtn-customers")?.classList.toggle("hidden", isOwner);
 
   renderAdminOrders();
   renderAdminInventory();
+  renderPosCatalog();
+  renderCouponsTable();
   updateAnalytics();
 }
 
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
 function switchAdminTab(tab) {
-  ['orders', 'inventory', 'analytics', 'salesmodifier', 'cms', 'payments'].forEach(t => {
+  const tabs = ['orders', 'inventory', 'pos', 'analytics', 'salesmodifier', 'cms', 'payments', 'coupons', 'customers'];
+  tabs.forEach(t => {
     document.getElementById(`adminTab-${t}`)?.classList.toggle("hidden", t !== tab);
     const btn = document.getElementById(`adminTabBtn-${t}`);
-    if (btn) btn.className = "px-4 py-3 border-b-2 font-bold whitespace-nowrap " + (t === tab ? "border-brand-charcoal text-brand-charcoal" : "border-transparent text-neutral-500");
+    if (btn) btn.className = "px-4 py-3 border-b-2 font-bold whitespace-nowrap " + (t === tab ? "border-brand-charcoal text-brand-charcoal" : "border-transparent text-neutral-500 hover:text-black");
   });
 }
 
@@ -609,16 +598,19 @@ function renderAdminOrders() {
   const box = document.getElementById("adminOrdersContainer");
   if (!box) return;
   box.innerHTML = orders.map(o => `
-    <div class="p-3 bg-white border rounded-xl text-xs space-y-1">
+    <div class="p-3 bg-white border rounded-xl text-xs space-y-1 shadow-sm">
       <div class="flex justify-between font-bold">
-        <span>${o.orderId}</span>
+        <span>${o.orderId} <span class="text-[10px] ml-2 px-1.5 py-0.5 rounded font-bold ${o.channel === 'Offline Walk-in' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${o.channel || 'Online'}</span></span>
         <span class="text-blue-700">${o.status}</span>
       </div>
       <p>${o.customerName} (📞 ${o.customerPhone})</p>
       <p class="text-neutral-500">${o.items.map(it => `${it.title} (x${it.qty})`).join(', ')}</p>
       <div class="flex justify-between items-center pt-2 border-t">
         <strong>Total: ₹${o.total}</strong>
-        <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-neutral-100 rounded font-semibold">Print Bill</button>
+        <div class="flex gap-2">
+          <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-neutral-100 rounded font-semibold">Print Bill</button>
+          <a href="https://wa.me/91${o.customerPhone}?text=${encodeURIComponent(`Salam ${o.customerName}, update for your order ${o.orderId}: Current Status is ${o.status}.`)}" target="_blank" class="px-2 py-1 bg-green-50 text-green-700 rounded font-semibold">WhatsApp</a>
+        </div>
       </div>
     </div>
   `).join('');
@@ -649,12 +641,13 @@ function updateAnalytics() {
 }
 
 function resetAllSalesToZero() {
-  if (!confirm("Reset all store sales, revenue, and orders back to ZERO (₹0)?")) return;
+  if (currentUser?.role !== "admin") { alert("Supreme Admin access required."); return; }
+  if (!confirm("Reset all store sales, revenue, and order logs to ZERO (₹0)?")) return;
   orders = [];
   persist();
   renderAdminOrders();
   updateAnalytics();
-  alert("Sales and orders reset to zero.");
+  alert("All sales data reset to zero.");
 }
 
 function openProductEditModal(id = null) {
@@ -713,15 +706,21 @@ function handleProductFormSubmit(e) {
   persist();
   renderProducts();
   renderAdminInventory();
+  renderPosCatalog();
   closeProductEditModal();
   alert("Product saved successfully!");
 }
 
 function handleCmsSave(e) {
   e.preventDefault();
+  if (currentUser?.role !== "admin") { alert("Only Admin can edit master details."); return; }
   config.brandName = document.getElementById("cmsBrandName").value.trim();
   config.proprietor = document.getElementById("cmsProprietor").value.trim();
   config.address = document.getElementById("cmsAddress").value.trim();
+  config.phone1 = document.getElementById("cmsPhone1")?.value.trim() || config.phone1;
+  config.phone2 = document.getElementById("cmsPhone2")?.value.trim() || config.phone2;
+  config.announcement = document.getElementById("cmsAnnouncement")?.value.trim() || config.announcement;
+
   persist();
   syncLiveCmsUI();
   alert("Store details updated live!");
@@ -739,20 +738,54 @@ function savePaymentSettings(e) {
   alert("Payment details updated!");
 }
 
+function renderCouponsTable() {
+  const tbody = document.getElementById("adminCouponsTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = coupons.map((c, i) => `
+    <tr class="hover:bg-neutral-50">
+      <td class="p-3 font-bold font-mono text-brand-gold">${c.code}</td>
+      <td class="p-3 font-semibold">${c.type === 'percent' ? `${c.discount}% OFF` : `₹${c.discount} FLAT OFF`}</td>
+      <td class="p-3">₹${c.minOrder}</td>
+      <td class="p-3 text-right">
+        <button onclick="deleteCoupon(${i})" class="text-red-600 font-bold">Delete</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function promptCreateCoupon() {
+  const code = prompt("Enter Promo Code (e.g. FESTIVE10):");
+  if (!code) return;
+  const discount = parseInt(prompt("Discount value (e.g. 50 or 10):", "50")) || 50;
+  const type = prompt("Type: 'flat' or 'percent':", "flat") || "flat";
+  const minOrder = parseInt(prompt("Minimum Order Amount (₹):", "500")) || 500;
+
+  coupons.push({ code: code.trim().toUpperCase(), discount, type, minOrder });
+  persist();
+  renderCouponsTable();
+  alert(`Coupon ${code.toUpperCase()} added!`);
+}
+
+function deleteCoupon(i) {
+  coupons.splice(i, 1);
+  persist();
+  renderCouponsTable();
+}
+
 function syncLiveCmsUI() {
   const elBrand = document.getElementById("brandNavTitle");
   const elDrawerBrand = document.getElementById("drawerBrandName");
   const elFooterBrand = document.getElementById("footerBrandName");
   const elProp = document.getElementById("footerProprietor");
   const elAddr = document.getElementById("footerAddress");
-  const elUpi = document.getElementById("displayCheckoutUpi");
+  const elTicker = document.getElementById("announcementText");
 
   if (elBrand) elBrand.textContent = config.brandName;
   if (elDrawerBrand) elDrawerBrand.textContent = config.brandName;
   if (elFooterBrand) elFooterBrand.textContent = config.brandName;
   if (elProp) elProp.textContent = config.proprietor;
   if (elAddr) elAddr.textContent = config.address;
-  if (elUpi) elUpi.textContent = config.upiId;
+  if (elTicker) elTicker.textContent = config.announcement;
 }
 
 function logoutCurrentUser() {
@@ -764,4 +797,45 @@ function logoutCurrentUser() {
 
 function toggleTheme() {
   document.documentElement.classList.toggle("dark");
+}
+
+function toggleWishlist(id) {
+  if (wishlist.includes(id)) wishlist = wishlist.filter(x => x !== id);
+  else wishlist.push(id);
+  persist();
+  renderProducts();
+}
+
+function openSearchModal() {
+  document.getElementById("searchModal")?.classList.remove("hidden");
+  document.getElementById("searchInput")?.focus();
+}
+function closeSearchModal() { document.getElementById("searchModal")?.classList.add("hidden"); }
+
+function liveSearch(q) {
+  const box = document.getElementById("searchResults");
+  if (!box) return;
+  const query = q.trim().toLowerCase();
+  if (!query) { box.innerHTML = ""; return; }
+  const matched = products.filter(p => p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+  box.innerHTML = matched.map(m => `
+    <div onclick="selectSearchResult('${m.id}')" class="p-2 flex justify-between items-center cursor-pointer hover:bg-brand-sand rounded">
+      <span>${m.title}</span>
+      <span class="font-bold">₹${m.salePrice}</span>
+    </div>
+  `).join("");
+}
+
+function selectSearchResult(id) {
+  closeSearchModal();
+  renderProducts();
+  scrollToProducts();
+}
+
+function openContactModal() { document.getElementById("contactModal")?.classList.remove("hidden"); }
+function closeContactModal() { document.getElementById("contactModal")?.classList.add("hidden"); }
+
+function handleUserAccountClick() {
+  if (!currentUser) openAdminLoginModal();
+  else openAdminDashboardModal();
 }
