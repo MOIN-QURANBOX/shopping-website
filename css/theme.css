@@ -50,22 +50,6 @@ body {
   scrollbar-width: none;
 }
 
-@keyframes scanline {
-  0% { top: 5%; opacity: 0.8; }
-  50% { top: 90%; opacity: 1; }
-  100% { top: 5%; opacity: 0.8; }
-}
-
-.scanner-line {
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #c5a059, #34d399, transparent);
-  box-shadow: 0 0 12px #c5a059;
-  animation: scanline 2.2s infinite ease-in-out;
-}
-
 @media print {
   body * {
     visibility: hidden !important;
