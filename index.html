@@ -49,7 +49,7 @@
 
   <!-- ================= TOP FIXED HEADER SECTION ================= -->
   <div class="sticky top-0 z-40 w-full shadow-sm">
-    <!-- Announcement Ticker -->
+    <!-- Announcement Ticker with Staff Login Option -->
     <div id="announcementBar" class="bg-brand-darkgreen text-brand-cream text-xs py-2 px-3 border-b border-[#2b483a]">
       <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 overflow-hidden mx-auto text-center truncate font-medium">
@@ -57,7 +57,10 @@
           <span id="announcementText" class="truncate text-[11px] sm:text-xs">Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD &amp; Instant UPI Available</span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button onclick="openInvoiceLookupModal()" class="text-[10px] sm:text-[11px] font-semibold text-amber-300 hover:text-white transition underline whitespace-nowrap">
+          <button onclick="openAdminLoginModal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition flex items-center gap-1 border border-amber-400/40">
+            🔐 Staff Login
+          </button>
+          <button onclick="openInvoiceLookupModal()" class="text-[10px] sm:text-[11px] font-semibold text-neutral-300 hover:text-white transition underline whitespace-nowrap">
             📄 Invoice
           </button>
           <button onclick="toggleTheme()" class="p-1 rounded bg-[#254234] hover:bg-neutral-800 text-[10px]" title="Toggle Dark/Light Mode">
@@ -118,6 +121,24 @@
     <!-- Category Ribbon -->
     <div class="bg-brand-sand/90 border-b border-brand-border py-2 overflow-x-auto no-scrollbar">
       <div class="max-w-6xl mx-auto px-4 flex gap-2 text-xs uppercase tracking-wider font-semibold whitespace-nowrap" id="categoryChips"></div>
+    </div>
+  </div>
+
+  <!-- ================= WELCOME GREETING MESSAGE CARD ================= -->
+  <div id="welcomeGreetingBanner" class="hidden bg-amber-50/90 border-b border-amber-200 text-amber-900 py-3 px-4 transition-all">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🕌</span>
+        <span id="welcomeGreetingText" class="font-medium">Assalamu Alaikum! Welcome to MOIN QURAN BOX, Hyderabad.</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openCustomerAuthModal('register')" class="px-2.5 py-1 bg-brand-darkgreen text-white rounded font-bold text-[11px] uppercase">
+          Create Account
+        </button>
+        <button onclick="dismissGreetingBanner()" class="text-neutral-500 hover:text-black font-bold text-sm px-1.5">
+          &times;
+        </button>
+      </div>
     </div>
   </div>
 
@@ -265,7 +286,7 @@
         <button onclick="openCustomerAuthModal('login'); toggleDrawer(false);" class="w-full py-2 bg-brand-charcoal text-white text-xs font-bold uppercase rounded">
           Customer Account Login
         </button>
-        <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="w-full py-2 bg-white border border-brand-border text-brand-charcoal text-xs font-bold uppercase rounded">
+        <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="w-full py-2 bg-brand-darkgreen text-white text-xs font-bold uppercase rounded">
           Staff Portal (Admin/Owner)
         </button>
       </div>
@@ -314,7 +335,7 @@
     </div>
   </div>
 
-  <!-- ================= CUSTOMER AUTH MODAL (LOGIN & CREATE) ================= -->
+  <!-- ================= CUSTOMER AUTH MODAL ================= -->
   <div id="customerAuthModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-xs">
       <button onclick="closeCustomerAuthModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
@@ -385,11 +406,14 @@
     </div>
   </div>
 
-  <!-- ================= MANAGEMENT PORTAL LOGIN ================= -->
+  <!-- ================= STAFF PORTAL LOGIN MODAL ================= -->
   <div id="adminLoginModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
       <button onclick="closeAdminLoginModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
       <div class="text-center mb-4">
+        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto mb-2 font-bold text-lg">
+          🔐
+        </div>
         <h3 class="serif-title text-xl font-bold text-brand-charcoal">Management Portal</h3>
         <p class="text-[11px] text-brand-muted mt-1">Authorized Developer Admin &amp; Store Owner Access</p>
       </div>
@@ -407,7 +431,7 @@
     </div>
   </div>
 
-  <!-- ================= MASTER MANAGEMENT CONTROL CENTER ================= -->
+  <!-- ================= MASTER MANAGEMENT CONTROL CENTER (GRID TEMPLATE) ================= -->
   <div id="adminDashboardModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-6xl w-full h-[95vh] flex flex-col overflow-hidden">
       <!-- Top Bar -->
@@ -424,21 +448,54 @@
 
       <!-- Navigation Tabs -->
       <div class="bg-brand-sand border-b flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
-        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
-        <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock &amp; Inventory</button>
+        <button onclick="switchAdminTab('hub')" id="adminTabBtn-hub" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">⚡ Grid Hub</button>
+        <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
+        <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock</button>
         <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 Showroom POS</button>
-        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Sales Reports</button>
+        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Analytics</button>
         <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts</button>
         <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Customers</button>
         <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Override</button>
-        <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Full Text CMS</button>
+        <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Live CMS</button>
         <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
       </div>
 
       <!-- Tab Content Area -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fcfaf7]">
+        
+        <!-- TAB 0: BENTO GRID HUB & UNIVERSAL SEARCH -->
+        <div id="adminTab-hub" class="space-y-5">
+          <!-- Universal Search Bar -->
+          <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
+            <h4 class="font-bold text-xs uppercase text-brand-charcoal mb-2">🔍 Universal Search (Customer Phone, Email or Order ID)</h4>
+            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by customer phone (e.g. 9390335673), email, or order number (e.g. MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
+            <div id="universalSearchResults"></div>
+          </div>
+
+          <!-- Executive Grid View Template -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-white p-4 rounded-xl border shadow-sm">
+              <span class="text-neutral-500 font-bold uppercase text-[10px]">Total Gross Revenue</span>
+              <h3 id="hubTotalRevenue" class="text-2xl font-bold font-mono text-brand-darkgreen mt-1">₹0</h3>
+              <p class="text-[11px] text-emerald-600 mt-1">Online &amp; In-Store Walk-in sales</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border shadow-sm">
+              <span class="text-neutral-500 font-bold uppercase text-[10px]">Total Orders Logged</span>
+              <h3 id="hubTotalOrders" class="text-2xl font-bold font-mono text-brand-charcoal mt-1">0</h3>
+              <button onclick="switchAdminTab('orders')" class="text-blue-600 font-semibold underline mt-1 block">View Dispatch Ledger →</button>
+            </div>
+            <div class="bg-white p-4 rounded-xl border shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-neutral-500 font-bold uppercase text-[10px]">Falaknuma Showroom Walk-in</span>
+                <p class="font-bold mt-1">Open POS Billing Terminal</p>
+              </div>
+              <button onclick="switchAdminTab('pos')" class="mt-2 py-2 bg-brand-darkgreen text-white font-bold rounded uppercase text-[10px]">Launch POS</button>
+            </div>
+          </div>
+        </div>
+
         <!-- TAB 1: ORDERS -->
-        <div id="adminTab-orders" class="space-y-4">
+        <div id="adminTab-orders" class="hidden space-y-4">
           <div class="flex justify-between items-center">
             <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger</h4>
           </div>
@@ -457,7 +514,7 @@
                 <tr>
                   <th class="p-3">Product Name</th>
                   <th class="p-3">Category</th>
-                  <th class="p-3">Current Stock</th>
+                  <th class="p-3">Stock Units</th>
                   <th class="p-3">Retail Price</th>
                   <th class="p-3 text-right">Actions</th>
                 </tr>
@@ -630,7 +687,7 @@
     </div>
   </div>
 
-  <!-- ================= PRODUCT EDIT MODAL (WITH MANUAL PHOTO UPLOAD) ================= -->
+  <!-- ================= PRODUCT EDIT MODAL (PHOTO UPLOAD INCLUDED) ================= -->
   <div id="productEditModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
       <button onclick="closeProductEditModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
@@ -662,7 +719,7 @@
           <input type="number" id="editProductSalePrice" required class="w-full bg-brand-sand border rounded p-2 font-bold" />
         </div>
         
-        <!-- Manual Photo Upload and URL -->
+        <!-- Photo Upload & URL -->
         <div class="p-3 bg-brand-sand border rounded-lg space-y-2">
           <label class="block font-bold">Product Photo</label>
           <input type="file" accept="image/*" onchange="handlePhotoFileInput(event)" class="w-full text-[11px]" />
@@ -760,25 +817,4 @@
         <p><strong>📞 Phone:</strong> +91 9390335673 / +91 8142140905</p>
         <p><strong>⏰ Hours:</strong> 10:00 AM – 11:00 PM (All 7 Days)</p>
       </div>
-      <a href="https://wa.me/919390335673" target="_blank" class="block text-center py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold">Chat on WhatsApp</a>
-    </div>
-  </div>
-
-  <!-- ================= SEARCH MODAL ================= -->
-  <div id="searchModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center pt-20 px-4">
-    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-5">
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="serif-title text-base font-bold text-brand-charcoal">Search Store Products</h3>
-        <button onclick="closeSearchModal()" class="text-neutral-500">✕</button>
-      </div>
-      <input type="text" id="searchInput" oninput="liveSearch(this.value)" placeholder="Search Holy Quran, velvet box, Janamaz, Tasbih..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
-      <div id="searchResults" class="mt-3 max-h-60 overflow-y-auto divide-y text-xs"></div>
-    </div>
-  </div>
-
-  <div id="invoicePrintSection" class="hidden"></div>
-
-  <!-- Application Controller -->
-  <script src="js/app.js"></script>
-</body>
-</html>
+      <a href="
