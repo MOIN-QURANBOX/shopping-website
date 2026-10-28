@@ -1,9 +1,9 @@
 /**
- * MOIN QURAN BOX - Multi-Branch Enterprise Controller v15.0 Professional Edition
- * Secure Master Operations, Admin Feature Toggles, User Access Control, & Easy Shopping Suite
+ * MOIN QURAN BOX - Multi-Branch Enterprise Controller v16.0 Professional Edition
+ * Secure Master Operations, Admin Feature Toggles, User CRM 360, & Easy Shopping Suite
  */
 
-const STORAGE_PREFIX = "mqb_v15_";
+const STORAGE_PREFIX = "mqb_v16_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
@@ -105,12 +105,8 @@ async function loadInitialData() {
     }
   }
 
-  // Ensure toggles exist if upgrading from older version
-  if (!config.featureToggles) {
-    config.featureToggles = { ...DEFAULT_TOGGLES };
-  } else {
-    config.featureToggles = { ...DEFAULT_TOGGLES, ...config.featureToggles };
-  }
+  if (!config.featureToggles) config.featureToggles = { ...DEFAULT_TOGGLES };
+  else config.featureToggles = { ...DEFAULT_TOGGLES, ...config.featureToggles };
 
   localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
 
@@ -130,7 +126,6 @@ async function loadInitialData() {
   const savedUsers = localStorage.getItem(KEY_USERS);
   if (savedUsers) {
     users = JSON.parse(savedUsers);
-    // Secure Fallback: Ensure master admin exists if missing
     if (!users.some(u => u.username.toLowerCase() === 'admin')) {
       ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
     }
@@ -200,7 +195,6 @@ function validateSessionPersistence() {
     return;
   }
 
-  // Cross-check if user was blocked during active session
   const activeUser = users.find(u => u.username.toLowerCase() === session.user.username.toLowerCase());
   if (activeUser && activeUser.isBlocked) {
     alert("Your account has been revoked/blocked by the Administrator.");
@@ -251,9 +245,9 @@ function logoutCurrentUser(sessionExpired = false) {
   closeCustomerProfileModal();
   syncCustomerHeaderUI();
   if (sessionExpired) alert("Your 24-hour staff session has expired. Please sign in again.");
+  else alert("Successfully logged out.");
 }
 
-// Scroll Utilities
 function autoScrollTo(elementId) {
   const el = document.getElementById(elementId);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -261,7 +255,6 @@ function autoScrollTo(elementId) {
 function scrollToProducts() { autoScrollTo("catalogTopAnchor"); }
 function scrollToContact() { autoScrollTo("contactSectionAnchor"); }
 
-// Welcome Greeting
 function checkWelcomeGreetingBanner() {
   const dismissed = sessionStorage.getItem("mqb_greeting_dismissed");
   const el = document.getElementById("welcomeGreetingBanner");
@@ -276,7 +269,6 @@ function dismissGreetingBanner() {
   document.getElementById("welcomeGreetingBanner")?.classList.add("hidden");
 }
 
-// Contact Owners
 function handleSendMessageToOwner(e) {
   e.preventDefault();
   const name = document.getElementById("msgCustName").value.trim();
@@ -285,17 +277,10 @@ function handleSendMessageToOwner(e) {
   const message = document.getElementById("msgCustMessage").value.trim();
   const channel = document.querySelector('input[name="msgChannel"]:checked')?.value || "whatsapp";
 
-  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*\n\n` +
-    `*From:* ${name}\n` +
-    `*Phone:* ${phone}\n` +
-    `*Subject:* ${subject}\n\n` +
-    `*Message:* ${message}`;
+  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*\n\n*From:* ${name}\n*Phone:* ${phone}\n*Subject:* ${subject}\n\n*Message:* ${message}`;
 
-  if (channel === "whatsapp") {
-    window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`, "_blank");
-  } else {
-    window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=${encodeURIComponent("Website Inquiry: " + subject)}&body=${encodeURIComponent(formattedMsg)}`;
-  }
+  if (channel === "whatsapp") window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`, "_blank");
+  else window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=${encodeURIComponent("Website Inquiry: " + subject)}&body=${encodeURIComponent(formattedMsg)}`;
 
   alert("Inquiry prepared! Transferring to your selected channel.");
   document.getElementById("custMessageForm")?.reset();
@@ -398,7 +383,6 @@ function renderProducts() {
   `).join("");
 }
 
-// Recently Viewed
 function trackRecentlyViewed(prodId) {
   if (!recentlyViewed.includes(prodId)) {
     recentlyViewed.unshift(prodId);
@@ -428,19 +412,16 @@ function renderRecentlyViewed() {
 }
 
 // ==========================================
-// 4. EASY SHOPPING MODALS (Controlled by Admin)
+// 4. EASY SHOPPING MODALS
 // ==========================================
 
 function openQuickView(prodId) {
   if (!config.featureToggles.quickViewShopping) return alert("Quick View is currently disabled by Admin.");
   const p = products.find(x => x.id === prodId);
   if (!p) return;
-  
   const content = document.getElementById("quickViewContent");
   content.innerHTML = `
-    <div>
-      <img src="${p.image}" class="w-full h-64 object-cover rounded-xl border" />
-    </div>
+    <div><img src="${p.image}" class="w-full h-64 object-cover rounded-xl border" /></div>
     <div class="space-y-3 flex flex-col justify-between">
       <div>
         <span class="text-[10px] uppercase font-bold text-brand-gold">${p.category}</span>
@@ -465,13 +446,11 @@ function expressBuyNow(prodId) {
   startCheckout();
 }
 
-// Comparison Tool
 function toggleCompare(prodId) {
-  if (!config.featureToggles.compareTool) return alert("Comparison tool is currently disabled by Admin.");
-  if (compareList.includes(prodId)) {
-    compareList = compareList.filter(id => id !== prodId);
-  } else {
-    if (compareList.length >= 2) { alert("You can compare a maximum of 2 products side-by-side."); return; }
+  if (!config.featureToggles.compareTool) return alert("Comparison tool is disabled.");
+  if (compareList.includes(prodId)) compareList = compareList.filter(id => id !== prodId);
+  else {
+    if (compareList.length >= 2) return alert("You can compare a maximum of 2 products side-by-side.");
     compareList.push(prodId);
   }
   document.getElementById("compareCount").textContent = compareList.length;
@@ -480,8 +459,7 @@ function toggleCompare(prodId) {
 
 function openCompareDrawer() {
   if (!config.featureToggles.compareTool) return alert("Comparison tool is disabled.");
-  if (compareList.length === 0) { alert("Please select products to compare by clicking the ⚖️ icon on the product image."); return; }
-  
+  if (compareList.length === 0) return alert("Select products to compare by clicking the ⚖️ icon.");
   const container = document.getElementById("compareGridContainer");
   container.innerHTML = compareList.map(id => {
     const p = products.find(x => x.id === id);
@@ -503,21 +481,11 @@ function openCompareDrawer() {
 }
 function closeCompareModal() { document.getElementById("compareModal")?.classList.add("hidden"); }
 
-// Other Advanced Modals
-function openQuizModal() {
-  if (!config.featureToggles.giftQuiz) return alert("Gift Quiz is disabled by Admin.");
-  document.getElementById("quizModal")?.classList.remove("hidden");
-}
+function openQuizModal() { if (!config.featureToggles.giftQuiz) return alert("Gift Quiz is disabled."); document.getElementById("quizModal")?.classList.remove("hidden"); }
 function closeQuizModal() { document.getElementById("quizModal")?.classList.add("hidden"); }
-function submitQuizAnswer(ans) {
-  alert(`Based on your selection (${ans}), we highly recommend our Deluxe Wooden Velvet Quran Gift Set!`);
-  closeQuizModal();
-}
+function submitQuizAnswer(ans) { alert(`Based on your selection, we recommend our Deluxe Wooden Velvet Quran Gift Set!`); closeQuizModal(); }
 
-function openWholesaleCalculatorModal() {
-  if (!config.featureToggles.wholesaleCalculator) return alert("Wholesale Calculator is disabled by Admin.");
-  document.getElementById("wholesaleCalculatorModal")?.classList.remove("hidden");
-}
+function openWholesaleCalculatorModal() { if (!config.featureToggles.wholesaleCalculator) return alert("Calculator disabled."); document.getElementById("wholesaleCalculatorModal")?.classList.remove("hidden"); }
 function closeWholesaleCalculatorModal() { document.getElementById("wholesaleCalculatorModal")?.classList.add("hidden"); }
 function calculateBulkPrice(qty) {
   const q = parseInt(qty) || 1;
@@ -526,49 +494,28 @@ function calculateBulkPrice(qty) {
   document.getElementById("bulkResultBox").innerHTML = `
     <p>Wholesale Unit Price: <strong>${formatPrice(unit)} / pc</strong></p>
     <p>Total Estimate: <strong class="text-emerald-700 font-mono text-sm">${formatPrice(total)}</strong></p>
-    <p class="text-[9px] text-neutral-500 mt-1">Prices are strictly for distributors & bulk wedding orders.</p>
+    <p class="text-[9px] text-neutral-500 mt-1">Prices are strictly for distributors & bulk orders.</p>
   `;
 }
 
-function openPrayerTimesModal() {
-  if (!config.featureToggles.prayerTimes) return alert("Prayer Times disabled by Admin.");
-  document.getElementById("prayerTimesModal")?.classList.remove("hidden");
-}
+function openPrayerTimesModal() { if (!config.featureToggles.prayerTimes) return alert("Disabled."); document.getElementById("prayerTimesModal")?.classList.remove("hidden"); }
 function closePrayerTimesModal() { document.getElementById("prayerTimesModal")?.classList.add("hidden"); }
-
-function openCurrencyModal() {
-  if (!config.featureToggles.currencyConverter) return alert("Currency Converter disabled by Admin.");
-  document.getElementById("currencyModal")?.classList.remove("hidden");
-}
+function openCurrencyModal() { if (!config.featureToggles.currencyConverter) return alert("Disabled."); document.getElementById("currencyModal")?.classList.remove("hidden"); }
 function closeCurrencyModal() { document.getElementById("currencyModal")?.classList.add("hidden"); }
-
-function openFlashSaleModal() {
-  if (!config.featureToggles.flashDeals) return alert("Flash Deals disabled by Admin.");
-  document.getElementById("flashSaleModal")?.classList.remove("hidden");
-}
+function openFlashSaleModal() { if (!config.featureToggles.flashDeals) return alert("Disabled."); document.getElementById("flashSaleModal")?.classList.remove("hidden"); }
 function closeFlashSaleModal() { document.getElementById("flashSaleModal")?.classList.add("hidden"); }
-
-function openWallpaperModal() {
-  if (!config.featureToggles.wallpapers) return alert("Wallpapers disabled by Admin.");
-  document.getElementById("wallpaperModal")?.classList.remove("hidden");
-}
+function openWallpaperModal() { if (!config.featureToggles.wallpapers) return alert("Disabled."); document.getElementById("wallpaperModal")?.classList.remove("hidden"); }
 function closeWallpaperModal() { document.getElementById("wallpaperModal")?.classList.add("hidden"); }
-
-function openPincodeCheckerModal() {
-  if (!config.featureToggles.pincodeChecker) return alert("Pincode Checker disabled by Admin.");
-  document.getElementById("pincodeCheckerModal")?.classList.remove("hidden");
-}
+function openPincodeCheckerModal() { if (!config.featureToggles.pincodeChecker) return alert("Disabled."); document.getElementById("pincodeCheckerModal")?.classList.remove("hidden"); }
 function closePincodeCheckerModal() { document.getElementById("pincodeCheckerModal")?.classList.add("hidden"); }
 function checkPincodeAvailability() {
   const pin = document.getElementById("checkPincodeInput").value.trim();
   if (pin.length === 6 && pin.startsWith("500")) {
     document.getElementById("pincodeResult").innerHTML = "✓ Free doorstep delivery & COD available for this Hyderabad Pincode!";
-    document.getElementById("pincodeResult").classList.remove("hidden", "bg-red-50", "text-red-800");
-    document.getElementById("pincodeResult").classList.add("bg-emerald-50", "text-emerald-800");
+    document.getElementById("pincodeResult").className = "p-2.5 bg-emerald-50 text-emerald-800 rounded font-bold mt-2";
   } else {
-    document.getElementById("pincodeResult").innerHTML = "⚠ Outside standard free delivery zone. Shipping charges may apply.";
-    document.getElementById("pincodeResult").classList.remove("hidden", "bg-emerald-50", "text-emerald-800");
-    document.getElementById("pincodeResult").classList.add("bg-amber-50", "text-amber-800");
+    document.getElementById("pincodeResult").innerHTML = "⚠ Outside standard free delivery zone. Shipping charges apply.";
+    document.getElementById("pincodeResult").className = "p-2.5 bg-amber-50 text-amber-800 rounded font-bold mt-2";
   }
 }
 
@@ -623,7 +570,6 @@ function addToCart(prodId) {
   updateCartUI();
   toggleCart(true);
 }
-
 function updateCartQty(prodId, delta) {
   const it = cart.find(x => x.id === prodId);
   if (!it) return;
@@ -632,7 +578,6 @@ function updateCartQty(prodId, delta) {
   persist();
   updateCartUI();
 }
-
 function updateCartUI() {
   const count = cart.reduce((s, it) => s + it.qty, 0);
   const total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
@@ -643,10 +588,7 @@ function updateCartUI() {
 
   const box = document.getElementById("cartContainer");
   if (!box) return;
-  if (cart.length === 0) {
-    box.innerHTML = `<div class="py-12 text-center text-xs text-brand-muted">Your shopping bag is empty.</div>`;
-    return;
-  }
+  if (cart.length === 0) { box.innerHTML = `<div class="py-12 text-center text-xs text-brand-muted">Your shopping bag is empty.</div>`; return; }
   box.innerHTML = cart.map(it => `
     <div class="flex items-center gap-3 py-3 border-b border-brand-border">
       <img src="${it.image}" class="w-12 h-12 object-cover rounded border" />
@@ -691,33 +633,22 @@ function toggleDrawer(show) {
     setTimeout(() => drawer.classList.add("pointer-events-none"), 300);
   }
 }
-
-function navigateDrawer(cat) {
-  filterCategory(cat);
-  toggleDrawer(false);
-  scrollToProducts();
-}
+function navigateDrawer(cat) { filterCategory(cat); toggleDrawer(false); scrollToProducts(); }
 
 function startCheckout() {
-  if (cart.length === 0) { alert("Your cart is empty!"); return; }
+  if (cart.length === 0) return alert("Your cart is empty!");
   toggleCart(false);
   const total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
-  const payable = document.getElementById("checkoutTotalAmount");
-  if (payable) payable.textContent = formatPrice(total);
+  document.getElementById("checkoutTotalAmount").textContent = formatPrice(total);
 
   if (currentUser && currentUser.role === "customer") {
     document.getElementById("chkName").value = currentUser.name || "";
     document.getElementById("chkPhone").value = currentUser.phone || "";
     document.getElementById("chkEmail").value = currentUser.email || "";
-    
-    // Auto-fill default address if available
-    if (currentUser.addresses && currentUser.addresses.length > 0) {
-      document.getElementById("chkAddress").value = currentUser.addresses[0];
-    }
+    if (currentUser.addresses && currentUser.addresses.length > 0) document.getElementById("chkAddress").value = currentUser.addresses[0];
   }
   document.getElementById("checkoutModal")?.classList.remove("hidden");
 }
-
 function closeCheckoutModal() { document.getElementById("checkoutModal")?.classList.add("hidden"); }
 
 function handlePlaceOrder(e) {
@@ -737,28 +668,15 @@ function handlePlaceOrder(e) {
     if (cp && total >= (cp.minOrder || 0)) {
       const disc = cp.type === "percent" ? Math.round((total * cp.discount) / 100) : cp.discount;
       total = Math.max(0, total - disc);
-    } else {
-      alert("Invalid coupon code or minimum order amount not reached.");
-    }
+    } else alert("Invalid coupon or minimum order amount not reached.");
   }
 
   const orderId = `MQB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
   const newOrder = {
-    orderId,
-    customerName: name,
-    customerPhone: phone,
-    customerEmail: email,
-    address,
-    postalCode,
-    total,
-    date: new Date().toISOString(),
-    status: "Processing",
-    channel: "Online",
-    courierName: "Hyderabad Express Dispatch",
-    awb: "PENDING-AWB",
-    paymentMethod,
-    items: [...cart]
+    orderId, customerName: name, customerPhone: phone, customerEmail: email,
+    address, postalCode, total, date: new Date().toISOString(), status: "Processing",
+    channel: "Online", courierName: "Hyderabad Express Dispatch", awb: "PENDING-AWB", paymentMethod, items: [...cart]
   };
 
   cart.forEach(item => {
@@ -775,19 +693,11 @@ function handlePlaceOrder(e) {
 
   document.getElementById("successOrderIdDisplay").textContent = orderId;
   const waMsg = encodeURIComponent(
-    `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*\n\n` +
-    `*Order ID:* ${orderId}\n` +
-    `*Customer:* ${name}\n` +
-    `*Phone:* ${phone}\n` +
-    `*Address:* ${address} (Pincode: ${postalCode})\n` +
-    `*Payment:* ${paymentMethod}\n` +
-    `*Total:* ${formatPrice(total)}\n\n` +
-    `*Items:*\n` + newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join('\n')
+    `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*\n\n*Order ID:* ${orderId}\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${address} (Pincode: ${postalCode})\n*Payment:* ${paymentMethod}\n*Total:* ${formatPrice(total)}\n\n*Items:*\n` + newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join('\n')
   );
   document.getElementById("successWhatsAppOrderBtn").href = `https://wa.me/91${config.whatsappPhone}?text=${waMsg}`;
   document.getElementById("orderSuccessModal")?.classList.remove("hidden");
 }
-
 function closeSuccessModal() { document.getElementById("orderSuccessModal")?.classList.add("hidden"); }
 
 // ==========================================
@@ -795,90 +705,55 @@ function closeSuccessModal() { document.getElementById("orderSuccessModal")?.cla
 // ==========================================
 function openInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.remove("hidden"); }
 function closeInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.add("hidden"); }
-
 function handlePublicInvoiceLookup(e) {
   e.preventDefault();
   const id = document.getElementById("lookupOrderId").value.trim().toUpperCase();
   const phone = document.getElementById("lookupPhone").value.replace(/\D/g, "");
-  const err = document.getElementById("lookupError");
-
   const match = orders.find(o => o.orderId.toUpperCase() === id && o.customerPhone.replace(/\D/g, "").includes(phone));
-  if (!match) {
-    if (err) {
-      err.textContent = "No invoice matched this Order ID and phone number.";
-      err.classList.remove("hidden");
-    }
-    return;
-  }
-  if (err) err.classList.add("hidden");
+  if (!match) { document.getElementById("lookupError").textContent = "No invoice matched."; document.getElementById("lookupError").classList.remove("hidden"); return; }
+  document.getElementById("lookupError").classList.add("hidden");
   closeInvoiceLookupModal();
   prepareAndPrintInvoice(match.orderId);
 }
-
 function prepareAndPrintInvoice(orderId) {
   const order = orders.find(o => o.orderId === orderId);
   if (!order) return;
   const printDiv = document.getElementById("invoicePrintSection");
-  if (!printDiv) return;
-
   printDiv.innerHTML = `
     <div style="font-family: system-ui, sans-serif; padding: 25px; border: 1px solid #ddd; max-width: 800px; margin: auto;">
       <h2 style="margin: 0; color: #1c3026;">${config.brandName}</h2>
       <p style="margin: 2px 0; font-size: 13px;">${config.address} • Ph: +91 ${config.phone1} / ${config.phone2}</p>
-      <p style="margin: 2px 0; font-size: 12px; color: #555;">Proprietor: ${config.proprietor} • GST: ${config.gst}</p>
       <hr style="margin: 15px 0;" />
       <p><strong>Order ID:</strong> ${order.orderId} | <strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
-      <p><strong>Channel:</strong> ${order.channel || 'Online'} | <strong>Status:</strong> ${order.status}</p>
+      <p><strong>Status:</strong> ${order.status} | <strong>Payment:</strong> ${order.paymentMethod || 'Online'}</p>
       <p><strong>Customer:</strong> ${order.customerName} (${order.customerPhone})</p>
       <p><strong>Address:</strong> ${order.address} ${order.postalCode ? ` - Pincode: ${order.postalCode}` : ''}</p>
-      <p><strong>Payment Mode:</strong> ${order.paymentMethod || 'Online'}</p>
       <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
         <thead>
           <tr style="background: #f4efe6; text-align: left;">
-            <th style="padding: 8px;">Item Description</th>
-            <th style="padding: 8px; text-align: center;">Qty</th>
-            <th style="padding: 8px; text-align: right;">Price</th>
-            <th style="padding: 8px; text-align: right;">Total</th>
+            <th style="padding: 8px;">Item Description</th><th style="padding: 8px; text-align: center;">Qty</th><th style="padding: 8px; text-align: right;">Price</th><th style="padding: 8px; text-align: right;">Total</th>
           </tr>
         </thead>
         <tbody>
-          ${order.items.map(it => `
-            <tr style="border-bottom: 1px solid #eee;">
-              <td style="padding: 8px;">${it.title}</td>
-              <td style="padding: 8px; text-align: center;">${it.qty}</td>
-              <td style="padding: 8px; text-align: right;">₹${it.salePrice}</td>
-              <td style="padding: 8px; text-align: right;">₹${it.salePrice * it.qty}</td>
-            </tr>
-          `).join('')}
+          ${order.items.map(it => `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${it.title}</td><td style="padding: 8px; text-align: center;">${it.qty}</td><td style="padding: 8px; text-align: right;">₹${it.salePrice}</td><td style="padding: 8px; text-align: right;">₹${it.salePrice * it.qty}</td></tr>`).join('')}
         </tbody>
       </table>
       <h3 style="text-align: right; margin-top: 20px; color: #1c3026;">Grand Total: ₹${order.total}</h3>
-      <p style="text-align: center; margin-top: 30px; font-size: 11px; color: #777;">Thank you for ordering with Moin Quran Box, Hyderabad.</p>
     </div>
   `;
   printDiv.classList.remove("hidden");
   window.print();
   printDiv.classList.add("hidden");
 }
-
 function openTrackingModal() { document.getElementById("trackingModal")?.classList.remove("hidden"); }
 function closeTrackingModal() { document.getElementById("trackingModal")?.classList.add("hidden"); }
-
 function trackOrderById() {
   const id = document.getElementById("trackInputId")?.value.trim().toUpperCase();
   const res = document.getElementById("trackingResultBox");
-  if (!res) return;
   const order = orders.find(o => o.orderId.toUpperCase() === id);
   res.classList.remove("hidden");
-  if (!order) {
-    res.innerHTML = `<p class="text-red-600 font-bold">No shipment found with Order ID: ${id}</p>`;
-    return;
-  }
-  res.innerHTML = `
-    <p><strong>Status:</strong> <span class="text-emerald-700 font-bold">${order.status}</span></p>
-    <p><strong>Courier Partner:</strong> ${order.courierName || 'Local Dispatch'}</p>
-    <p><strong>Tracking AWB:</strong> ${order.awb || 'Processing'}</p>
-  `;
+  if (!order) { res.innerHTML = `<p class="text-red-600 font-bold">No shipment found.</p>`; return; }
+  res.innerHTML = `<p><strong>Status:</strong> <span class="text-emerald-700 font-bold">${order.status}</span></p><p><strong>Courier:</strong> ${order.courierName || 'Local Dispatch'}</p>`;
 }
 
 // ==========================================
@@ -889,34 +764,24 @@ function openCustomerAuthModal(tab = 'login') {
   switchCustomerAuthTab(tab);
 }
 function closeCustomerAuthModal() { document.getElementById("customerAuthModal")?.classList.add("hidden"); }
-
 function switchCustomerAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById("cxLoginForm")?.classList.toggle("hidden", !isLogin);
   document.getElementById("cxRegisterForm")?.classList.toggle("hidden", isLogin);
 }
-
 function handleCustomerLoginSubmit(e) {
   e.preventDefault();
   const id = document.getElementById("cxLoginId").value.trim().toLowerCase();
   const pass = document.getElementById("cxLoginPass").value.trim();
-  
   const user = users.find(u => u.role === "customer" && (u.phone === id || u.email?.toLowerCase() === id) && (u.password === pass || u.pin === pass));
-  
-  if (!user) { alert("Invalid customer credentials. Check Phone/Email & Password."); return; }
-  
-  if (user.isBlocked) { 
-    alert("This account has been suspended or blocked by the Administrator. Please contact support."); 
-    return; 
-  }
-  
+  if (!user) return alert("Invalid customer credentials.");
+  if (user.isBlocked) return alert("This account has been suspended or blocked by the Administrator.");
   currentUser = user;
   localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
   closeCustomerAuthModal();
   syncCustomerHeaderUI();
   openCustomerProfileModal();
 }
-
 function handleCustomerRegisterSubmit(e) {
   e.preventDefault();
   const name = document.getElementById("cxRegName").value.trim();
@@ -924,9 +789,7 @@ function handleCustomerRegisterSubmit(e) {
   const email = document.getElementById("cxRegEmail").value.trim();
   const pass = document.getElementById("cxRegPass").value.trim();
   const pin = document.getElementById("cxRegPin").value.trim();
-
-  if (users.some(u => u.phone === phone)) { alert("Account already exists with this phone number."); return; }
-  
+  if (users.some(u => u.phone === phone)) return alert("Account already exists with this phone number.");
   const newUser = { id: "cust-" + Date.now(), username: phone, name, phone, email, password: pass, pin: pin || "1234", role: "customer", addresses: ["Hyderabad Main"], supportTickets: [], isBlocked: false };
   users.push(newUser);
   currentUser = newUser;
@@ -939,16 +802,12 @@ function handleCustomerRegisterSubmit(e) {
 
 function openCustomerProfileModal() {
   if (!currentUser || currentUser.role !== "customer") return;
-  const modal = document.getElementById("customerProfileModal");
-  if (!modal) return;
-  modal.classList.remove("hidden");
+  document.getElementById("customerProfileModal")?.classList.remove("hidden");
   document.getElementById("custProfName").textContent = currentUser.name;
   document.getElementById("custProfContact").textContent = `${currentUser.email || ''} • 📞 ${currentUser.phone}`;
-
   applyCustomerFeatureVisibility();
   switchCustomerTab('orders');
 }
-
 function closeCustomerProfileModal() { document.getElementById("customerProfileModal")?.classList.add("hidden"); }
 
 function applyCustomerFeatureVisibility() {
@@ -969,7 +828,6 @@ function switchCustomerTab(tab) {
     const btn = document.getElementById(`cxTabBtn-${t}`);
     if (btn) btn.className = "px-3.5 py-2.5 border-b-2 font-bold uppercase text-[10px] whitespace-nowrap " + (t === tab ? "border-brand-charcoal text-brand-charcoal bg-white" : "border-transparent text-neutral-500 hover:text-black");
   });
-
   if (tab === 'orders') renderCustProfileOrders();
   if (tab === 'wishlist') renderCustProfileWishlist();
   if (tab === 'addresses') renderCustProfileAddresses();
@@ -983,7 +841,7 @@ function renderCustProfileOrders() {
   const container = document.getElementById("custOrderList");
   if (!container) return;
   container.innerHTML = myOrders.length === 0 ? `<p class="text-xs text-neutral-400 py-4 text-center">No past orders.</p>` : myOrders.map(o => `
-    <div class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-1">
+    <div class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-1 ${o.status === 'Cancelled' ? 'opacity-75' : ''}">
       <div class="flex justify-between items-center font-bold">
         <span>${o.orderId}</span>
         <span class="${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'}">${o.status}</span>
@@ -992,7 +850,7 @@ function renderCustProfileOrders() {
       <div class="flex flex-wrap justify-between items-center pt-2 border-t font-semibold gap-2">
         <span>Total: ${formatPrice(o.total)}</span>
         <div class="flex gap-3 items-center">
-          ${o.status === 'Processing' ? `<button onclick="cancelCustomerOrder('${o.orderId}')" class="text-red-600 hover:underline font-bold text-[10px]">Cancel Order</button>` : ''}
+          ${o.status === 'Processing' ? `<button onclick="cancelCustomerOrder('${o.orderId}')" class="text-red-600 hover:underline font-bold text-[10px] uppercase border border-red-200 px-2 py-1 rounded">Cancel Order</button>` : ''}
           <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-brand-gold hover:underline font-bold">Print Invoice</button>
         </div>
       </div>
@@ -1024,7 +882,7 @@ function renderCustProfileWishlist() {
     <div class="p-2 border rounded bg-white flex flex-col justify-between">
       <img src="${p.image}" class="w-full h-24 object-cover rounded" />
       <h5 class="font-bold text-xs line-clamp-1 mt-1">${p.title}</h5>
-      <span class="font-mono font-bold text-xs text-brand-gold">₹${p.salePrice}</span>
+      <span class="font-mono font-bold text-xs text-brand-gold">${formatPrice(p.salePrice)}</span>
       <button onclick="addToCart('${p.id}')" class="mt-2 py-1 bg-brand-charcoal text-white rounded text-[10px] font-bold uppercase">Add to Cart</button>
     </div>
   `).join("");
@@ -1035,7 +893,6 @@ function renderCustProfileAddresses() {
   if (!box) return;
   box.innerHTML = (currentUser.addresses || ["Hyderabad"]).map(a => `<div class="p-2.5 bg-brand-sand border rounded-lg text-xs">📍 ${a}</div>`).join("");
 }
-
 function promptAddCustomerAddress() {
   const a = prompt("Enter delivery address:");
   if (!a) return;
@@ -1050,7 +907,6 @@ function renderCustProfileTickets() {
   if (!box) return;
   box.innerHTML = (currentUser.supportTickets || []).map(t => `<div class="p-2.5 bg-brand-sand border rounded-lg text-xs flex justify-between"><span>🎫 ${t.subject}</span><strong class="text-emerald-700">${t.status}</strong></div>`).join("");
 }
-
 function promptCreateSupportTicket() {
   const s = prompt("Support ticket subject:");
   if (!s) return;
@@ -1071,7 +927,6 @@ function renderCustProfileReorder() {
     </div>
   `).join("");
 }
-
 function reorderPastOrder(orderId) {
   const o = orders.find(x => x.orderId === orderId);
   if (!o) return;
@@ -1083,13 +938,10 @@ function handleCustomerSecurityUpdate(e) {
   e.preventDefault();
   const pass = document.getElementById("cxNewPass").value.trim();
   const pin = document.getElementById("cxNewPin").value.trim();
-  
   const u = users.find(x => x.id === currentUser.id);
   if (!u) return;
-
   if (pass) u.password = pass;
   if (pin) u.pin = pin;
-  
   currentUser = u;
   persist();
   alert("Security credentials updated successfully!");
@@ -1128,15 +980,8 @@ function handlePortalLogin(e) {
   // Validate dynamically against users array instead of hardcoding
   const user = users.find(x => (x.role === "admin" || x.role === "owner" || x.role === "owner1") && x.username.toLowerCase() === u.toLowerCase() && x.password === p);
 
-  if (!user) {
-    alert("Access Denied: Invalid staff credentials.");
-    return;
-  }
-
-  if (user.isBlocked) {
-    alert("Account Revoked: Your staff access has been suspended or blocked by the Developer Admin.");
-    return;
-  }
+  if (!user) return alert("Access Denied: Invalid staff credentials.");
+  if (user.isBlocked) return alert("Account Revoked: Your staff access has been suspended or blocked by the Developer Admin.");
 
   currentUser = { role: user.role, name: user.name, username: user.username, id: user.id };
   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
@@ -1161,7 +1006,6 @@ function openAdminDashboardModal() {
   }
 
   const isAdmin = currentUser.role === "admin";
-  // Restrict sensitive grids to Admin only
   document.getElementById("adminTabBtn-salesmodifier")?.classList.toggle("hidden", !isAdmin);
   document.getElementById("adminTabBtn-cms")?.classList.toggle("hidden", !isAdmin);
   document.getElementById("adminTabBtn-customers")?.classList.toggle("hidden", !isAdmin);
@@ -1177,6 +1021,124 @@ function openAdminDashboardModal() {
   updateAnalytics();
 }
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
+
+// Universal Search -> Connects to 360 Customer Profile Modal
+function handleUniversalSearch(query) {
+  const q = query.trim().toLowerCase();
+  const box = document.getElementById("universalSearchResults");
+  if (!box) return;
+  if (!q) { box.innerHTML = ""; return; }
+
+  const matchedCustomers = users.filter(u => u.role === "customer" && (u.phone.includes(q) || (u.email && u.email.toLowerCase().includes(q)) || u.name.toLowerCase().includes(q)));
+  const matchedOrders = orders.filter(o => o.orderId.toLowerCase().includes(q) || o.customerPhone.includes(q) || o.customerName.toLowerCase().includes(q));
+
+  box.innerHTML = `
+    <div class="space-y-3 pt-2">
+      ${matchedCustomers.length > 0 ? `
+        <div>
+          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Customers (${matchedCustomers.length})</h5>
+          ${matchedCustomers.map(c => `
+            <div class="p-2 bg-brand-sand border rounded mb-1 flex justify-between items-center cursor-pointer hover:bg-brand-gold hover:text-white transition" onclick="openCustomer360Modal('${c.id}')">
+              <div>
+                <strong>${c.name}</strong> • ${c.phone}
+                ${c.isBlocked ? '<span class="text-[9px] bg-red-100 text-red-700 px-1 rounded ml-1">BLOCKED</span>' : ''}
+              </div>
+              <span class="text-[10px] font-bold">View 360 Profile →</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${matchedOrders.length > 0 ? `
+        <div>
+          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Orders (${matchedOrders.length})</h5>
+          ${matchedOrders.map(o => `
+            <div class="p-2 bg-white border rounded flex justify-between items-center mb-1">
+              <span>${o.orderId} - ${o.customerName}</span>
+              <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-bold">Print</button>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// ----------------------------------------------------
+// Customer 360 Profile Modal Logic (For Admin/Owner)
+// ----------------------------------------------------
+function openCustomer360Modal(userId) {
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  
+  document.getElementById('c360Name').textContent = u.name;
+  document.getElementById('c360Phone').textContent = u.phone || u.username;
+  document.getElementById('c360Email').textContent = u.email || 'N/A';
+  document.getElementById('c360Role').textContent = u.role;
+  document.getElementById('c360Password').textContent = u.role === 'customer' ? 'Hidden (PIN Active)' : u.password;
+  document.getElementById('c360Pin').textContent = u.pin || 'N/A';
+  
+  const primaryAddr = (u.addresses && u.addresses.length > 0) ? u.addresses[0] : 'No address on file';
+  document.getElementById('c360Address').textContent = primaryAddr;
+  
+  const alertBanner = document.getElementById('c360StatusAlert');
+  const statusText = document.getElementById('c360StatusText');
+  const blockBtn = document.getElementById('c360ToggleBlockBtn');
+  
+  if (u.isBlocked) {
+    alertBanner.classList.remove('hidden');
+    statusText.textContent = "BLOCKED / SUSPENDED";
+    statusText.className = "font-bold text-red-600";
+    blockBtn.textContent = "Unblock Account";
+    blockBtn.className = "flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 py-1.5 rounded font-bold transition";
+    blockBtn.onclick = () => toggleBlockStatus360(u.id, false);
+  } else {
+    alertBanner.classList.add('hidden');
+    statusText.textContent = "ACTIVE";
+    statusText.className = "font-bold text-emerald-700";
+    blockBtn.textContent = "Block Account";
+    blockBtn.className = "flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-1.5 rounded font-bold transition";
+    blockBtn.onclick = () => toggleBlockStatus360(u.id, true);
+  }
+  
+  const userOrders = orders.filter(o => o.customerPhone === u.phone || o.customerPhone === u.username);
+  document.getElementById('c360OrderCount').textContent = userOrders.length;
+  
+  const ltv = userOrders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + o.total, 0);
+  document.getElementById('c360LTV').textContent = formatPrice(ltv);
+  
+  const orderListEl = document.getElementById('c360OrderList');
+  if (userOrders.length === 0) {
+    orderListEl.innerHTML = `<p class="text-xs text-neutral-400">No order history available.</p>`;
+  } else {
+    orderListEl.innerHTML = userOrders.map(o => `
+      <div class="p-2 border rounded bg-white flex justify-between items-center text-[11px] ${o.status === 'Cancelled' ? 'opacity-70' : ''}">
+        <div>
+          <strong class="text-brand-charcoal">${o.orderId}</strong>
+          <p class="text-neutral-500">${new Date(o.date).toLocaleDateString()}</p>
+        </div>
+        <div class="text-right">
+          <span class="font-bold block ${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'}">${o.status}</span>
+          <span class="font-mono text-brand-gold font-bold">${formatPrice(o.total)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  document.getElementById('adminCustomer360Modal').classList.remove('hidden');
+}
+
+function closeCustomer360Modal() { document.getElementById('adminCustomer360Modal').classList.add('hidden'); }
+
+function toggleBlockStatus360(userId, blockStatus) {
+  const u = users.find(x => x.id === userId);
+  if (u) {
+    if (u.username.toLowerCase() === 'admin') return alert("Access Denied: Cannot block Master Admin account.");
+    u.isBlocked = blockStatus;
+    persist();
+    if(document.getElementById('adminCustomersTableBody')) renderAdminCustomers();
+    openCustomer360Modal(userId); // refresh UI
+  }
+}
 
 // Admin Feature Toggles Manager
 function renderAdminFeatureToggles() {
@@ -1293,6 +1255,21 @@ function renderAdminOrders() {
 function updateOrderStatus(orderId, newStatus) {
   const o = orders.find(x => x.orderId === orderId);
   if (o) { 
+    // If Admin cancels, restore stock
+    if (newStatus === 'Cancelled' && o.status !== 'Cancelled') {
+      o.items.forEach(item => {
+        const p = products.find(x => x.id === item.id);
+        if (p) p.stock += item.qty;
+      });
+    }
+    // If Admin un-cancels, reduce stock
+    if (newStatus !== 'Cancelled' && o.status === 'Cancelled') {
+      o.items.forEach(item => {
+        const p = products.find(x => x.id === item.id);
+        if (p) p.stock = Math.max(0, p.stock - item.qty);
+      });
+    }
+    
     o.status = newStatus; 
     persist(); 
     renderAdminOrders();
@@ -1314,7 +1291,7 @@ function renderAdminInventory() {
       </td>
       <td class="p-3 text-neutral-600">${p.category}</td>
       <td class="p-3 font-bold">${p.stock}</td>
-      <td class="p-3 font-mono font-bold">₹${p.salePrice}</td>
+      <td class="p-3 font-mono font-bold">${formatPrice(p.salePrice)}</td>
       <td class="p-3 text-right">
         ${canEdit ? `<button onclick="openProductEditModal('${p.id}')" class="text-blue-600 font-bold hover:underline">Edit</button>` : `<span class="text-[10px] text-neutral-400 font-bold uppercase">Restricted</span>`}
       </td>
@@ -1335,8 +1312,8 @@ function renderBranchesInDashboard() {
 }
 
 function updateAnalytics() {
-  const totalRev = orders.reduce((s, o) => s + (o.total || 0), 0);
-  const revStr = `₹${totalRev}`;
+  const totalRev = orders.filter(o => o.status !== 'Cancelled').reduce((s, o) => s + (o.total || 0), 0);
+  const revStr = formatPrice(totalRev);
   if(document.getElementById("anaTotalRevenue")) document.getElementById("anaTotalRevenue").textContent = revStr;
   if(document.getElementById("anaTotalOrders")) document.getElementById("anaTotalOrders").textContent = orders.length;
   if(document.getElementById("hubTotalRevenue")) document.getElementById("hubTotalRevenue").textContent = revStr;
@@ -1433,7 +1410,7 @@ function renderPosCatalog() {
     <div class="p-2 border rounded bg-white flex flex-col justify-between text-xs hover:border-brand-gold transition">
       <div>
         <strong class="line-clamp-1">${p.title}</strong>
-        <span class="text-neutral-500 block">Stock: ${p.stock} • ₹${p.salePrice}</span>
+        <span class="text-neutral-500 block">Stock: ${p.stock} • ${formatPrice(p.salePrice)}</span>
       </div>
       <button onclick="addPosTicketItem('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="mt-2 py-1 bg-brand-charcoal text-white rounded font-bold text-[10px] uppercase">+ Add Bill</button>
     </div>
@@ -1454,11 +1431,11 @@ function renderPosTicket() {
   const totalEl = document.getElementById("posTicketTotal");
   if (!box || !totalEl) return;
   const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
-  totalEl.textContent = `₹${total}`;
+  totalEl.textContent = formatPrice(total);
   box.innerHTML = posTicket.map(it => `
     <div class="flex justify-between items-center py-1">
       <span class="truncate max-w-[150px]">${it.title} (x${it.qty})</span>
-      <span class="font-bold">₹${it.salePrice * it.qty}</span>
+      <span class="font-bold">${formatPrice(it.salePrice * it.qty)}</span>
     </div>
   `).join("");
 }
@@ -1494,34 +1471,6 @@ function completePosSale() {
   updateAnalytics();
   alert("Walk-in POS Sale completed!");
   prepareAndPrintInvoice(orderId);
-}
-
-// Master Utility Search
-function handleUniversalSearch(query) {
-  const q = query.trim().toLowerCase();
-  const box = document.getElementById("universalSearchResults");
-  if (!box) return;
-  if (!q) { box.innerHTML = ""; return; }
-
-  const matchedCustomers = users.filter(u => u.role === "customer" && (u.phone.includes(q) || (u.email && u.email.toLowerCase().includes(q)) || u.name.toLowerCase().includes(q)));
-  const matchedOrders = orders.filter(o => o.orderId.toLowerCase().includes(q) || o.customerPhone.includes(q) || o.customerName.toLowerCase().includes(q));
-
-  box.innerHTML = `
-    <div class="space-y-3 pt-2">
-      ${matchedCustomers.length > 0 ? `
-        <div>
-          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Customers (${matchedCustomers.length})</h5>
-          ${matchedCustomers.map(c => `<div class="p-2 bg-brand-sand border rounded mb-1"><strong>${c.name}</strong> • ${c.phone}</div>`).join('')}
-        </div>
-      ` : ''}
-      ${matchedOrders.length > 0 ? `
-        <div>
-          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Orders (${matchedOrders.length})</h5>
-          ${matchedOrders.map(o => `<div class="p-2 bg-white border rounded flex justify-between items-center mb-1"><span>${o.orderId} - ${o.customerName}</span><button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-bold">Print</button></div>`).join('')}
-        </div>
-      ` : ''}
-    </div>
-  `;
 }
 
 // ==========================================
