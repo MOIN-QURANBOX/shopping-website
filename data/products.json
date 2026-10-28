@@ -1,0 +1,46 @@
+[
+  {
+    "id": "prod-101",
+    "title": "Holy Quran – Urdu translation in ROMAN Script",
+    "category": "Tarjuma Qurans",
+    "sku": "MQB-QUR-01",
+    "stock": 35,
+    "salePrice": 999,
+    "oldPrice": 1599,
+    "image": "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80",
+    "desc": "Authentic print, easy reading Roman Urdu script with clear Arabic text."
+  },
+  {
+    "id": "prod-102",
+    "title": "Handcrafted Carved Velvet Wooden Quran Box",
+    "category": "Quran Boxes & Rehal",
+    "sku": "MQB-BOX-02",
+    "stock": 20,
+    "salePrice": 1299,
+    "oldPrice": 1899,
+    "image": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=600&q=80",
+    "desc": "Hand-carved premium wooden storage box with velvet interior cushion."
+  },
+  {
+    "id": "prod-103",
+    "title": "Turkish Velvet Cushioned Janamaz (Prayer Mat)",
+    "category": "Janamaz",
+    "sku": "MQB-JAN-03",
+    "stock": 45,
+    "salePrice": 799,
+    "oldPrice": 1299,
+    "image": "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80",
+    "desc": "High-density foam cushion, embossed Turkish velvet floral pattern."
+  },
+  {
+    "id": "prod-104",
+    "title": "Wooden Folding Rehal Book Stand with Inlay",
+    "category": "Quran Boxes & Rehal",
+    "sku": "MQB-REH-04",
+    "stock": 50,
+    "salePrice": 549,
+    "oldPrice": 899,
+    "image": "https://images.unsplash.com/photo-1590076215667-873d31295988?auto=format&fit=crop&w=600&q=80",
+    "desc": "Folding rosewood Rehal with polished brass inlay."
+  }
+]
