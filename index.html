@@ -96,12 +96,15 @@
             </svg>
           </button>
 
-          <button onclick="handleUserAccountClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Staff Portal">
+          <!-- Customer Login / Profile Icon -->
+          <button onclick="handleUserIconClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Customer Login / Account">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
+            <span id="customerStatusDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
           </button>
 
+          <!-- Shopping Cart Icon -->
           <button onclick="toggleCart(true)" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Shopping Bag">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
@@ -153,11 +156,11 @@
           <p class="text-[10px] text-brand-muted truncate">BlueDart, DTDC, Porter</p>
         </div>
       </div>
-      <div onclick="openAdminLoginModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
-        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-base">🔐</div>
+      <div onclick="openCustomerAuthModal('login')" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-base">👤</div>
         <div class="truncate">
-          <p class="font-bold text-brand-charcoal">Staff Portal</p>
-          <p class="text-[10px] text-brand-muted truncate">Admin &amp; Owner Access</p>
+          <p class="font-bold text-brand-charcoal" id="navAccountLabel">Customer Login</p>
+          <p class="text-[10px] text-brand-muted truncate">My Orders &amp; Account</p>
         </div>
       </div>
       <div onclick="openContactModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
@@ -222,9 +225,10 @@
       <div>
         <h4 class="text-xs font-bold uppercase tracking-wider text-brand-charcoal mb-3">Customer Desk</h4>
         <ul class="text-xs space-y-2 text-brand-muted">
+          <li><button onclick="openCustomerAuthModal('login')" class="hover:text-brand-gold">Customer Login / Register</button></li>
           <li><button onclick="openInvoiceLookupModal()" class="hover:text-brand-gold">Download Official Invoice</button></li>
           <li><button onclick="openTrackingModal()" class="hover:text-brand-gold">Courier Shipment Track</button></li>
-          <li><button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline">Management Portal</button></li>
+          <li><button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline">Staff Portal (Admin/Owner)</button></li>
         </ul>
       </div>
     </div>
@@ -257,12 +261,12 @@
           <button onclick="openContactModal(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Contact &amp; Showroom</button>
         </nav>
       </div>
-      <div class="pt-6 border-t border-brand-border">
-        <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="flex items-center gap-3 text-sm font-medium text-brand-charcoal hover:text-brand-gold">
-          <svg class="w-5 h-5 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-          </svg>
-          <span>Staff Login (Admin / Owner)</span>
+      <div class="pt-6 border-t border-brand-border space-y-2">
+        <button onclick="openCustomerAuthModal('login'); toggleDrawer(false);" class="w-full py-2 bg-brand-charcoal text-white text-xs font-bold uppercase rounded">
+          Customer Account Login
+        </button>
+        <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="w-full py-2 bg-white border border-brand-border text-brand-charcoal text-xs font-bold uppercase rounded">
+          Staff Portal (Admin/Owner)
         </button>
       </div>
     </div>
@@ -310,6 +314,77 @@
     </div>
   </div>
 
+  <!-- ================= CUSTOMER AUTH MODAL (LOGIN & CREATE) ================= -->
+  <div id="customerAuthModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-xs">
+      <button onclick="closeCustomerAuthModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
+      
+      <div class="flex border-b border-brand-border mb-4 font-bold text-center uppercase tracking-wider">
+        <button id="cxTabLogin" onclick="switchCustomerAuthTab('login')" class="flex-1 pb-2 border-b-2 border-brand-charcoal text-brand-charcoal">Login</button>
+        <button id="cxTabRegister" onclick="switchCustomerAuthTab('register')" class="flex-1 pb-2 border-b-2 border-transparent text-neutral-400">Create Account</button>
+      </div>
+
+      <!-- Customer Login Form -->
+      <form id="cxLoginForm" onsubmit="handleCustomerLoginSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block font-semibold mb-1">Mobile Number or Email</label>
+          <input type="text" id="cxLoginId" required placeholder="Enter mobile or email" class="w-full bg-white border rounded-lg p-2.5" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Password or 4-Digit PIN</label>
+          <input type="password" id="cxLoginPass" required placeholder="Enter password or PIN" class="w-full bg-white border rounded-lg p-2.5" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-brand-charcoal text-white font-bold uppercase rounded-lg">Sign In</button>
+      </form>
+
+      <!-- Customer Registration Form -->
+      <form id="cxRegisterForm" onsubmit="handleCustomerRegisterSubmit(event)" class="space-y-2.5 hidden">
+        <div>
+          <label class="block font-semibold mb-0.5">Full Name *</label>
+          <input type="text" id="cxRegName" required placeholder="Mohammed ..." class="w-full bg-white border rounded-lg p-2" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-0.5">Mobile Phone *</label>
+            <input type="tel" id="cxRegPhone" required placeholder="10-digit mobile" class="w-full bg-white border rounded-lg p-2" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-0.5">Email Address</label>
+            <input type="email" id="cxRegEmail" placeholder="user@gmail.com" class="w-full bg-white border rounded-lg p-2" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-0.5">Password *</label>
+            <input type="password" id="cxRegPass" required placeholder="Choose password" class="w-full bg-white border rounded-lg p-2" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-0.5">4-Digit PIN</label>
+            <input type="password" maxlength="4" id="cxRegPin" placeholder="e.g. 1234" class="w-full bg-white border rounded-lg p-2 text-center font-mono" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded-lg mt-1">Register Customer Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOMER PROFILE MODAL ================= -->
+  <div id="customerProfileModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-6 relative text-xs">
+      <button onclick="closeCustomerProfileModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
+      <div class="border-b pb-3 mb-4">
+        <h3 class="serif-title text-base font-bold text-brand-charcoal" id="custProfName">Customer Profile</h3>
+        <p class="text-neutral-500" id="custProfContact">Phone • Email</p>
+      </div>
+      <h4 class="font-bold mb-2 uppercase text-neutral-600">My Orders &amp; Delivery Tracking</h4>
+      <div id="custOrderList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
+      <div class="flex justify-between items-center pt-3 border-t">
+        <button onclick="logoutCurrentUser()" class="px-3 py-1.5 bg-red-50 text-red-600 rounded font-bold uppercase">Log Out</button>
+        <button onclick="closeCustomerProfileModal()" class="px-3 py-1.5 bg-neutral-100 rounded font-semibold">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MANAGEMENT PORTAL LOGIN ================= -->
   <div id="adminLoginModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
@@ -354,6 +429,7 @@
         <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 Showroom POS</button>
         <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Sales Reports</button>
         <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts</button>
+        <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Customers</button>
         <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Override</button>
         <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Full Text CMS</button>
         <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
@@ -457,7 +533,27 @@
           </div>
         </div>
 
-        <!-- TAB 6: SALES OVERRIDE (ADMIN ONLY) -->
+        <!-- TAB 6: CUSTOMER 360° INSPECTOR (ADMIN ONLY) -->
+        <div id="adminTab-customers" class="hidden space-y-4">
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Accounts &amp; Password Management</h4>
+          <div class="bg-white rounded-xl border overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-brand-sand border-b uppercase">
+                <tr>
+                  <th class="p-3">Customer Name</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Email</th>
+                  <th class="p-3">Password</th>
+                  <th class="p-3">PIN</th>
+                  <th class="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminCustomersTableBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 7: SALES OVERRIDE (ADMIN ONLY) -->
         <div id="adminTab-salesmodifier" class="hidden space-y-4">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Developer Admin Sales Override</h4>
           <div class="bg-red-50 border border-red-200 p-4 rounded-xl space-y-3">
@@ -469,7 +565,7 @@
           </div>
         </div>
 
-        <!-- TAB 7: FULL TEXT CMS (ADMIN ONLY) -->
+        <!-- TAB 8: FULL TEXT CMS (ADMIN ONLY) -->
         <div id="adminTab-cms" class="hidden space-y-4">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Edit Store Details &amp; Live Text</h4>
           <form onsubmit="handleCmsSave(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-2xl text-xs">
@@ -503,7 +599,7 @@
           </form>
         </div>
 
-        <!-- TAB 8: PAYMENTS -->
+        <!-- TAB 9: PAYMENTS -->
         <div id="adminTab-payments" class="hidden space-y-4">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Payment Receiving Details</h4>
           <form onsubmit="savePaymentSettings(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-xl text-xs">
@@ -534,7 +630,7 @@
     </div>
   </div>
 
-  <!-- ================= PRODUCT EDIT MODAL ================= -->
+  <!-- ================= PRODUCT EDIT MODAL (WITH MANUAL PHOTO UPLOAD) ================= -->
   <div id="productEditModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
       <button onclick="closeProductEditModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
@@ -565,10 +661,16 @@
           <label class="block font-bold mb-1">Sale Price (₹)</label>
           <input type="number" id="editProductSalePrice" required class="w-full bg-brand-sand border rounded p-2 font-bold" />
         </div>
-        <div>
-          <label class="block font-bold mb-1">Photo Web URL</label>
-          <input type="url" id="editProductImage" class="w-full bg-brand-sand border rounded p-2" />
+        
+        <!-- Manual Photo Upload and URL -->
+        <div class="p-3 bg-brand-sand border rounded-lg space-y-2">
+          <label class="block font-bold">Product Photo</label>
+          <input type="file" accept="image/*" onchange="handlePhotoFileInput(event)" class="w-full text-[11px]" />
+          <p class="text-[10px] text-neutral-500">Or paste an Image Web URL:</p>
+          <input type="url" id="editProductImage" placeholder="https://..." class="w-full bg-white border rounded p-1.5" />
+          <img id="photoUploadPreview" src="" alt="Preview" class="w-16 h-16 object-cover rounded border hidden mt-1" />
         </div>
+
         <button type="submit" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded mt-2">Save Product</button>
       </form>
     </div>
