@@ -1,9 +1,9 @@
 /**
- * MOIN QURAN BOX - Multi-Branch Enterprise Controller v14.0 Professional Edition
- * Secure Master Operations, Admin Feature Toggles, & Easy Shopping Suite
+ * MOIN QURAN BOX - Multi-Branch Enterprise Controller v15.0 Professional Edition
+ * Secure Master Operations, Admin Feature Toggles, User Access Control, & Easy Shopping Suite
  */
 
-const STORAGE_PREFIX = "mqb_v14_";
+const STORAGE_PREFIX = "mqb_v15_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
@@ -130,16 +130,16 @@ async function loadInitialData() {
   const savedUsers = localStorage.getItem(KEY_USERS);
   if (savedUsers) {
     users = JSON.parse(savedUsers);
-    // Enforce permanent staff accounts secretly
-    ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
-    ensureUserExists("Owner", "8341", "Shaik Moin Uddin & Shaik Muneer Uddin", "7893961313", "moinquranbox@gmail.com", "owner");
-    ensureUserExists("owner1", "1234", "Branch 2 Owner (Owner 1)", "7337464501", "owner1@moinquranbox.com", "owner1");
+    // Secure Fallback: Ensure master admin exists if missing
+    if (!users.some(u => u.username.toLowerCase() === 'admin')) {
+      ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
+    }
   } else {
     users = [
-      { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
-      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin & Shaik Muneer Uddin", phone: "7893961313", email: "moinquranbox@gmail.com", role: "owner" },
-      { id: "usr-owner1", username: "owner1", password: "1234", name: "Branch 2 Owner (Owner 1)", phone: "7337464501", email: "owner1@moinquranbox.com", role: "owner1" },
-      { id: "usr-demo", username: "7893961313", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "7893961313", email: "farhan@example.com", role: "customer", addresses: ["Madina Colony, Falaknuma, Hyderabad"], supportTickets: [] }
+      { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin", isBlocked: false },
+      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin & Shaik Muneer Uddin", phone: "7893961313", email: "moinquranbox@gmail.com", role: "owner", isBlocked: false },
+      { id: "usr-owner1", username: "owner1", password: "1234", name: "Branch 2 Owner (Owner 1)", phone: "7337464501", email: "owner1@moinquranbox.com", role: "owner1", isBlocked: false },
+      { id: "usr-demo", username: "7893961313", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "7893961313", email: "farhan@example.com", role: "customer", addresses: ["Madina Colony, Falaknuma, Hyderabad"], supportTickets: [], isBlocked: false }
     ];
   }
 
@@ -160,7 +160,7 @@ function ensureUserExists(username, password, name, phone, email, role) {
     existing.password = password;
     existing.role = role;
   } else {
-    users.push({ id: "usr-" + username.toLowerCase(), username, password, name, phone, email, role, addresses: ["Hyderabad Main"], supportTickets: [] });
+    users.push({ id: "usr-" + username.toLowerCase(), username, password, name, phone, email, role, addresses: ["Hyderabad Main"], supportTickets: [], isBlocked: false });
   }
 }
 
@@ -175,8 +175,21 @@ function persist() {
 }
 
 // ==========================================
-// 2. SESSION MANAGEMENT & SECURITY
+// 2. CURRENCY & SESSION MANAGEMENT
 // ==========================================
+function formatPrice(priceInInr) {
+  const converted = Math.round(priceInInr * currentCurrency.rate);
+  return `${currentCurrency.symbol}${converted.toLocaleString()}`;
+}
+
+function setCurrency(code, symbol, rate) {
+  currentCurrency = { code, symbol, rate };
+  document.getElementById("activeCurrencyBadge").textContent = `${code} (${symbol})`;
+  closeCurrencyModal();
+  renderProducts();
+  updateCartUI();
+}
+
 function validateSessionPersistence() {
   const sessionStr = localStorage.getItem(KEY_SESSION);
   if (!sessionStr) return;
@@ -187,11 +200,22 @@ function validateSessionPersistence() {
     return;
   }
 
+  // Cross-check if user was blocked during active session
+  const activeUser = users.find(u => u.username.toLowerCase() === session.user.username.toLowerCase());
+  if (activeUser && activeUser.isBlocked) {
+    alert("Your account has been revoked/blocked by the Administrator.");
+    logoutCurrentUser();
+    return;
+  }
+
   currentUser = session.user;
   startSessionCountdownTimer(session.expiresAt);
   syncCustomerHeaderUI();
-  document.getElementById("staffLoginNavBtn")?.classList.add("hidden");
-  document.getElementById("staffLogoutNavBtn")?.classList.remove("hidden");
+  
+  if (currentUser.role !== 'customer') {
+    document.getElementById("staffLoginNavBtn")?.classList.add("hidden");
+    document.getElementById("staffLogoutNavBtn")?.classList.remove("hidden");
+  }
 }
 
 function startSessionCountdownTimer(expiresAt) {
@@ -229,6 +253,54 @@ function logoutCurrentUser(sessionExpired = false) {
   if (sessionExpired) alert("Your 24-hour staff session has expired. Please sign in again.");
 }
 
+// Scroll Utilities
+function autoScrollTo(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function scrollToProducts() { autoScrollTo("catalogTopAnchor"); }
+function scrollToContact() { autoScrollTo("contactSectionAnchor"); }
+
+// Welcome Greeting
+function checkWelcomeGreetingBanner() {
+  const dismissed = sessionStorage.getItem("mqb_greeting_dismissed");
+  const el = document.getElementById("welcomeGreetingBanner");
+  if (!dismissed && el) {
+    el.classList.remove("hidden");
+    const msg = document.getElementById("welcomeGreetingText");
+    if (msg) msg.textContent = config.welcomeGreeting || "Assalamu Alaikum! Welcome to MOIN QURAN BOX.";
+  }
+}
+function dismissGreetingBanner() {
+  sessionStorage.setItem("mqb_greeting_dismissed", "true");
+  document.getElementById("welcomeGreetingBanner")?.classList.add("hidden");
+}
+
+// Contact Owners
+function handleSendMessageToOwner(e) {
+  e.preventDefault();
+  const name = document.getElementById("msgCustName").value.trim();
+  const phone = document.getElementById("msgCustPhone").value.trim();
+  const subject = document.getElementById("msgCustSubject").value.trim();
+  const message = document.getElementById("msgCustMessage").value.trim();
+  const channel = document.querySelector('input[name="msgChannel"]:checked')?.value || "whatsapp";
+
+  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*\n\n` +
+    `*From:* ${name}\n` +
+    `*Phone:* ${phone}\n` +
+    `*Subject:* ${subject}\n\n` +
+    `*Message:* ${message}`;
+
+  if (channel === "whatsapp") {
+    window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`, "_blank");
+  } else {
+    window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=${encodeURIComponent("Website Inquiry: " + subject)}&body=${encodeURIComponent(formattedMsg)}`;
+  }
+
+  alert("Inquiry prepared! Transferring to your selected channel.");
+  document.getElementById("custMessageForm")?.reset();
+}
+
 // ==========================================
 // 3. STOREFRONT & EASY SHOPPING RENDERERS
 // ==========================================
@@ -264,10 +336,10 @@ function renderProducts() {
   if (sort === "low-to-high") list.sort((a, b) => a.salePrice - b.salePrice);
   else if (sort === "high-to-low") list.sort((a, b) => b.salePrice - a.salePrice);
 
-  const canWishlist = config.featureToggles.customerWishlist;
-  const canQuickView = config.featureToggles.quickViewShopping;
-  const canCompare = config.featureToggles.compareTool;
-  const canExpress = config.featureToggles.expressCheckout;
+  const canWishlist = config.featureToggles?.customerWishlist;
+  const canQuickView = config.featureToggles?.quickViewShopping;
+  const canCompare = config.featureToggles?.compareTool;
+  const canExpress = config.featureToggles?.expressCheckout;
 
   grid.innerHTML = list.map(p => `
     <div onclick="trackRecentlyViewed('${p.id}')" class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition cursor-pointer">
@@ -355,12 +427,6 @@ function renderRecentlyViewed() {
   }).join("");
 }
 
-// Formatting
-function formatPrice(priceInInr) {
-  const converted = Math.round(priceInInr * currentCurrency.rate);
-  return `${currentCurrency.symbol}${converted.toLocaleString()}`;
-}
-
 // ==========================================
 // 4. EASY SHOPPING MODALS (Controlled by Admin)
 // ==========================================
@@ -437,7 +503,7 @@ function openCompareDrawer() {
 }
 function closeCompareModal() { document.getElementById("compareModal")?.classList.add("hidden"); }
 
-// Other Advanced Easy Shopping Modals
+// Other Advanced Modals
 function openQuizModal() {
   if (!config.featureToggles.giftQuiz) return alert("Gift Quiz is disabled by Admin.");
   document.getElementById("quizModal")?.classList.remove("hidden");
@@ -506,13 +572,6 @@ function checkPincodeAvailability() {
   }
 }
 
-// Utilities
-function autoScrollTo(elementId) {
-  const el = document.getElementById(elementId);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-function scrollToProducts() { autoScrollTo("catalogTopAnchor"); }
-function scrollToContact() { autoScrollTo("contactSectionAnchor"); }
 function toggleTheme() { document.documentElement.classList.toggle("dark"); }
 
 function openSearchModal() { document.getElementById("searchModal")?.classList.remove("hidden"); document.getElementById("searchInput")?.focus(); }
@@ -728,6 +787,7 @@ function handlePlaceOrder(e) {
   document.getElementById("successWhatsAppOrderBtn").href = `https://wa.me/91${config.whatsappPhone}?text=${waMsg}`;
   document.getElementById("orderSuccessModal")?.classList.remove("hidden");
 }
+
 function closeSuccessModal() { document.getElementById("orderSuccessModal")?.classList.add("hidden"); }
 
 // ==========================================
@@ -821,14 +881,6 @@ function trackOrderById() {
   `;
 }
 
-function toggleWishlist(id) {
-  if (!config.featureToggles.customerWishlist) return alert("Wishlist disabled by Admin.");
-  if (wishlist.includes(id)) wishlist = wishlist.filter(x => x !== id);
-  else wishlist.push(id);
-  persist();
-  renderProducts();
-}
-
 // ==========================================
 // 7. CUSTOMER AUTHENTICATION & PROFILE
 // ==========================================
@@ -848,8 +900,15 @@ function handleCustomerLoginSubmit(e) {
   e.preventDefault();
   const id = document.getElementById("cxLoginId").value.trim().toLowerCase();
   const pass = document.getElementById("cxLoginPass").value.trim();
+  
   const user = users.find(u => u.role === "customer" && (u.phone === id || u.email?.toLowerCase() === id) && (u.password === pass || u.pin === pass));
+  
   if (!user) { alert("Invalid customer credentials. Check Phone/Email & Password."); return; }
+  
+  if (user.isBlocked) { 
+    alert("This account has been suspended or blocked by the Administrator. Please contact support."); 
+    return; 
+  }
   
   currentUser = user;
   localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
@@ -868,7 +927,7 @@ function handleCustomerRegisterSubmit(e) {
 
   if (users.some(u => u.phone === phone)) { alert("Account already exists with this phone number."); return; }
   
-  const newUser = { id: "cust-" + Date.now(), username: phone, name, phone, email, password: pass, pin: pin || "1234", role: "customer", addresses: ["Hyderabad Main"], supportTickets: [] };
+  const newUser = { id: "cust-" + Date.now(), username: phone, name, phone, email, password: pass, pin: pin || "1234", role: "customer", addresses: ["Hyderabad Main"], supportTickets: [], isBlocked: false };
   users.push(newUser);
   currentUser = newUser;
   persist();
@@ -918,17 +977,43 @@ function switchCustomerTab(tab) {
   if (tab === 'reorder') renderCustProfileReorder();
 }
 
+// Order Management for Customer (Including Cancel Option)
 function renderCustProfileOrders() {
   const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
   const container = document.getElementById("custOrderList");
   if (!container) return;
   container.innerHTML = myOrders.length === 0 ? `<p class="text-xs text-neutral-400 py-4 text-center">No past orders.</p>` : myOrders.map(o => `
     <div class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-1">
-      <div class="flex justify-between items-center font-bold"><span>${o.orderId}</span><span class="text-emerald-700">${o.status}</span></div>
+      <div class="flex justify-between items-center font-bold">
+        <span>${o.orderId}</span>
+        <span class="${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'}">${o.status}</span>
+      </div>
       <p class="text-neutral-600">${o.items.map(it => `${it.title} (x${it.qty})`).join(', ')}</p>
-      <div class="flex justify-between items-center pt-2 border-t font-semibold"><span>Total: ₹${o.total}</span><button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-brand-gold underline font-bold">Print Invoice</button></div>
+      <div class="flex flex-wrap justify-between items-center pt-2 border-t font-semibold gap-2">
+        <span>Total: ${formatPrice(o.total)}</span>
+        <div class="flex gap-3 items-center">
+          ${o.status === 'Processing' ? `<button onclick="cancelCustomerOrder('${o.orderId}')" class="text-red-600 hover:underline font-bold text-[10px]">Cancel Order</button>` : ''}
+          <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-brand-gold hover:underline font-bold">Print Invoice</button>
+        </div>
+      </div>
     </div>
   `).join("");
+}
+
+function cancelCustomerOrder(orderId) {
+  if (!confirm("Are you sure you want to cancel this order? This action cannot be reversed.")) return;
+  const o = orders.find(x => x.orderId === orderId);
+  if (o && o.status === 'Processing') {
+    o.status = 'Cancelled';
+    // Restore inventory stock dynamically
+    o.items.forEach(item => {
+      const p = products.find(x => x.id === item.id);
+      if (p) p.stock += item.qty;
+    });
+    persist();
+    renderCustProfileOrders();
+    alert(`Order ${orderId} has been successfully cancelled.`);
+  }
 }
 
 function renderCustProfileWishlist() {
@@ -998,10 +1083,16 @@ function handleCustomerSecurityUpdate(e) {
   e.preventDefault();
   const pass = document.getElementById("cxNewPass").value.trim();
   const pin = document.getElementById("cxNewPin").value.trim();
-  if (pass) currentUser.password = pass;
-  if (pin) currentUser.pin = pin;
+  
+  const u = users.find(x => x.id === currentUser.id);
+  if (!u) return;
+
+  if (pass) u.password = pass;
+  if (pin) u.pin = pin;
+  
+  currentUser = u;
   persist();
-  alert("Security credentials updated!");
+  alert("Security credentials updated successfully!");
 }
 
 function syncCustomerHeaderUI() {
@@ -1034,25 +1125,20 @@ function handlePortalLogin(e) {
   const u = document.getElementById("portalUsername").value.trim();
   const p = document.getElementById("portalPassword").value.trim();
 
-  let matchedRole = null;
-  let matchedName = "";
+  // Validate dynamically against users array instead of hardcoding
+  const user = users.find(x => (x.role === "admin" || x.role === "owner" || x.role === "owner1") && x.username.toLowerCase() === u.toLowerCase() && x.password === p);
 
-  // Note: Hardcoded authentication checks without UI hints for absolute security
-  if (u.toLowerCase() === "admin" && p === "9290") {
-    matchedRole = "admin";
-    matchedName = "Developer Admin";
-  } else if (u.toLowerCase() === "owner" && p === "8341") {
-    matchedRole = "owner";
-    matchedName = "Store Owner (Falaknuma)";
-  } else if (u.toLowerCase() === "owner1" && p === "1234") {
-    matchedRole = "owner1";
-    matchedName = "Branch 2 Owner (Charminar)";
-  } else {
+  if (!user) {
     alert("Access Denied: Invalid staff credentials.");
     return;
   }
 
-  currentUser = { role: matchedRole, name: matchedName, username: u };
+  if (user.isBlocked) {
+    alert("Account Revoked: Your staff access has been suspended or blocked by the Developer Admin.");
+    return;
+  }
+
+  currentUser = { role: user.role, name: user.name, username: user.username, id: user.id };
   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
   localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt }));
 
@@ -1092,7 +1178,7 @@ function openAdminDashboardModal() {
 }
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
-// Admin Feature Toggles Manager (Centralized Enable/Disable)
+// Admin Feature Toggles Manager
 function renderAdminFeatureToggles() {
   const container = document.getElementById("adminFeatureTogglesGrid");
   if (!container) return;
@@ -1139,7 +1225,7 @@ function toggleFeatureFlag(key, enabled) {
   if (!config.featureToggles) config.featureToggles = {};
   config.featureToggles[key] = enabled;
   persist();
-  renderProducts(); // Re-render to show/hide specific buttons on products
+  renderProducts();
   applyCustomerFeatureVisibility();
   
   if (key === 'ownerPosAccess' && !enabled && currentUser?.role !== 'admin') {
@@ -1154,7 +1240,7 @@ function switchAdminTab(tab) {
   const tabs = ['hub', 'features', 'orders', 'inventory', 'pos', 'analytics', 'branches', 'shipping', 'coupons', 'customers', 'salesmodifier', 'cms', 'payments'];
   
   if (tab === 'pos' && currentUser?.role !== 'admin' && !config.featureToggles?.ownerPosAccess) {
-    return alert("POS Terminal access has been disabled by Admin.");
+    return alert("POS Terminal access has been restricted by Admin.");
   }
   
   tabs.forEach(t => {
@@ -1164,35 +1250,57 @@ function switchAdminTab(tab) {
   });
 }
 
-// Data Tables & Grids
+// Order Management & KPIs
 function renderAdminOrders() {
-  const cnt = document.getElementById("adminOrdersCount");
-  if (cnt) cnt.textContent = orders.length;
   const box = document.getElementById("adminOrdersContainer");
   if (!box) return;
+  
+  // KPI Calculation
+  const pending = orders.filter(o => o.status === 'Processing' || o.status === 'In Transit').length;
+  const completed = orders.filter(o => o.status === 'Delivered' || o.status === 'Dispatched').length;
+  const cancelled = orders.filter(o => o.status === 'Cancelled').length;
+  
+  const elPending = document.getElementById("kpiPendingOrders");
+  const elCompleted = document.getElementById("kpiCompletedOrders");
+  const elCancelled = document.getElementById("kpiCancelledOrders");
+  if(elPending) elPending.textContent = pending;
+  if(elCompleted) elCompleted.textContent = completed;
+  if(elCancelled) elCancelled.textContent = cancelled;
+
+  document.getElementById("adminOrdersCount").textContent = orders.length;
+
   box.innerHTML = orders.map(o => `
-    <div class="p-3.5 bg-white border rounded-xl text-xs space-y-2 shadow-sm">
+    <div class="p-3.5 bg-white border rounded-xl text-xs space-y-2 shadow-sm ${o.status === 'Cancelled' ? 'opacity-75' : ''}">
       <div class="flex justify-between items-center font-bold">
         <span>${o.orderId}</span>
-        <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="border rounded p-1 font-semibold text-emerald-700 bg-emerald-50">
+        <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="border rounded p-1 font-semibold ${o.status === 'Cancelled' ? 'text-red-700 bg-red-50' : 'text-emerald-700 bg-emerald-50'}">
           <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
           <option value="Dispatched" ${o.status === 'Dispatched' ? 'selected' : ''}>Dispatched</option>
+          <option value="In Transit" ${o.status === 'In Transit' ? 'selected' : ''}>In Transit</option>
           <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+          <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
         </select>
       </div>
       <p><strong>Customer:</strong> ${o.customerName} (${o.customerPhone})</p>
       <div class="flex justify-between items-center pt-2 border-t">
         <strong>Total: ${formatPrice(o.total)}</strong>
-        <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-semibold">Print Bill</button>
+        <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-semibold hover:bg-brand-gold hover:text-white transition">Print Bill</button>
       </div>
     </div>
   `).join('');
 }
+
 function updateOrderStatus(orderId, newStatus) {
   const o = orders.find(x => x.orderId === orderId);
-  if (o) { o.status = newStatus; persist(); renderAdminOrders(); }
+  if (o) { 
+    o.status = newStatus; 
+    persist(); 
+    renderAdminOrders();
+    updateAnalytics();
+  }
 }
 
+// Inventory 
 function renderAdminInventory() {
   const tbody = document.getElementById("adminInventoryTableBody");
   if (!tbody) return;
@@ -1228,10 +1336,11 @@ function renderBranchesInDashboard() {
 
 function updateAnalytics() {
   const totalRev = orders.reduce((s, o) => s + (o.total || 0), 0);
-  document.getElementById("anaTotalRevenue").textContent = `₹${totalRev}`;
-  document.getElementById("anaTotalOrders").textContent = orders.length;
-  document.getElementById("hubTotalRevenue").textContent = `₹${totalRev}`;
-  document.getElementById("hubTotalOrders").textContent = orders.length;
+  const revStr = `₹${totalRev}`;
+  if(document.getElementById("anaTotalRevenue")) document.getElementById("anaTotalRevenue").textContent = revStr;
+  if(document.getElementById("anaTotalOrders")) document.getElementById("anaTotalOrders").textContent = orders.length;
+  if(document.getElementById("hubTotalRevenue")) document.getElementById("hubTotalRevenue").textContent = revStr;
+  if(document.getElementById("hubTotalOrders")) document.getElementById("hubTotalOrders").textContent = orders.length;
 }
 
 function resetAllSalesToZero() {
@@ -1415,7 +1524,138 @@ function handleUniversalSearch(query) {
   `;
 }
 
-// CMS & Admins Updates
+// ==========================================
+// 9. ADMIN: MANAGE USERS & STAFF
+// ==========================================
+
+function renderAdminCustomers() {
+  const tbody = document.getElementById("adminCustomersTableBody");
+  if (!tbody) return;
+  
+  tbody.innerHTML = users.map(u => `
+    <tr class="hover:bg-neutral-50 border-b ${u.isBlocked ? 'opacity-50' : ''}">
+      <td class="p-3 font-bold">
+        ${u.name}
+        ${u.isBlocked ? '<span class="text-[9px] bg-red-100 text-red-700 px-1 rounded ml-1">BLOCKED</span>' : ''}
+      </td>
+      <td class="p-3 uppercase text-[10px] font-bold"><span class="px-2 py-1 rounded bg-brand-sand">${u.role}</span></td>
+      <td class="p-3 font-mono">${u.phone}</td>
+      <td class="p-3">${u.email || 'N/A'}</td>
+      <td class="p-3 font-bold ${u.isBlocked ? 'text-red-600' : 'text-emerald-700'}">${u.isBlocked ? 'Blocked' : 'Active'}</td>
+      <td class="p-3 text-right">
+        <button onclick="openManageUserModal('${u.id}')" class="text-blue-600 font-bold hover:underline bg-blue-50 px-2 py-1 rounded">Manage</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// Create Staff
+function openCreateStaffModal() { document.getElementById("createStaffModal")?.classList.remove("hidden"); }
+function closeCreateStaffModal() { document.getElementById("createStaffModal")?.classList.add("hidden"); }
+
+function handleCreateStaff(e) {
+  e.preventDefault();
+  const name = document.getElementById("csName").value.trim();
+  const username = document.getElementById("csUsername").value.trim();
+  const role = document.getElementById("csRole").value;
+  const password = document.getElementById("csPassword").value.trim();
+
+  if (users.some(u => u.username.toLowerCase() === username.toLowerCase() || u.phone === username)) {
+    alert("Username or phone already exists in the system.");
+    return;
+  }
+
+  users.push({
+    id: "staff-" + Date.now(),
+    username: username,
+    name: name,
+    phone: username, // Phone acts as username for staff tracking purposes
+    email: "",
+    role: role,
+    password: password,
+    isBlocked: false,
+    addresses: [],
+    supportTickets: []
+  });
+  
+  persist();
+  renderAdminCustomers();
+  closeCreateStaffModal();
+  alert(`Staff account (${role}) created successfully!`);
+}
+
+// Edit / Revoke / Password Reset User
+function openManageUserModal(id) {
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById("manageUserModal").classList.remove("hidden");
+  
+  document.getElementById("muId").value = u.id;
+  document.getElementById("muName").value = u.name;
+  document.getElementById("muPhone").value = u.phone || u.username;
+  document.getElementById("muPassword").value = u.role === 'customer' ? (u.pin || u.password) : u.password;
+  document.getElementById("muBlocked").checked = !!u.isBlocked;
+  
+  document.getElementById("manageUserMeta").textContent = `Role: ${u.role.toUpperCase()} | System ID: ${u.id}`;
+}
+
+function closeManageUserModal() { document.getElementById("manageUserModal").classList.add("hidden"); }
+
+function saveUserManagement() {
+  const id = document.getElementById("muId").value;
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+
+  // Supreme Admin Protection
+  if (u.username.toLowerCase() === 'admin' && currentUser.username.toLowerCase() !== 'admin') {
+    alert("Permission Denied: Cannot modify the supreme master admin account."); 
+    return;
+  }
+
+  u.name = document.getElementById("muName").value.trim();
+  const newPhone = document.getElementById("muPhone").value.trim();
+  u.phone = newPhone;
+  
+  // Keep username synced for staff login
+  if (u.role !== 'customer') u.username = newPhone; 
+  
+  const newPass = document.getElementById("muPassword").value.trim();
+  if (u.role === 'customer') {
+    u.pin = newPass;
+    u.password = newPass;
+  } else {
+    u.password = newPass;
+  }
+
+  u.isBlocked = document.getElementById("muBlocked").checked;
+
+  persist();
+  renderAdminCustomers();
+  closeManageUserModal();
+  alert(`User account (${u.name}) has been successfully updated.`);
+}
+
+function deleteUserAccount() {
+  const id = document.getElementById("muId").value;
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+
+  if (u.username.toLowerCase() === 'admin') {
+    alert("Permission Denied: Cannot permanently delete the root master admin account.");
+    return;
+  }
+  
+  if (!confirm(`WARNING: Are you sure you want to permanently delete the account for ${u.name}? This cannot be undone.`)) return;
+
+  users = users.filter(x => x.id !== id);
+  persist();
+  renderAdminCustomers();
+  closeManageUserModal();
+  alert("User account has been permanently deleted.");
+}
+
+
+// CMS & Payments Updates
 function handleCmsSave(e) {
   e.preventDefault();
   config.brandName = document.getElementById("cmsBrandName").value.trim();
@@ -1455,23 +1695,7 @@ function promptCreateCoupon() {
   renderCouponsTable();
 }
 
-function renderAdminCustomers() {
-  const tbody = document.getElementById("adminCustomersTableBody");
-  if (!tbody) return;
-  tbody.innerHTML = users.map(u => `
-    <tr class="hover:bg-neutral-50 border-b">
-      <td class="p-3 font-bold">${u.name}</td>
-      <td class="p-3 uppercase text-[10px] font-bold"><span class="px-2 py-1 rounded bg-brand-sand">${u.role}</span></td>
-      <td class="p-3 font-mono">${u.phone}</td>
-      <td class="p-3">${u.email || 'N/A'}</td>
-      <td class="p-3 font-mono font-bold text-brand-gold">${u.password}</td>
-      <td class="p-3 font-mono">${u.pin || '1234'}</td>
-      <td class="p-3 text-right"><span class="text-xs text-emerald-700 font-bold">Active</span></td>
-    </tr>
-  `).join("");
-}
-
 function syncLiveCmsUI() {
-  document.getElementById("brandNavTitle").textContent = config.brandName;
-  document.getElementById("footerBrandName").textContent = config.brandName;
+  if(document.getElementById("brandNavTitle")) document.getElementById("brandNavTitle").textContent = config.brandName;
+  if(document.getElementById("footerBrandName")) document.getElementById("footerBrandName").textContent = config.brandName;
 }
