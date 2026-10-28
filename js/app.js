@@ -78,6 +78,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   checkWelcomeGreetingBanner();
   validateSessionPersistence();
   renderRecentlyViewed();
+  window.mqbLive?.start?.();
 });
 
 // ==========================================
@@ -147,62 +148,47 @@ async function loadInitialData() {
     localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
   }
 
-  const savedUsers = localStorage.getItem(KEY_USERS);
-  if (savedUsers) {
-    users = JSON.parse(savedUsers);
-    users = users.filter(u => u.username !== "owner1");
-    if (!users.some(u => u.username.toLowerCase() === 'admin')) {
-      ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
-    }
-    if (!users.some(u => u.username.toLowerCase() === 'owner')) {
-      ensureUserExists("Owner", "8341", "Shaik Moin Uddin & Shaik Muneer Uddin", "7893961313", "moinquranbox@gmail.com", "owner");
-    }
-  } else {
-    users = [
-      { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin", isBlocked: false },
-      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin & Shaik Muneer Uddin", phone: "7893961313", email: "moinquranbox@gmail.com", role: "owner", isBlocked: false },
-      { id: "usr-demo", username: "7893961313", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "7893961313", email: "farhan@example.com", role: "customer", addresses: ["Madina Colony, Falaknuma, Hyderabad"], supportTickets: [], isBlocked: false }
-    ];
-  }
+  // IMPORTANT: v19 local-password accounts have been retired.
+  // Firebase Authentication now owns identities; no admin password is shipped in JS.
+  users = [];
 
-  orders = JSON.parse(localStorage.getItem(KEY_ORDERS)) || [];
+  orders = []; // Cloud order requests load only after Firebase identity verification.
   coupons = JSON.parse(localStorage.getItem(KEY_COUPONS)) || [
     { code: "RAMADAN50", discount: 50, type: "flat", minOrder: 500 },
     { code: "BARAKAH10", discount: 10, type: "percent", minOrder: 1000 }
   ];
 
-  auditLogs = JSON.parse(localStorage.getItem(KEY_AUDIT)) || [
+  auditLogs = [
     { timestamp: new Date().toLocaleString(), event: "System Initialized", user: "System", type: "system" }
   ];
 
-  const savedFirebase = localStorage.getItem(KEY_FIREBASE);
-  if (savedFirebase) firebaseSyncConfig = JSON.parse(savedFirebase);
+  // The old "secret/API key" popup stored credentials in localStorage.
+  // It is no longer used. Remove the stale value so it cannot be reused.
+  localStorage.removeItem(KEY_FIREBASE);
+  localStorage.removeItem(KEY_SESSION);
+  localStorage.removeItem(KEY_USERS);
+  localStorage.removeItem(KEY_ORDERS);
 
-  cart = JSON.parse(localStorage.getItem(KEY_CART)) || [];
-  wishlist = JSON.parse(localStorage.getItem(KEY_WISHLIST)) || [];
+  cart = JSON.parse(localStorage.getItem("mqb_v20_guest_cart") || "[]");
+  wishlist = JSON.parse(localStorage.getItem("mqb_v20_guest_wishlist") || "[]");
   persist();
 }
 
-function ensureUserExists(username, password, name, phone, email, role) {
-  const existing = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-  if (existing) {
-    existing.password = password;
-    existing.role = role;
-  } else {
-    users.push({ id: "usr-" + username.toLowerCase(), username, password, name, phone, email, role, addresses: ["Madina Colony, Falaknuma"], supportTickets: [], isBlocked: false });
-  }
-}
+function ensureUserExists(){ /* Legacy browser-password accounts retired. */ }
 
 function persist() {
   localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
   localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
-  localStorage.setItem(KEY_USERS, JSON.stringify(users));
-  localStorage.setItem(KEY_ORDERS, JSON.stringify(orders));
+  // Never persist Firebase user accounts/passwords in browser-local JSON.
+  // Never persist customer order records globally in shared browser storage.
   localStorage.setItem(KEY_COUPONS, JSON.stringify(coupons));
-  localStorage.setItem(KEY_CART, JSON.stringify(cart));
-  localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist));
-  localStorage.setItem(KEY_AUDIT, JSON.stringify(auditLogs));
-  localStorage.setItem(KEY_FIREBASE, JSON.stringify(firebaseSyncConfig));
+  // No cross-account cart: Firebase user's cart is saved only in /customerCarts/<uid>.
+  if (!window.mqbLive?.uid) {
+    localStorage.setItem("mqb_v20_guest_cart", JSON.stringify(cart));
+    localStorage.setItem("mqb_v20_guest_wishlist", JSON.stringify(wishlist));
+  }
+  // Legacy audit history stays session-local; cloud audit requires a trusted backend.
+  window.mqbLive?.maybePersistSettings?.();
 }
 
 function logAuditEvent(event, user = "System", type = "general") {
@@ -233,70 +219,11 @@ function setCurrency(code, symbol, rate) {
   updateCartUI();
 }
 
-function validateSessionPersistence() {
-  const sessionStr = localStorage.getItem(KEY_SESSION);
-  if (!sessionStr) return;
+function validateSessionPersistence(){ /* Firebase Auth owns sessions. */ }
 
-  const session = JSON.parse(sessionStr);
-  if (session.expiresAt && Date.now() > session.expiresAt) {
-    logoutCurrentUser(true);
-    return;
-  }
+function startSessionCountdownTimer(){ /* Firebase Auth owns sessions. */ }
 
-  const activeUser = users.find(u => u.username.toLowerCase() === session.user.username.toLowerCase());
-  if (activeUser && activeUser.isBlocked) {
-    alert("Your account access has been revoked or blocked by the Administrator.");
-    logoutCurrentUser();
-    return;
-  }
-
-  currentUser = session.user;
-  startSessionCountdownTimer(session.expiresAt);
-  syncCustomerHeaderUI();
-  
-  if (currentUser.role !== 'customer') {
-    document.getElementById("staffLoginNavBtn")?.classList.add("hidden");
-    document.getElementById("staffLogoutNavBtn")?.classList.remove("hidden");
-  }
-}
-
-function startSessionCountdownTimer(expiresAt) {
-  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-  function updateTimer() {
-    const diff = expiresAt - Date.now();
-    const timerBadge = document.getElementById("staffSessionTimerBadge");
-    if (diff <= 0) {
-      clearInterval(sessionTimerInterval);
-      logoutCurrentUser(true);
-      return;
-    }
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
-    if (timerBadge) {
-      timerBadge.textContent = `⏱️ Session: ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-      timerBadge.classList.remove("hidden");
-    }
-  }
-  updateTimer();
-  sessionTimerInterval = setInterval(updateTimer, 1000);
-}
-
-function logoutCurrentUser(sessionExpired = false) {
-  if (currentUser) {
-    logAuditEvent(`Staff logged out (${currentUser.username})`, currentUser.username, "auth");
-  }
-  currentUser = null;
-  localStorage.removeItem(KEY_SESSION);
-  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-  document.getElementById("staffSessionTimerBadge")?.classList.add("hidden");
-  document.getElementById("staffLogoutNavBtn")?.classList.add("hidden");
-  document.getElementById("staffLoginNavBtn")?.classList.remove("hidden");
-  closeAdminDashboardModal();
-  closeCustomerProfileModal();
-  syncCustomerHeaderUI();
-  if (sessionExpired) alert("Your 24-hour staff session has expired. Please sign in again.");
-}
+function logoutCurrentUser(){ alert("Secure Firebase login is unavailable. Refresh the website."); }
 
 function autoScrollTo(elementId) {
   const el = document.getElementById(elementId);
@@ -384,10 +311,7 @@ function renderProducts() {
   const canExpress = config.featureToggles?.expressCheckout;
 
   grid.innerHTML = list.map(p => {
-    let effectivePrice = p.salePrice;
-    if (config.surgePricing && p.stock <= 5 && p.stock > 0) {
-      effectivePrice = Math.round(p.salePrice * 1.05);
-    }
+    const effectivePrice = p.salePrice; // Display the authoritative published price only.
 
     return `
       <div onclick="trackRecentlyViewed('${p.id}')" class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition cursor-pointer">
@@ -423,15 +347,15 @@ function renderProducts() {
           </div>
           <div>
             <div class="flex items-baseline gap-2 mb-2">
-              <span class="text-xs line-through text-neutral-400">${formatPrice(p.oldPrice || p.salePrice + 400)}</span>
+              ${Number(p.oldPrice)>Number(p.salePrice) ? `<span class="text-xs line-through text-neutral-400">${formatPrice(p.oldPrice)}</span>` : ''}
               <span class="text-sm sm:text-base font-bold text-brand-charcoal">${formatPrice(effectivePrice)}</span>
             </div>
             <div class="grid grid-cols-2 gap-1.5">
-              <button onclick="event.stopPropagation(); addToCart('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full py-1.5 bg-brand-charcoal hover:bg-neutral-800 text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
+              <button onclick="event.stopPropagation(); addToCart('${p.id}')" ${p.stock <= 0 || !window.mqbLive?.catalogPublished ? 'disabled' : ''} class="w-full py-1.5 bg-brand-charcoal hover:bg-neutral-800 text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
                 Add to Cart
               </button>
               ${canExpress ? `
-                <button onclick="event.stopPropagation(); expressBuyNow('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full py-1.5 bg-brand-gold hover:bg-brand-goldHover text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
+                <button onclick="event.stopPropagation(); expressBuyNow('${p.id}')" ${p.stock <= 0 || !window.mqbLive?.catalogPublished ? 'disabled' : ''} class="w-full py-1.5 bg-brand-gold hover:bg-brand-goldHover text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
                   Buy Now
                 </button>
               ` : `
@@ -679,72 +603,7 @@ function startCheckout() {
 }
 function closeCheckoutModal() { document.getElementById("checkoutModal")?.classList.add("hidden"); }
 
-function handlePlaceOrder(e) {
-  e.preventDefault();
-  const name = document.getElementById("chkName")?.value.trim() || "";
-  const phone = document.getElementById("chkPhone")?.value.trim() || "";
-  const email = document.getElementById("chkEmail")?.value.trim() || "";
-  const address = document.getElementById("chkAddress")?.value.trim() || "";
-  const postalCode = document.getElementById("chkPostalCode")?.value.trim() || "";
-  const paymentMethod = document.querySelector('input[name="chkPaymentMethod"]:checked')?.value || "Online";
-  const couponCode = document.getElementById("chkCouponInput")?.value.trim().toUpperCase();
-  
-  let total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
-
-  if (couponCode) {
-    const cp = coupons.find(c => c.code === couponCode);
-    if (cp && total >= (cp.minOrder || 0)) {
-      const disc = cp.type === "percent" ? Math.round((total * cp.discount) / 100) : cp.discount;
-      total = Math.max(0, total - disc);
-    } else alert("Invalid coupon or minimum order amount not reached.");
-  }
-
-  const orderId = `MQB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-  
-  let courierName = "Hyderabad Express Fleet";
-  if (config.expressRouting && !postalCode.startsWith("500")) {
-    courierName = "BlueDart Express National";
-  }
-
-  const newOrder = {
-    orderId, customerName: name, customerPhone: phone, customerEmail: email,
-    address, postalCode, total, date: new Date().toISOString(), status: "Processing",
-    channel: "Online", courierName, awb: `AWB-${Date.now().toString().slice(-6)}`, paymentMethod, items: [...cart]
-  };
-
-  cart.forEach(item => {
-    const p = products.find(x => x.id === item.id);
-    if (p) p.stock = Math.max(0, p.stock - item.qty);
-  });
-
-  orders.unshift(newOrder);
-  logAuditEvent(`New order placed: ${orderId} (₹${total}) by ${name}`, name, "order");
-  
-  cart = [];
-  persist();
-  updateCartUI();
-  renderProducts();
-  closeCheckoutModal();
-
-  const successEl = document.getElementById("successOrderIdDisplay");
-  if (successEl) successEl.textContent = orderId;
-
-  const itemsList = newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join("\n");
-  const waMsg = encodeURIComponent(
-    `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*\n\n` +
-    `*Order ID:* ${orderId}\n` +
-    `*Customer:* ${name}\n` +
-    `*Phone:* ${phone}\n` +
-    `*Address:* ${address} (Pincode: ${postalCode})\n` +
-    `*Payment:* ${paymentMethod}\n` +
-    `*Total:* ${formatPrice(total)}\n\n` +
-    `*Items:*\n${itemsList}`
-  );
-  
-  const waBtn = document.getElementById("successWhatsAppOrderBtn");
-  if (waBtn) waBtn.href = `https://wa.me/91${config.whatsappPhone}?text=${waMsg}`;
-  document.getElementById("orderSuccessModal")?.classList.remove("hidden");
-}
+function handlePlaceOrder(e){e.preventDefault();alert("Order requests require Firebase. No order was placed.");}
 function closeSuccessModal() { document.getElementById("orderSuccessModal")?.classList.add("hidden"); }
 
 // ==========================================
@@ -752,62 +611,11 @@ function closeSuccessModal() { document.getElementById("orderSuccessModal")?.cla
 // ==========================================
 function openInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.remove("hidden"); }
 function closeInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.add("hidden"); }
-function handlePublicInvoiceLookup(e) {
-  e.preventDefault();
-  const id = document.getElementById("lookupOrderId")?.value.trim().toUpperCase() || "";
-  const phone = document.getElementById("lookupPhone")?.value.replace(/\D/g, "") || "";
-  const match = orders.find(o => o.orderId.toUpperCase() === id && o.customerPhone.replace(/\D/g, "").includes(phone));
-  const err = document.getElementById("lookupError");
-  if (!match) {
-    if (err) { err.textContent = "No invoice matched this Order ID and Phone."; err.classList.remove("hidden"); }
-    return;
-  }
-  if (err) err.classList.add("hidden");
-  closeInvoiceLookupModal();
-  prepareAndPrintInvoice(match.orderId);
-}
-function prepareAndPrintInvoice(orderId) {
-  const order = orders.find(o => o.orderId === orderId);
-  if (!order) return;
-  const printDiv = document.getElementById("invoicePrintSection");
-  if (!printDiv) return;
-  printDiv.innerHTML = `
-    <div style="font-family: system-ui, sans-serif; padding: 25px; border: 1px solid #ddd; max-width: 800px; margin: auto;">
-      <h2 style="margin: 0; color: #1c3026;">${config.brandName}</h2>
-      <p style="margin: 2px 0; font-size: 13px;">${config.address} • Ph: +91 ${config.phone1} / ${config.phone2}</p>
-      <hr style="margin: 15px 0;" />
-      <p><strong>Order ID:</strong> ${order.orderId} | <strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
-      <p><strong>Status:</strong> ${order.status} | <strong>Payment:</strong> ${order.paymentMethod || 'Online'}</p>
-      <p><strong>Customer:</strong> ${order.customerName} (${order.customerPhone})</p>
-      <p><strong>Address:</strong> ${order.address} ${order.postalCode ? ` - Pincode: ${order.postalCode}` : ''}</p>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
-        <thead>
-          <tr style="background: #f4efe6; text-align: left;">
-            <th style="padding: 8px;">Item Description</th><th style="padding: 8px; text-align: center;">Qty</th><th style="padding: 8px; text-align: right;">Price</th><th style="padding: 8px; text-align: right;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${order.items.map(it => `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${it.title}</td><td style="padding: 8px; text-align: center;">${it.qty}</td><td style="padding: 8px; text-align: right;">₹${it.salePrice}</td><td style="padding: 8px; text-align: right;">₹${it.salePrice * it.qty}</td></tr>`).join('')}
-        </tbody>
-      </table>
-      <h3 style="text-align: right; margin-top: 20px; color: #1c3026;">Grand Total: ₹${order.total}</h3>
-    </div>
-  `;
-  printDiv.classList.remove("hidden");
-  window.print();
-  printDiv.classList.add("hidden");
-}
+function handlePublicInvoiceLookup(e){e.preventDefault();alert("Invoices require owner verification.");}
+function prepareAndPrintInvoice(){alert("Invoices require owner verification.");}
 function openTrackingModal() { document.getElementById("trackingModal")?.classList.remove("hidden"); }
 function closeTrackingModal() { document.getElementById("trackingModal")?.classList.add("hidden"); }
-function trackOrderById() {
-  const id = document.getElementById("trackInputId")?.value.trim().toUpperCase() || "";
-  const res = document.getElementById("trackingResultBox");
-  if (!res) return;
-  const order = orders.find(o => o.orderId.toUpperCase() === id);
-  res.classList.remove("hidden");
-  if (!order) { res.innerHTML = `<p class="text-red-600 font-bold">No shipment found.</p>`; return; }
-  res.innerHTML = `<p><strong>Status:</strong> <span class="text-emerald-700 font-bold">${order.status}</span></p><p><strong>Courier Partner:</strong> ${order.courierName || 'Hyderabad Express Fleet'}</p><p><strong>AWB:</strong> ${order.awb}</p>`;
-}
+function trackOrderById(){alert("Tracking is available after Firebase sign-in.");}
 
 // ==========================================
 // 7. CUSTOMER AUTHENTICATION & PORTAL
@@ -822,36 +630,8 @@ function switchCustomerAuthTab(tab) {
   document.getElementById("cxLoginForm")?.classList.toggle("hidden", !isLogin);
   document.getElementById("cxRegisterForm")?.classList.toggle("hidden", isLogin);
 }
-function handleCustomerLoginSubmit(e) {
-  e.preventDefault();
-  const id = document.getElementById("cxLoginId")?.value.trim().toLowerCase() || "";
-  const pass = document.getElementById("cxLoginPass")?.value.trim() || "";
-  const user = users.find(u => u.role === "customer" && (u.phone === id || u.email?.toLowerCase() === id) && (u.password === pass || u.pin === pass));
-  if (!user) return alert("Invalid customer credentials.");
-  if (user.isBlocked) return alert("This account has been suspended or blocked by the Administrator.");
-  currentUser = user;
-  localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
-  closeCustomerAuthModal();
-  syncCustomerHeaderUI();
-  openCustomerProfileModal();
-}
-function handleCustomerRegisterSubmit(e) {
-  e.preventDefault();
-  const name = document.getElementById("cxRegName")?.value.trim() || "";
-  const phone = document.getElementById("cxRegPhone")?.value.trim() || "";
-  const email = document.getElementById("cxRegEmail")?.value.trim() || "";
-  const pass = document.getElementById("cxRegPass")?.value.trim() || "";
-  const pin = document.getElementById("cxRegPin")?.value.trim() || "1234";
-  if (users.some(u => u.phone === phone)) return alert("Account already exists with this phone number.");
-  const newUser = { id: "cust-" + Date.now(), username: phone, name, phone, email, password: pass, pin, role: "customer", addresses: ["Madina Colony, Falaknuma"], supportTickets: [], isBlocked: false };
-  users.push(newUser);
-  currentUser = newUser;
-  persist();
-  localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
-  closeCustomerAuthModal();
-  syncCustomerHeaderUI();
-  openCustomerProfileModal();
-}
+function handleCustomerLoginSubmit(e){e.preventDefault();alert("Secure Firebase login unavailable.");}
+function handleCustomerRegisterSubmit(e){e.preventDefault();alert("Secure Firebase registration unavailable.");}
 
 function openCustomerProfileModal() {
   if (!currentUser || currentUser.role !== "customer") return;
@@ -931,48 +711,7 @@ function openAdminLoginModal() {
 }
 function closeAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.add("hidden"); }
 
-function handlePortalLogin(e) {
-  e.preventDefault();
-  const errBox = document.getElementById("portalLoginError");
-  errBox?.classList.add("hidden");
-
-  const u = document.getElementById("portalUsername")?.value.trim() || "";
-  const p = document.getElementById("portalPassword")?.value.trim() || "";
-
-  const user = users.find(x => 
-    (x.role === "admin" || x.role === "owner") && 
-    x.username.toLowerCase() === u.toLowerCase() && 
-    x.password === p
-  );
-
-  if (!user) {
-    if (errBox) {
-      errBox.textContent = "Access Denied: Invalid staff username or password.";
-      errBox.classList.remove("hidden");
-    }
-    return;
-  }
-
-  if (user.isBlocked) {
-    if (errBox) {
-      errBox.textContent = "Account Revoked: Your staff access has been disabled by the Administrator.";
-      errBox.classList.remove("hidden");
-    }
-    return;
-  }
-
-  currentUser = { role: user.role, name: user.name, username: user.username, id: user.id };
-  const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-  localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt }));
-
-  logAuditEvent(`Staff logged in: ${user.username} (${user.role})`, user.username, "auth");
-
-  startSessionCountdownTimer(expiresAt);
-  closeAdminLoginModal();
-  document.getElementById("staffLoginNavBtn")?.classList.add("hidden");
-  document.getElementById("staffLogoutNavBtn")?.classList.remove("hidden");
-  openAdminDashboardModal();
-}
+function handlePortalLogin(e){e.preventDefault();alert("Secure Firebase staff login unavailable.");}
 
 function openAdminDashboardModal() {
   const modal = document.getElementById("adminDashboardModal");
@@ -1067,36 +806,11 @@ function openFirebaseSyncModal() {
 }
 function closeFirebaseSyncModal() { document.getElementById("firebaseSyncModal")?.classList.add("hidden"); }
 
-function saveFirebaseSyncConfig() {
-  firebaseSyncConfig.url = document.getElementById("cfgFirebaseUrl")?.value.trim() || "";
-  firebaseSyncConfig.key = document.getElementById("cfgFirebaseKey")?.value.trim() || "";
-  persist();
-  closeFirebaseSyncModal();
-  logAuditEvent("Firebase Realtime Database Sync credentials updated", currentUser?.username || 'Admin', "system");
-  alert("Firebase Sync credentials successfully saved! Real-time cloud sync enabled.");
-}
+function saveFirebaseSyncConfig(){alert("Never paste Firebase secrets into a public website.");}
 
-async function testFirebaseConnection() {
-  const url = document.getElementById("cfgFirebaseUrl")?.value.trim() || firebaseSyncConfig.url;
-  if (!url) return alert("Please enter a valid Firebase Database URL first.");
-  try {
-    const res = await fetch(`${url.replace(/\/$/, "")}/ping.json`);
-    if (res.ok) {
-      alert("✓ Firebase Cloud Connection Ping Successful!");
-    } else {
-      alert("⚠ Connected, but endpoint returned status: " + res.status);
-    }
-  } catch (err) {
-    alert("Connection note: Unable to ping URL directly (CORS or network rule). Credentials saved successfully.");
-  }
-}
+async function testFirebaseConnection(){alert("Firebase authentication is required.");}
 
-function toggleAutoSync(enabled) {
-  config.autoSync = enabled;
-  persist();
-  logAuditEvent(`Cloud Auto-Sync turned ${enabled ? 'ON' : 'OFF'}`, currentUser?.username || 'Admin', "system");
-  alert(`Cloud Auto-Sync is now ${enabled ? 'ONLINE (Real-time storage mirror active)' : 'PAUSED (Local mode)'}.`);
-}
+function toggleAutoSync(){alert("Firebase synchronization is handled by secure listeners.");}
 
 function exportToCSV(type) {
   let rows = [];
@@ -1128,27 +842,7 @@ function exportToCSV(type) {
   logAuditEvent(`Exported ${type} dataset to CSV`, currentUser?.username || 'Admin', "export");
 }
 
-function downloadSystemBackup() {
-  const dump = {
-    version: "v19.0",
-    generatedAt: new Date().toISOString(),
-    config,
-    products,
-    users: users.filter(u => u.role !== 'admin'),
-    orders,
-    coupons,
-    auditLogs
-  };
-
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dump, null, 2));
-  const link = document.createElement("a");
-  link.setAttribute("href", dataStr);
-  link.setAttribute("download", `moin_quranbox_db_backup_${Date.now()}.json`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  logAuditEvent("Full system JSON database backup downloaded", currentUser?.username || 'Admin', "backup");
-}
+function downloadSystemBackup(){alert("Firebase owner login required for export.");}
 
 function openAuditLogsModal() {
   const container = document.getElementById("auditLogsContainer");
@@ -1174,15 +868,7 @@ function openApiGatewayModal() {
   document.getElementById("apiGatewayModal")?.classList.remove("hidden");
 }
 function closeApiGatewayModal() { document.getElementById("apiGatewayModal")?.classList.add("hidden"); }
-function saveApiGatewaySettings() {
-  if (!config.apiGateway) config.apiGateway = {};
-  config.apiGateway.whatsappWebhook = document.getElementById("cfgWhatsAppWebhook")?.value.trim() || "";
-  config.apiGateway.smsApiKey = document.getElementById("cfgSmsApiKey")?.value.trim() || "";
-  persist();
-  closeApiGatewayModal();
-  logAuditEvent("Messaging API Gateway Webhooks updated", currentUser?.username || 'Admin', "system");
-  alert("API Gateway settings successfully saved!");
-}
+function saveApiGatewaySettings(){alert("API secrets must be configured on a trusted backend.");}
 
 function toggleMaintenanceMode() {
   config.maintenanceMode = !config.maintenanceMode;
@@ -1279,29 +965,7 @@ function switchAdminTab(tab) {
   });
 }
 
-function updateOrderStatus(orderId, newStatus) {
-  const o = orders.find(x => x.orderId === orderId);
-  if (o) { 
-    if (newStatus === 'Cancelled' && o.status !== 'Cancelled') {
-      o.items.forEach(item => {
-        const p = products.find(x => x.id === item.id);
-        if (p) p.stock += item.qty;
-      });
-    }
-    if (newStatus !== 'Cancelled' && o.status === 'Cancelled') {
-      o.items.forEach(item => {
-        const p = products.find(x => x.id === item.id);
-        if (p) p.stock = Math.max(0, p.stock - item.qty);
-      });
-    }
-    
-    o.status = newStatus; 
-    persist(); 
-    logAuditEvent(`Order status updated for ${orderId}: ${newStatus}`, currentUser.username, "order");
-    renderAdminOrders();
-    updateAnalytics();
-  }
-}
+function updateOrderStatus(){alert("Owner changes require Firebase confirmation.");}
 
 function renderBranchesInDashboard() {
   const container = document.getElementById("adminBranchesList");
@@ -1329,16 +993,7 @@ function updateAnalytics() {
   if (elHubOrd) elHubOrd.textContent = orders.length;
 }
 
-function resetAllSalesToZero() {
-  if (currentUser?.role !== "admin") return alert("Access Denied: Supreme Developer Admin access required.");
-  if (!confirm("Reset all store sales to ₹0? This is irreversible.")) return;
-  orders = [];
-  persist();
-  logAuditEvent("All store sales reset to ZERO (₹0)", currentUser.username, "danger");
-  renderAdminOrders();
-  updateAnalytics();
-  alert("Sales successfully reset to zero.");
-}
+function resetAllSalesToZero(){alert("Verified Firebase owner access is required.");}
 
 function handlePhotoFileInput(event) {
   const file = event.target.files[0];
@@ -1380,34 +1035,7 @@ function openProductEditModal(id = null) {
 }
 function closeProductEditModal() { document.getElementById("productEditModal")?.classList.add("hidden"); }
 
-function handleProductFormSubmit(e) {
-  e.preventDefault();
-  const id = document.getElementById("editProductId")?.value;
-  const title = document.getElementById("editProductTitle")?.value.trim() || "";
-  const category = document.getElementById("editProductCategory")?.value || "Tarjuma Qurans";
-  const stock = parseInt(document.getElementById("editProductStock")?.value) || 0;
-  const salePrice = parseInt(document.getElementById("editProductSalePrice")?.value) || 0;
-  const image = document.getElementById("editProductImage")?.value.trim() || "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80";
-
-  if (id) {
-    const p = products.find(x => x.id === id);
-    if (p) { p.title = title; p.category = category; p.stock = stock; p.salePrice = salePrice; p.image = image; }
-  } else {
-    products.unshift({
-      id: "prod-" + Date.now(),
-      title, category, stock, salePrice, image,
-      rating: 5.0, reviewsCount: 10
-    });
-  }
-  
-  persist();
-  logAuditEvent(`Product updated/added: ${title}`, currentUser.username, "inventory");
-  renderProducts();
-  renderAdminInventory();
-  renderPosCatalog();
-  closeProductEditModal();
-  alert("Product saved successfully!");
-}
+function handleProductFormSubmit(e){e.preventDefault();alert("Firebase not connected. Product not saved.");}
 
 function handleManualShippingLabelPrint(e) {
   e.preventDefault();
@@ -1442,69 +1070,12 @@ function renderAdminCustomers() {
   `).join("");
 }
 
-function openManageUserModal(id) {
-  if (currentUser?.role !== 'admin') return alert("Permission Denied: Only Developer Admin can manage accounts.");
-  const u = users.find(x => x.id === id);
-  if (!u) return;
-
-  if (u.role === 'admin') return alert("Master Developer Admin account cannot be edited.");
-
-  document.getElementById("manageUserModal")?.classList.remove("hidden");
-  document.getElementById("muId").value = u.id;
-  document.getElementById("muName").value = u.name;
-  document.getElementById("muPhone").value = u.phone || u.username;
-  document.getElementById("muPassword").value = u.role === 'customer' ? (u.pin || u.password) : u.password;
-  document.getElementById("muBlocked").checked = !!u.isBlocked;
-  document.getElementById("manageUserMeta").textContent = `Role: ${u.role.toUpperCase()} | ID: ${u.id}`;
-}
+function openManageUserModal(){alert("Manage credentials in Firebase Authentication.");}
 function closeManageUserModal() { document.getElementById("manageUserModal")?.classList.add("hidden"); }
 
-function saveUserManagement() {
-  const id = document.getElementById("muId")?.value;
-  const u = users.find(x => x.id === id);
-  if (!u) return;
+function saveUserManagement(){alert("Manage credentials in Firebase Authentication.");}
 
-  if (u.role === 'admin') return alert("Master Root Admin cannot be altered.");
-
-  u.name = document.getElementById("muName")?.value.trim() || u.name;
-  const newPhone = document.getElementById("muPhone")?.value.trim() || u.phone;
-  u.phone = newPhone;
-  if (u.role !== 'customer') u.username = newPhone; 
-  
-  const newPass = document.getElementById("muPassword")?.value.trim();
-  if (newPass) {
-    if (u.role === 'customer') {
-      u.pin = newPass;
-      u.password = newPass;
-    } else {
-      u.password = newPass;
-    }
-  }
-
-  u.isBlocked = document.getElementById("muBlocked")?.checked || false;
-
-  persist();
-  logAuditEvent(`Admin updated account details for ${u.name}`, currentUser.username, "security");
-  renderAdminCustomers();
-  closeManageUserModal();
-  alert(`Account (${u.name}) has been successfully updated.`);
-}
-
-function deleteUserAccount() {
-  const id = document.getElementById("muId")?.value;
-  const u = users.find(x => x.id === id);
-  if (!u) return;
-
-  if (u.role === 'admin') return alert("Permission Denied: Root Master Admin cannot be deleted.");
-  if (!confirm(`Are you sure you want to permanently delete the account for ${u.name}?`)) return;
-
-  users = users.filter(x => x.id !== id);
-  persist();
-  logAuditEvent(`Account permanently deleted: ${u.name}`, currentUser.username, "danger");
-  renderAdminCustomers();
-  closeManageUserModal();
-  alert("User account has been permanently removed.");
-}
+function deleteUserAccount(){alert("Manage credentials in Firebase Authentication.");}
 
 function handleCmsSave(e) {
   e.preventDefault();
@@ -1645,34 +1216,7 @@ function renderPosTicketUI() {
   `).join("");
 }
 
-function completePosSale() {
-  if (posTicket.length === 0) return alert("POS ticket is empty.");
-  const name = document.getElementById("posCustName")?.value.trim() || "Walk-in Showroom Guest";
-  const phone = document.getElementById("posCustPhone")?.value.trim() || "7893961313";
-  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
-  const orderId = `MQB-POS-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const newOrder = {
-    orderId, customerName: name, customerPhone: phone, customerEmail: "showroom@moinquranbox.com",
-    address: "Falaknuma Head Showroom Walk-In", postalCode: "500053", total, date: new Date().toISOString(), status: "Delivered",
-    channel: "Showroom POS", courierName: "Direct Over-Counter", awb: "POS-WALK", paymentMethod: document.getElementById("posPaymentMethod")?.value || "Cash", items: [...posTicket]
-  };
-
-  posTicket.forEach(item => {
-    const p = products.find(x => x.id === item.id);
-    if (p) p.stock = Math.max(0, p.stock - item.qty);
-  });
-
-  orders.unshift(newOrder);
-  logAuditEvent(`POS Sale completed: ${orderId} (₹${total})`, currentUser?.username || 'Owner', "order");
-  posTicket = [];
-  persist();
-  renderPosTicketUI();
-  renderAdminInventory();
-  renderProducts();
-  updateAnalytics();
-  alert(`POS Order ${orderId} successfully completed and saved!`);
-}
+function completePosSale(){alert("POS payment confirmation requires a trusted backend.");}
 
 function formatFeatureName(key) {
   return key
