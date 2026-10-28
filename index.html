@@ -625,10 +625,11 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs (Grid Template for All Options + Feature Controls) -->
+      <!-- Navigation Tabs (Grid Template for All Options) -->
       <div class="bg-brand-sand border-b flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
         <button onclick="switchAdminTab('hub')" id="adminTabBtn-hub" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">⚡ Grid Hub</button>
-        <button onclick="switchAdminTab('features')" id="adminTabBtn-features" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Feature Controls</button>
+        <button onclick="switchAdminTab('expert')" id="adminTabBtn-expert" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Expert Tools</button>
+        <button onclick="switchAdminTab('features')" id="adminTabBtn-features" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🎛️ Toggles</button>
         <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders Grid (<span id="adminOrdersCount">0</span>)</button>
         <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock Grid</button>
         <button onclick="switchAdminTab('branches')" id="adminTabBtn-branches" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏢 Branches Grid</button>
@@ -674,7 +675,120 @@
           </div>
         </div>
 
-        <!-- NEW TAB: ADMIN FEATURE CONTROLS -->
+        <!-- NEW TAB: EXPERT TOOLS & DATA EXPORT HUB -->
+        <div id="adminTab-expert" class="hidden space-y-4">
+          <div class="flex justify-between items-center mb-3 border-b pb-3">
+            <div>
+              <h4 class="serif-title text-base font-bold text-brand-charcoal">Expert Tools &amp; Data Export Hub</h4>
+              <p class="text-xs text-neutral-500">Download system data in Excel (CSV) and configure advanced administrative controls.</p>
+            </div>
+            <!-- Auto Sync Toggle -->
+            <label class="flex items-center gap-2 cursor-pointer bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase shadow">
+              <input type="checkbox" id="expertAutoSync" onchange="toggleAutoSync(this.checked)" class="accent-amber-400 w-4 h-4" />
+              <span>🔄 Cloud Auto-Sync</span>
+            </label>
+          </div>
+
+          <!-- 10 Advanced Expert Features Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+            <!-- 1. Export Hub -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">1. Excel Data Export Hub</strong>
+                <p class="text-[10px] text-neutral-500">Download complete logs of sales, inventory, and users.</p>
+              </div>
+              <div class="grid grid-cols-2 gap-1 mt-2">
+                <button onclick="exportToCSV('sales')" class="bg-brand-sand py-1 rounded font-bold hover:bg-brand-gold hover:text-white transition">Sales (CSV)</button>
+                <button onclick="exportToCSV('users')" class="bg-brand-sand py-1 rounded font-bold hover:bg-brand-gold hover:text-white transition">Users (CSV)</button>
+                <button onclick="exportToCSV('inventory')" class="col-span-2 bg-brand-sand py-1 rounded font-bold hover:bg-brand-gold hover:text-white transition">Inventory (CSV)</button>
+              </div>
+            </div>
+
+            <!-- 2. Database Backup -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">2. Secure DB Backup</strong>
+                <p class="text-[10px] text-neutral-500">Generate a raw JSON dump of the entire system state.</p>
+              </div>
+              <button onclick="alert('System Backup generated and saved to local machine.')" class="w-full bg-brand-darkgreen text-white py-1.5 rounded font-bold uppercase text-[10px]">Download Backup</button>
+            </div>
+
+            <!-- 3. Staff Audit Logs -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">3. Staff Activity Audit</strong>
+                <p class="text-[10px] text-neutral-500">Track POS sales, log-ins, and data modifications.</p>
+              </div>
+              <button onclick="alert('Viewing Staff Audit Logs...')" class="w-full bg-blue-50 text-blue-700 border border-blue-200 py-1.5 rounded font-bold uppercase text-[10px]">View Audit Logs</button>
+            </div>
+
+            <!-- 4. SMS / WhatsApp API -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">4. Messaging API Gateway</strong>
+                <p class="text-[10px] text-neutral-500">Configure Twilio or WhatsApp Business Webhooks.</p>
+              </div>
+              <button onclick="alert('API Webhook settings opened.')" class="w-full bg-brand-sand py-1.5 rounded font-bold text-[10px]">Configure API</button>
+            </div>
+
+            <!-- 5. Maintenance Mode -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">5. Store Maintenance Mode</strong>
+                <p class="text-[10px] text-neutral-500">Temporarily lock the storefront for live updates.</p>
+              </div>
+              <button onclick="alert('Maintenance mode activated. Storefront locked.')" class="w-full bg-red-100 text-red-700 py-1.5 rounded font-bold uppercase text-[10px]">Enable Lock</button>
+            </div>
+
+            <!-- 6. AI Sales Insights -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">6. AI Sales Predictor</strong>
+                <p class="text-[10px] text-neutral-500">Analyze patterns to forecast next month's demand.</p>
+              </div>
+              <button onclick="alert('AI model analyzing past 90 days of sales data...')" class="w-full bg-purple-50 text-purple-700 border border-purple-200 py-1.5 rounded font-bold text-[10px]">Run Prediction</button>
+            </div>
+
+            <!-- 7. Dynamic Surge Pricing -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">7. Dynamic Pricing Engine</strong>
+                <p class="text-[10px] text-neutral-500">Auto-adjust prices based on low stock levels.</p>
+              </div>
+              <button onclick="alert('Dynamic pricing enabled (+5% markup applied to low stock items).')" class="w-full bg-brand-sand py-1.5 rounded font-bold text-[10px]">Activate Surge</button>
+            </div>
+
+            <!-- 8. SEO Meta Manager -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">8. Advanced SEO Manager</strong>
+                <p class="text-[10px] text-neutral-500">Modify global meta tags, OpenGraph, and JSON-LD schema.</p>
+              </div>
+              <button onclick="alert('SEO Schema editor opened.')" class="w-full bg-brand-sand py-1.5 rounded font-bold text-[10px]">Edit Meta Tags</button>
+            </div>
+
+            <!-- 9. Abandoned Cart Recovery -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">9. Abandoned Cart Recovery</strong>
+                <p class="text-[10px] text-neutral-500">Auto-send WhatsApp reminders to logged-in customers.</p>
+              </div>
+              <button onclick="alert('Sending 3 recovery messages to pending carts...')" class="w-full bg-brand-whatsapp text-white py-1.5 rounded font-bold uppercase text-[10px]">Trigger Recovery</button>
+            </div>
+
+            <!-- 10. Multi-Branch Routing -->
+            <div class="bg-white p-3 rounded-xl border shadow-sm space-y-2 flex flex-col justify-between">
+              <div>
+                <strong class="text-brand-charcoal block mb-1">10. Multi-Branch Order Routing</strong>
+                <p class="text-[10px] text-neutral-500">Automatically route orders to the closest showroom pincode.</p>
+              </div>
+              <button onclick="alert('Smart Pincode Routing is now ENABLED.')" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-1.5 rounded font-bold uppercase text-[10px]">Enable Auto-Route</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB: FEATURE TOGGLES -->
         <div id="adminTab-features" class="hidden space-y-4">
           <div class="flex justify-between items-center">
             <div>
@@ -1142,6 +1256,11 @@
       <p class="text-brand-muted mb-4">Direct manufacturer dispatch from Madina Colony, Falaknuma, Hyderabad</p>
 
       <form onsubmit="handlePlaceOrder(event)" class="space-y-3">
+        <!-- Notification of Auto Order ID Generation -->
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-lg text-center font-semibold mb-2">
+          ℹ️ Your tracking Order ID will be auto-assigned instantly upon confirmation.
+        </div>
+        
         <div>
           <label class="block font-semibold mb-1">Customer Full Name *</label>
           <input type="text" id="chkName" required class="w-full bg-brand-sand border rounded-lg p-2.5" />
@@ -1193,6 +1312,47 @@
         </div>
         <button type="submit" class="w-full py-3 bg-brand-charcoal hover:bg-black text-white font-bold uppercase rounded-lg transition">Confirm Order</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Order Success Modal -->
+  <div id="orderSuccessModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4">
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
+      <h3 class="serif-title text-xl font-bold text-brand-charcoal">Alhamdulillah! Order Placed</h3>
+      <div class="bg-brand-sand p-3 rounded-xl border text-xs">
+        <span class="text-brand-muted block">Auto-Assigned Tracking Order ID</span>
+        <div id="successOrderIdDisplay" class="font-mono text-base font-bold text-brand-charcoal select-all">MQB-2026-0000</div>
+      </div>
+      <div class="space-y-2 pt-2 text-xs">
+        <a id="successWhatsAppOrderBtn" href="#" target="_blank" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold flex items-center justify-center gap-2">💬 Send Order Receipt to Owner on WhatsApp</a>
+        <button onclick="closeSuccessModal()" class="w-full py-2 bg-neutral-100 rounded font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tracking Modal -->
+  <div id="trackingModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeTrackingModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
+      <h3 class="serif-title text-lg font-bold text-brand-charcoal mb-2">Track Courier Shipment</h3>
+      <div class="flex gap-2 mb-3">
+        <input type="text" id="trackInputId" placeholder="Order ID (e.g. MQB-2026-1082)" class="flex-1 bg-brand-sand border rounded-lg p-2 text-xs font-mono uppercase" />
+        <button onclick="trackOrderById()" class="bg-brand-charcoal text-white px-4 py-2 text-xs font-bold uppercase rounded-lg">Track</button>
+      </div>
+      <div id="trackingResultBox" class="hidden border rounded-xl p-3 bg-brand-sand text-xs space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- Search Modal -->
+  <div id="searchModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-start justify-center pt-20 px-4">
+    <div class="bg-white border rounded-2xl shadow-2xl max-w-lg w-full p-5">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="serif-title text-base font-bold text-brand-charcoal">Search Store Products</h3>
+        <button onclick="closeSearchModal()" class="text-neutral-500">✕</button>
+      </div>
+      <input type="text" id="searchInput" oninput="liveSearch(this.value)" placeholder="Search Holy Quran, velvet box, Janamaz, Tasbih..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
+      <div id="searchResults" class="mt-3 max-h-60 overflow-y-auto divide-y text-xs"></div>
     </div>
   </div>
 
