@@ -1,11 +1,12 @@
 /**
- * MOIN QURAN BOX - Modular Production Controller v7.5
+ * MOIN QURAN BOX - Application Controller
  * Roles:
- *   Developer Admin: Username 'Admin' | Password '9290'
- *   Store Owner:     Username 'Owner' | Password '8341'
+ *   Developer Admin: Username 'Admin' | Password '9290' (Full CMS & Supreme Override)
+ *   Store Owner:     Username 'Owner' | Password '8341' (Operations, Stock, POS & Orders)
+ *   Customer:        Self-registered (Email/Phone, Password, PIN)
  */
 
-const STORAGE_PREFIX = "mqb_v75_";
+const STORAGE_PREFIX = "mqb_v8_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
@@ -26,7 +27,6 @@ let wishlist = [];
 let currentUser = null;
 let currentCategory = "All";
 let posTicket = [];
-let activeMediaStream = null;
 
 // Initialize on DOM Ready
 window.addEventListener("DOMContentLoaded", async () => {
@@ -35,10 +35,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   renderProducts();
   updateCartUI();
   syncLiveCmsUI();
+  syncCustomerHeaderUI();
 });
 
 async function loadInitialData() {
-  // Load Config
+  // 1. Config
   const savedConfig = localStorage.getItem(KEY_CONFIG);
   if (savedConfig) {
     config = JSON.parse(savedConfig);
@@ -65,7 +66,7 @@ async function loadInitialData() {
     localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
   }
 
-  // Load Products
+  // 2. Products
   const savedProducts = localStorage.getItem(KEY_PRODUCTS);
   if (savedProducts) {
     products = JSON.parse(savedProducts);
@@ -79,11 +80,10 @@ async function loadInitialData() {
     localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
   }
 
-  // Strict Credentials: Admin (9290) & Owner (8341)
+  // 3. Users with exact requested credentials
   const savedUsers = localStorage.getItem(KEY_USERS);
   if (savedUsers) {
     users = JSON.parse(savedUsers);
-    // Ensure credentials match your exact specifications
     const adm = users.find(u => u.role === "admin");
     if (adm) { adm.username = "Admin"; adm.password = "9290"; }
     else users.push({ id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" });
@@ -94,7 +94,8 @@ async function loadInitialData() {
   } else {
     users = [
       { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
-      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" }
+      { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" },
+      { id: "usr-demo", username: "9390335673", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "9390335673", email: "customer@example.com", role: "customer" }
     ];
   }
 
@@ -120,14 +121,14 @@ function persist() {
   localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist));
 }
 
-// Category Navigation
+// Category Tabs
 const CATEGORIES = ["All", "Tarjuma Qurans", "Quran Boxes & Rehal", "Janamaz", "Hajj & Umrah", "Namaz Caps & Tasbih"];
 
 function renderCategoryChips() {
   const container = document.getElementById("categoryChips");
   if (!container) return;
   container.innerHTML = CATEGORIES.map(cat => `
-    <button onclick="filterCategory('${cat}')" class="px-3 py-1.5 rounded-full transition text-xs font-semibold whitespace-nowrap ${currentCategory === cat ? 'bg-brand-charcoal text-white shadow' : 'bg-white text-brand-charcoal border border-brand-border hover:bg-neutral-100'}">
+    <button onclick="filterCategory('${cat}')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${currentCategory === cat ? 'bg-brand-charcoal text-white shadow' : 'bg-white text-brand-charcoal border border-brand-border hover:bg-neutral-100'}">
       ${cat}
     </button>
   `).join("");
@@ -158,7 +159,7 @@ function renderProducts() {
     <div class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition">
       <div class="relative bg-neutral-100 pt-[100%] overflow-hidden">
         <img src="${p.image}" alt="${p.title}" class="absolute inset-0 w-full h-full object-cover" />
-        <button onclick="toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full text-xs hover:scale-110 transition shadow">
+        <button onclick="toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full text-xs hover:scale-110 transition shadow">
           ${wishlist.includes(p.id) ? '❤️' : '🤍'}
         </button>
         ${p.stock <= 5 && p.stock > 0 ? `<span class="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Only ${p.stock} left</span>` : ''}
@@ -287,6 +288,17 @@ function startCheckout() {
   const total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
   const payable = document.getElementById("checkoutTotalAmount");
   if (payable) payable.textContent = `₹${total.toFixed(2)}`;
+
+  // Autofill if logged-in customer
+  if (currentUser && currentUser.role === "customer") {
+    const elName = document.getElementById("chkName");
+    const elPhone = document.getElementById("chkPhone");
+    const elEmail = document.getElementById("chkEmail");
+    if (elName) elName.value = currentUser.name || "";
+    if (elPhone) elPhone.value = currentUser.phone || "";
+    if (elEmail) elEmail.value = currentUser.email || "";
+  }
+
   document.getElementById("checkoutModal")?.classList.remove("hidden");
 }
 
@@ -532,6 +544,146 @@ function completePosSale() {
   prepareAndPrintInvoice(orderId);
 }
 
+// Customer Auth & Portal Modals
+function openCustomerAuthModal(tab = 'login') {
+  document.getElementById("customerAuthModal")?.classList.remove("hidden");
+  switchCustomerAuthTab(tab);
+}
+
+function closeCustomerAuthModal() {
+  document.getElementById("customerAuthModal")?.classList.add("hidden");
+}
+
+function switchCustomerAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById("cxLoginForm")?.classList.toggle("hidden", !isLogin);
+  document.getElementById("cxRegisterForm")?.classList.toggle("hidden", isLogin);
+  document.getElementById("cxTabLogin")?.classList.toggle("border-brand-charcoal", isLogin);
+  document.getElementById("cxTabLogin")?.classList.toggle("text-brand-charcoal", isLogin);
+  document.getElementById("cxTabRegister")?.classList.toggle("border-brand-charcoal", !isLogin);
+  document.getElementById("cxTabRegister")?.classList.toggle("text-brand-charcoal", !isLogin);
+}
+
+function handleCustomerLoginSubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById("cxLoginId").value.trim().toLowerCase();
+  const pass = document.getElementById("cxLoginPass").value.trim();
+
+  const user = users.find(u => 
+    u.role === "customer" && 
+    (u.phone === id || u.email?.toLowerCase() === id || u.username === id) && 
+    (u.password === pass || (u.pin && u.pin === pass))
+  );
+
+  if (!user) {
+    alert("Invalid customer credentials. Please check your phone/email & password/PIN.");
+    return;
+  }
+
+  currentUser = user;
+  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
+  closeCustomerAuthModal();
+  syncCustomerHeaderUI();
+  openCustomerProfileModal();
+}
+
+function handleCustomerRegisterSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById("cxRegName").value.trim();
+  const phone = document.getElementById("cxRegPhone").value.trim();
+  const email = document.getElementById("cxRegEmail").value.trim();
+  const pass = document.getElementById("cxRegPass").value.trim();
+  const pin = document.getElementById("cxRegPin").value.trim();
+
+  if (users.some(u => u.phone === phone)) {
+    alert("An account already exists with this mobile number. Please log in.");
+    switchCustomerAuthTab('login');
+    return;
+  }
+
+  const newUser = {
+    id: "cust-" + Date.now(),
+    username: phone,
+    name,
+    phone,
+    email,
+    password: pass,
+    pin: pin || "1234",
+    role: "customer"
+  };
+
+  users.push(newUser);
+  currentUser = newUser;
+  persist();
+  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
+  closeCustomerAuthModal();
+  syncCustomerHeaderUI();
+  alert(`Welcome, ${name}! Your customer account is active.`);
+  openCustomerProfileModal();
+}
+
+function openCustomerProfileModal() {
+  if (!currentUser || currentUser.role !== "customer") return;
+  const modal = document.getElementById("customerProfileModal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+
+  document.getElementById("custProfName").textContent = currentUser.name;
+  document.getElementById("custProfContact").textContent = `${currentUser.email || ''} • 📞 ${currentUser.phone}`;
+
+  // Render order history
+  const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
+  const container = document.getElementById("custOrderList");
+  if (!container) return;
+
+  if (myOrders.length === 0) {
+    container.innerHTML = `<p class="text-xs text-neutral-400 py-4 text-center">No past orders found under this account.</p>`;
+    return;
+  }
+
+  container.innerHTML = myOrders.map(o => `
+    <div class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-1">
+      <div class="flex justify-between items-center font-bold">
+        <span>${o.orderId}</span>
+        <span class="text-emerald-700">${o.status}</span>
+      </div>
+      <p class="text-neutral-600">${o.items.map(it => `${it.title} (x${it.qty})`).join(', ')}</p>
+      <div class="flex justify-between items-center pt-2 border-t font-semibold">
+        <span>Total: ₹${o.total}</span>
+        <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-brand-gold underline">Print Invoice</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function closeCustomerProfileModal() {
+  document.getElementById("customerProfileModal")?.classList.add("hidden");
+}
+
+function syncCustomerHeaderUI() {
+  const badge = document.getElementById("customerStatusDot");
+  const navText = document.getElementById("navAccountLabel");
+  if (currentUser && currentUser.role === "customer") {
+    badge?.classList.remove("hidden");
+    if (navText) navText.textContent = `Hi, ${currentUser.name.split(' ')[0]}`;
+  } else {
+    badge?.classList.add("hidden");
+    if (navText) navText.textContent = "Account";
+  }
+}
+
+function handleUserIconClick() {
+  if (currentUser) {
+    if (currentUser.role === "admin" || currentUser.role === "owner") {
+      openAdminDashboardModal();
+    } else {
+      openCustomerProfileModal();
+    }
+  } else {
+    openCustomerAuthModal('login');
+  }
+}
+
 // Staff Portal Login & Roles
 function openAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.remove("hidden"); }
 function closeAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.add("hidden"); }
@@ -541,13 +693,13 @@ function handlePortalLogin(e) {
   const u = document.getElementById("portalUsername").value.trim();
   const p = document.getElementById("portalPassword").value.trim();
 
-  // Strict credentials check
+  // Strict credentials check: Admin: 9290 | Owner: 8341
   if (u.toLowerCase() === "admin" && p === "9290") {
     currentUser = { role: "admin", name: "Developer Admin" };
   } else if (u.toLowerCase() === "owner" && p === "8341") {
     currentUser = { role: "owner", name: "Shaik Moin Uddin" };
   } else {
-    alert("Access Denied: Invalid credentials.");
+    alert("Access Denied: Invalid staff credentials.");
     return;
   }
 
@@ -568,7 +720,7 @@ function openAdminDashboardModal() {
       : "Store Owner (Shaik Moin Uddin) • Operations";
   }
 
-  // Hide developer tabs if Owner
+  // Developer-only tabs
   const isOwner = currentUser.role === "owner";
   document.getElementById("adminTabBtn-salesmodifier")?.classList.toggle("hidden", isOwner);
   document.getElementById("adminTabBtn-cms")?.classList.toggle("hidden", isOwner);
@@ -578,13 +730,14 @@ function openAdminDashboardModal() {
   renderAdminInventory();
   renderPosCatalog();
   renderCouponsTable();
+  renderAdminCustomers();
   updateAnalytics();
 }
 
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
 function switchAdminTab(tab) {
-  const tabs = ['orders', 'inventory', 'pos', 'analytics', 'salesmodifier', 'cms', 'payments', 'coupons', 'customers'];
+  const tabs = ['orders', 'inventory', 'pos', 'analytics', 'coupons', 'salesmodifier', 'cms', 'payments', 'customers'];
   tabs.forEach(t => {
     document.getElementById(`adminTab-${t}`)?.classList.toggle("hidden", t !== tab);
     const btn = document.getElementById(`adminTabBtn-${t}`);
@@ -621,7 +774,10 @@ function renderAdminInventory() {
   if (!tbody) return;
   tbody.innerHTML = products.map(p => `
     <tr class="hover:bg-neutral-50">
-      <td class="p-3 font-bold">${p.title}</td>
+      <td class="p-3 font-bold flex items-center gap-2">
+        <img src="${p.image}" class="w-8 h-8 rounded object-cover" />
+        <span>${p.title}</span>
+      </td>
       <td class="p-3 text-neutral-600">${p.category}</td>
       <td class="p-3 font-bold">${p.stock}</td>
       <td class="p-3 font-mono">₹${p.salePrice}</td>
@@ -650,6 +806,24 @@ function resetAllSalesToZero() {
   alert("All sales data reset to zero.");
 }
 
+// Manual Photo Upload in Product Editor
+function handlePhotoFileInput(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const imgUrl = e.target.result;
+    document.getElementById("editProductImage").value = imgUrl;
+    const preview = document.getElementById("photoUploadPreview");
+    if (preview) {
+      preview.src = imgUrl;
+      preview.classList.remove("hidden");
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 function openProductEditModal(id = null) {
   document.getElementById("productEditModal")?.classList.remove("hidden");
   const elId = document.getElementById("editProductId");
@@ -658,6 +832,7 @@ function openProductEditModal(id = null) {
   const elStock = document.getElementById("editProductStock");
   const elPrice = document.getElementById("editProductSalePrice");
   const elImg = document.getElementById("editProductImage");
+  const preview = document.getElementById("photoUploadPreview");
 
   if (id) {
     const p = products.find(x => x.id === id);
@@ -667,12 +842,17 @@ function openProductEditModal(id = null) {
     if (elStock) elStock.value = p.stock;
     if (elPrice) elPrice.value = p.salePrice;
     if (elImg) elImg.value = p.image;
+    if (preview) {
+      preview.src = p.image;
+      preview.classList.remove("hidden");
+    }
   } else {
     if (elId) elId.value = "";
     if (elTitle) elTitle.value = "";
     if (elStock) elStock.value = "25";
     if (elPrice) elPrice.value = "";
     if (elImg) elImg.value = "";
+    if (preview) preview.classList.add("hidden");
   }
 }
 
@@ -708,7 +888,7 @@ function handleProductFormSubmit(e) {
   renderAdminInventory();
   renderPosCatalog();
   closeProductEditModal();
-  alert("Product saved successfully!");
+  alert("Product and photo saved successfully!");
 }
 
 function handleCmsSave(e) {
@@ -754,7 +934,7 @@ function renderCouponsTable() {
 }
 
 function promptCreateCoupon() {
-  const code = prompt("Enter Promo Code (e.g. FESTIVE10):");
+  const code = prompt("Enter Promo Code (e.g. RAMADAN50):");
   if (!code) return;
   const discount = parseInt(prompt("Discount value (e.g. 50 or 10):", "50")) || 50;
   const type = prompt("Type: 'flat' or 'percent':", "flat") || "flat";
@@ -770,6 +950,36 @@ function deleteCoupon(i) {
   coupons.splice(i, 1);
   persist();
   renderCouponsTable();
+}
+
+function renderAdminCustomers() {
+  const tbody = document.getElementById("adminCustomersTableBody");
+  if (!tbody) return;
+  const customerList = users.filter(u => u.role === "customer");
+  tbody.innerHTML = customerList.map(c => `
+    <tr class="hover:bg-neutral-50">
+      <td class="p-3 font-bold">${c.name}</td>
+      <td class="p-3 font-mono">${c.phone}</td>
+      <td class="p-3">${c.email || 'N/A'}</td>
+      <td class="p-3 font-mono">${c.password}</td>
+      <td class="p-3 font-mono">${c.pin || '1234'}</td>
+      <td class="p-3 text-right">
+        <button onclick="overrideUserPassword('${c.id}')" class="text-blue-600 font-bold hover:underline">Change Pass</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function overrideUserPassword(userId) {
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  const newPass = prompt(`Enter new password for ${user.name}:`, user.password);
+  if (newPass) {
+    user.password = newPass.trim();
+    persist();
+    renderAdminCustomers();
+    alert(`Password updated for ${user.name}`);
+  }
 }
 
 function syncLiveCmsUI() {
@@ -792,6 +1002,8 @@ function logoutCurrentUser() {
   currentUser = null;
   localStorage.removeItem(KEY_SESSION);
   closeAdminDashboardModal();
+  closeCustomerProfileModal();
+  syncCustomerHeaderUI();
   alert("Logged out successfully.");
 }
 
@@ -834,8 +1046,3 @@ function selectSearchResult(id) {
 
 function openContactModal() { document.getElementById("contactModal")?.classList.remove("hidden"); }
 function closeContactModal() { document.getElementById("contactModal")?.classList.add("hidden"); }
-
-function handleUserAccountClick() {
-  if (!currentUser) openAdminLoginModal();
-  else openAdminDashboardModal();
-}
