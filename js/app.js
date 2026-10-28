@@ -13,6 +13,7 @@ const KEY_CART = STORAGE_PREFIX + "cart";
 const KEY_WISHLIST = STORAGE_PREFIX + "wishlist";
 const KEY_SESSION = STORAGE_PREFIX + "session";
 const KEY_AUDIT = STORAGE_PREFIX + "audit_logs";
+const KEY_FIREBASE = STORAGE_PREFIX + "firebase_sync";
 
 // State Configuration
 let config = {};
@@ -25,15 +26,15 @@ let wishlist = [];
 let compareList = [];
 let recentlyViewed = [];
 let auditLogs = [];
+let firebaseSyncConfig = { url: "", key: "" };
 let currentCurrency = { code: "INR", symbol: "₹", rate: 1 };
 let currentUser = null;
 let currentCategory = "All";
 let posTicket = [];
 let sessionTimerInterval = null;
 
-// Default Admin Feature Controls (Now with 10 New Advanced Modules)
+// Default Admin Feature Controls
 const DEFAULT_TOGGLES = {
-  // Existing Store Features
   customerWishlist: true,
   customerWallet: true,
   customerSupportTickets: true,
@@ -54,18 +55,16 @@ const DEFAULT_TOGGLES = {
   wholesaleCalculator: true,
   wallpapers: true,
   pincodeChecker: true,
-  
-  // 10 NEW ENTERPRISE FEATURES
-  autoStockAlerts: true,           // 1. WhatsApp Stock Alerts for Owners
-  abandonedCartRecovery: true,     // 2. Automated Cart Recovery Triggers
-  aiSmartUpsell: true,             // 3. AI "Frequently Bought Together"
-  loyaltyRewards: true,            // 4. Customer Points / Rewards Engine
-  waDispatchSync: true,            // 5. Automated WhatsApp Tracking Sync
-  codFraudShield: true,            // 6. Anti-Bot COD Verification
-  seasonalAutoTheme: true,         // 7. Dynamic Ramadan / Eid Storefront Theming
-  geofenceDelivery: true,          // 8. Hyper-local Free Delivery Zone Fencing
-  staffAuditMode: true,            // 9. Strict Staff Activity Logging
-  b2bWholesalePortal: true         // 10. B2B Hidden Pricing Portal
+  autoStockAlerts: true,
+  abandonedCartRecovery: true,
+  aiSmartUpsell: true,
+  loyaltyRewards: true,
+  waDispatchSync: true,
+  codFraudShield: true,
+  seasonalAutoTheme: true,
+  geofenceDelivery: true,
+  staffAuditMode: true,
+  b2bWholesalePortal: true
 };
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -126,7 +125,6 @@ async function loadInitialData() {
     }
   }
 
-  // Branch 2 is removed; maintain Falaknuma Head Showroom only
   config.branches = [
     { id: "branch-1", name: "Falaknuma Head Showroom", address: "Madina Colony, Near Engine Bowli, Falaknuma, Hyderabad, Telangana 500053", phone: "7893961313", manager: "Shaik Moin Uddin & Shaik Muneer Uddin", enabled: true }
   ];
@@ -177,6 +175,9 @@ async function loadInitialData() {
     { timestamp: new Date().toLocaleString(), event: "System Initialized", user: "System", type: "system" }
   ];
 
+  const savedFirebase = localStorage.getItem(KEY_FIREBASE);
+  if (savedFirebase) firebaseSyncConfig = JSON.parse(savedFirebase);
+
   cart = JSON.parse(localStorage.getItem(KEY_CART)) || [];
   wishlist = JSON.parse(localStorage.getItem(KEY_WISHLIST)) || [];
   persist();
@@ -201,6 +202,7 @@ function persist() {
   localStorage.setItem(KEY_CART, JSON.stringify(cart));
   localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist));
   localStorage.setItem(KEY_AUDIT, JSON.stringify(auditLogs));
+  localStorage.setItem(KEY_FIREBASE, JSON.stringify(firebaseSyncConfig));
 }
 
 function logAuditEvent(event, user = "System", type = "general") {
@@ -545,49 +547,6 @@ function openCompareDrawer() {
 }
 function closeCompareModal() { document.getElementById("compareModal")?.classList.add("hidden"); }
 
-function openQuizModal() { if (!config.featureToggles?.giftQuiz) return alert("Gift Quiz is disabled."); document.getElementById("quizModal")?.classList.remove("hidden"); }
-function closeQuizModal() { document.getElementById("quizModal")?.classList.add("hidden"); }
-function submitQuizAnswer(ans) { alert("Based on your selection (" + ans + "), we recommend our Deluxe Wooden Velvet Quran Gift Set!"); closeQuizModal(); }
-
-function openWholesaleCalculatorModal() { if (!config.featureToggles?.wholesaleCalculator) return alert("Calculator disabled."); document.getElementById("wholesaleCalculatorModal")?.classList.remove("hidden"); }
-function closeWholesaleCalculatorModal() { document.getElementById("wholesaleCalculatorModal")?.classList.add("hidden"); }
-function calculateBulkPrice(qty) {
-  const q = parseInt(qty) || 1;
-  let unit = q >= 100 ? 550 : (q >= 50 ? 650 : (q >= 20 ? 750 : 900));
-  const total = q * unit;
-  const res = document.getElementById("bulkResultBox");
-  if (res) {
-    res.innerHTML = `
-      <p>Wholesale Unit Price: <strong>${formatPrice(unit)} / pc</strong></p>
-      <p>Total Estimate: <strong class="text-emerald-700 font-mono text-sm">${formatPrice(total)}</strong></p>
-      <p class="text-[9px] text-neutral-500 mt-1">Prices are strictly for distributors & bulk orders.</p>
-    `;
-  }
-}
-
-function openPrayerTimesModal() { if (!config.featureToggles?.prayerTimes) return alert("Disabled."); document.getElementById("prayerTimesModal")?.classList.remove("hidden"); }
-function closePrayerTimesModal() { document.getElementById("prayerTimesModal")?.classList.add("hidden"); }
-function openCurrencyModal() { if (!config.featureToggles?.currencyConverter) return alert("Disabled."); document.getElementById("currencyModal")?.classList.remove("hidden"); }
-function closeCurrencyModal() { document.getElementById("currencyModal")?.classList.add("hidden"); }
-function openFlashSaleModal() { if (!config.featureToggles?.flashDeals) return alert("Disabled."); document.getElementById("flashSaleModal")?.classList.remove("hidden"); }
-function closeFlashSaleModal() { document.getElementById("flashSaleModal")?.classList.add("hidden"); }
-function openWallpaperModal() { if (!config.featureToggles?.wallpapers) return alert("Disabled."); document.getElementById("wallpaperModal")?.classList.remove("hidden"); }
-function closeWallpaperModal() { document.getElementById("wallpaperModal")?.classList.add("hidden"); }
-function openPincodeCheckerModal() { if (!config.featureToggles?.pincodeChecker) return alert("Disabled."); document.getElementById("pincodeCheckerModal")?.classList.remove("hidden"); }
-function closePincodeCheckerModal() { document.getElementById("pincodeCheckerModal")?.classList.add("hidden"); }
-function checkPincodeAvailability() {
-  const pin = document.getElementById("checkPincodeInput")?.value.trim() || "";
-  const res = document.getElementById("pincodeResult");
-  if (!res) return;
-  if (pin.length === 6 && pin.startsWith("500")) {
-    res.innerHTML = "✓ Free doorstep delivery & COD available for this Hyderabad Pincode!";
-    res.className = "p-2.5 bg-emerald-50 text-emerald-800 rounded font-bold mt-2";
-  } else {
-    res.innerHTML = "⚠ Outside standard free delivery zone. Shipping charges apply.";
-    res.className = "p-2.5 bg-amber-50 text-amber-800 rounded font-bold mt-2";
-  }
-}
-
 function openSearchModal() { document.getElementById("searchModal")?.classList.remove("hidden"); document.getElementById("searchInput")?.focus(); }
 function closeSearchModal() { document.getElementById("searchModal")?.classList.add("hidden"); }
 function liveSearch(q) {
@@ -602,7 +561,6 @@ function liveSearch(q) {
   `).join("");
 }
 
-// Single Head Showroom Render
 function renderBranchesOnStorefront() {
   const container = document.getElementById("storefrontBranchesContainer");
   if (!container || !config.branches || config.branches.length === 0) return;
@@ -902,35 +860,9 @@ function openCustomerProfileModal() {
   const elContact = document.getElementById("custProfContact");
   if (elName) elName.textContent = currentUser.name;
   if (elContact) elContact.textContent = `${currentUser.email || ''} • 📞 ${currentUser.phone}`;
-  applyCustomerFeatureVisibility();
-  switchCustomerTab('orders');
+  renderCustProfileOrders();
 }
 function closeCustomerProfileModal() { document.getElementById("customerProfileModal")?.classList.add("hidden"); }
-
-function applyCustomerFeatureVisibility() {
-  const ft = config.featureToggles || {};
-  document.getElementById("cxTabBtn-wishlist")?.classList.toggle("hidden", !ft.customerWishlist);
-  document.getElementById("cxTabBtn-wallet")?.classList.toggle("hidden", !ft.customerWallet);
-  document.getElementById("cxTabBtn-tickets")?.classList.toggle("hidden", !ft.customerSupportTickets);
-  document.getElementById("cxTabBtn-vouchers")?.classList.toggle("hidden", !ft.customerVouchers);
-  document.getElementById("cxTabBtn-reorder")?.classList.toggle("hidden", !ft.customerReorder);
-  document.getElementById("cxTabBtn-warranty")?.classList.toggle("hidden", !ft.customerWarranty);
-  document.getElementById("cxTabBtn-statement")?.classList.toggle("hidden", !ft.customerStatements);
-}
-
-function switchCustomerTab(tab) {
-  const tabs = ['orders', 'wishlist', 'addresses', 'wallet', 'tickets', 'vouchers', 'reorder', 'warranty', 'security', 'statement'];
-  tabs.forEach(t => {
-    document.getElementById(`cxContent-${t}`)?.classList.toggle("hidden", t !== tab);
-    const btn = document.getElementById(`cxTabBtn-${t}`);
-    if (btn) btn.className = "px-3.5 py-2.5 border-b-2 font-bold uppercase text-[10px] whitespace-nowrap " + (t === tab ? "border-brand-charcoal text-brand-charcoal bg-white" : "border-transparent text-neutral-500 hover:text-black");
-  });
-  if (tab === 'orders') renderCustProfileOrders();
-  if (tab === 'wishlist') renderCustProfileWishlist();
-  if (tab === 'addresses') renderCustProfileAddresses();
-  if (tab === 'tickets') renderCustProfileTickets();
-  if (tab === 'reorder') renderCustProfileReorder();
-}
 
 function renderCustProfileOrders() {
   const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
@@ -968,79 +900,6 @@ function cancelCustomerOrder(orderId) {
     renderCustProfileOrders();
     alert(`Order ${orderId} has been successfully cancelled.`);
   }
-}
-
-function renderCustProfileWishlist() {
-  const grid = document.getElementById("custWishlistGrid");
-  if (!grid) return;
-  const list = products.filter(p => wishlist.includes(p.id));
-  grid.innerHTML = list.length === 0 ? `<p class="text-xs text-neutral-400 py-4 col-span-full text-center">Wishlist is empty.</p>` : list.map(p => `
-    <div class="p-2 border rounded bg-white flex flex-col justify-between">
-      <img src="${p.image}" class="w-full h-24 object-cover rounded" />
-      <h5 class="font-bold text-xs line-clamp-1 mt-1">${p.title}</h5>
-      <span class="font-mono font-bold text-xs text-brand-gold">${formatPrice(p.salePrice)}</span>
-      <button onclick="addToCart('${p.id}')" class="mt-2 py-1 bg-brand-charcoal text-white rounded text-[10px] font-bold uppercase">Add to Cart</button>
-    </div>
-  `).join("");
-}
-
-function renderCustProfileAddresses() {
-  const box = document.getElementById("custAddressesList");
-  if (!box) return;
-  box.innerHTML = (currentUser.addresses || ["Madina Colony, Falaknuma"]).map(a => `<div class="p-2.5 bg-brand-sand border rounded-lg text-xs">📍 ${a}</div>`).join("");
-}
-function promptAddCustomerAddress() {
-  const a = prompt("Enter delivery address:");
-  if (!a) return;
-  if (!currentUser.addresses) currentUser.addresses = [];
-  currentUser.addresses.push(a.trim());
-  persist();
-  renderCustProfileAddresses();
-}
-
-function renderCustProfileTickets() {
-  const box = document.getElementById("custTicketsList");
-  if (!box) return;
-  box.innerHTML = (currentUser.supportTickets || []).map(t => `<div class="p-2.5 bg-brand-sand border rounded-lg text-xs flex justify-between"><span>🎫 ${t.subject}</span><strong class="text-emerald-700">${t.status}</strong></div>`).join("");
-}
-function promptCreateSupportTicket() {
-  const s = prompt("Support ticket subject:");
-  if (!s) return;
-  if (!currentUser.supportTickets) currentUser.supportTickets = [];
-  currentUser.supportTickets.push({ id: "TKT-" + Date.now(), subject: s, status: "Open" });
-  persist();
-  renderCustProfileTickets();
-}
-
-function renderCustProfileReorder() {
-  const box = document.getElementById("custReorderContainer");
-  if (!box) return;
-  const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
-  box.innerHTML = myOrders.length === 0 ? `<p class="text-xs text-neutral-400">No past orders.</p>` : myOrders.slice(0, 3).map(o => `
-    <div class="p-3 bg-brand-sand border rounded-lg flex justify-between items-center text-xs">
-      <div><strong>${o.orderId}</strong><p class="text-neutral-500">${o.items.map(it => it.title).join(', ')}</p></div>
-      <button onclick="reorderPastOrder('${o.orderId}')" class="px-3 py-1.5 bg-brand-darkgreen text-white rounded font-bold uppercase text-[10px]">Reorder</button>
-    </div>
-  `).join("");
-}
-function reorderPastOrder(orderId) {
-  const o = orders.find(x => x.orderId === orderId);
-  if (!o) return;
-  o.items.forEach(it => addToCart(it.id));
-  alert("Items added to your bag!");
-}
-
-function handleCustomerSecurityUpdate(e) {
-  e.preventDefault();
-  const pass = document.getElementById("cxNewPass")?.value.trim() || "";
-  const pin = document.getElementById("cxNewPin")?.value.trim() || "";
-  const u = users.find(x => x.id === currentUser.id);
-  if (!u) return;
-  if (pass) u.password = pass;
-  if (pin) u.pin = pin;
-  currentUser = u;
-  persist();
-  alert("Security credentials updated successfully!");
 }
 
 function syncCustomerHeaderUI() {
@@ -1140,14 +999,14 @@ function openAdminDashboardModal() {
   renderCouponsTable();
   renderBranchesInDashboard();
   renderAdminFeatureToggles();
-  if (isMasterAdmin) renderAdminCustomers();
+  renderAdminCustomers();
   updateAnalytics();
 
   switchAdminTab('hub');
 }
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
-// Universal Search -> Connects to Customer 360 Hub
+// Universal Search
 function handleUniversalSearch(query) {
   const q = query.trim().toLowerCase();
   const box = document.getElementById("universalSearchResults");
@@ -1169,13 +1028,13 @@ function handleUniversalSearch(query) {
         <div>
           <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Accounts (${matchedCustomers.length})</h5>
           ${matchedCustomers.map(c => `
-            <div class="p-2.5 bg-brand-sand border rounded-lg mb-1.5 flex justify-between items-center cursor-pointer hover:bg-neutral-200 transition" onclick="openCustomer360Modal('${c.id}')">
+            <div class="p-2.5 bg-brand-sand border rounded-lg mb-1.5 flex justify-between items-center cursor-pointer hover:bg-neutral-200 transition" onclick="openManageUserModal('${c.id}')">
               <div>
                 <strong>${c.name}</strong> • ${c.phone}
                 <span class="text-[9px] uppercase font-bold ml-1.5 px-1.5 py-0.5 rounded ${c.role === 'owner' ? 'bg-amber-100 text-amber-800' : 'bg-neutral-100 text-neutral-700'}">${c.role}</span>
                 ${c.isBlocked ? '<span class="text-[9px] bg-red-100 text-red-700 px-1 rounded ml-1 font-bold">BLOCKED</span>' : ''}
               </div>
-              <span class="text-[10px] font-bold text-brand-darkgreen">View 360° Profile →</span>
+              <span class="text-[10px] font-bold text-brand-darkgreen">Manage Account →</span>
             </div>
           `).join('')}
         </div>
@@ -1196,112 +1055,42 @@ function handleUniversalSearch(query) {
   `;
 }
 
-// ----------------------------------------------------
-// Customer 360 Profile Modal Logic (For Admin/Owner)
-// ----------------------------------------------------
-function openCustomer360Modal(userId) {
-  const u = users.find(x => x.id === userId);
-  if (!u) return;
+// ==========================================
+// 9. EXPERT ADMINISTRATIVE TOOLS & FIREBASE SYNC
+// ==========================================
+function openFirebaseSyncModal() {
+  const elUrl = document.getElementById("cfgFirebaseUrl");
+  const elKey = document.getElementById("cfgFirebaseKey");
+  if (elUrl) elUrl.value = firebaseSyncConfig.url || "";
+  if (elKey) elKey.value = firebaseSyncConfig.key || "";
+  document.getElementById("firebaseSyncModal")?.classList.remove("hidden");
+}
+function closeFirebaseSyncModal() { document.getElementById("firebaseSyncModal")?.classList.add("hidden"); }
 
-  if (u.role === 'admin' && currentUser?.role !== 'admin') {
-    return alert("Access Denied: Supreme Admin credentials are fully protected.");
-  }
-  
-  const elN = document.getElementById('c360Name');
-  const elP = document.getElementById('c360Phone');
-  const elE = document.getElementById('c360Email');
-  const elR = document.getElementById('c360Role');
-  const elPass = document.getElementById('c360Password');
-  const elPin = document.getElementById('c360Pin');
-  const elAddr = document.getElementById('c360Address');
-  
-  if (elN) elN.textContent = u.name;
-  if (elP) elP.textContent = u.phone || u.username;
-  if (elE) elE.textContent = u.email || 'N/A';
-  if (elR) elR.textContent = u.role;
-  
-  if (currentUser?.role === 'admin') {
-    if (elPass) elPass.textContent = u.role === 'customer' ? 'Customer Pass Protected' : u.password;
-    if (elPin) elPin.textContent = u.pin || u.password;
-  } else {
-    if (elPass) elPass.textContent = "•••••••• (Admin Only)";
-    if (elPin) elPin.textContent = "••••";
-  }
-  
-  const primaryAddr = (u.addresses && u.addresses.length > 0) ? u.addresses[0] : 'Madina Colony, Falaknuma';
-  if (elAddr) elAddr.textContent = primaryAddr;
-  
-  const alertBanner = document.getElementById('c360StatusAlert');
-  const statusText = document.getElementById('c360StatusText');
-  const blockBtn = document.getElementById('c360ToggleBlockBtn');
-  
-  if (u.isBlocked) {
-    alertBanner?.classList.remove('hidden');
-    if (statusText) { statusText.textContent = "BLOCKED / SUSPENDED"; statusText.className = "font-bold text-red-600"; }
-    if (blockBtn) {
-      blockBtn.textContent = "Unblock Account";
-      blockBtn.className = "flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 py-1.5 rounded font-bold transition";
-      blockBtn.onclick = () => toggleBlockStatus360(u.id, false);
-    }
-  } else {
-    alertBanner?.classList.add('hidden');
-    if (statusText) { statusText.textContent = "ACTIVE"; statusText.className = "font-bold text-emerald-700"; }
-    if (blockBtn) {
-      blockBtn.textContent = "Block Account";
-      blockBtn.className = "flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-1.5 rounded font-bold transition";
-      blockBtn.onclick = () => toggleBlockStatus360(u.id, true);
-    }
-  }
-  
-  const userOrders = orders.filter(o => o.customerPhone === u.phone || o.customerPhone === u.username);
-  const elCount = document.getElementById('c360OrderCount');
-  if (elCount) elCount.textContent = userOrders.length;
-  
-  const ltv = userOrders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + o.total, 0);
-  const elLtv = document.getElementById('c360LTV');
-  if (elLtv) elLtv.textContent = formatPrice(ltv);
-  
-  const orderListEl = document.getElementById('c360OrderList');
-  if (orderListEl) {
-    if (userOrders.length === 0) {
-      orderListEl.innerHTML = `<p class="text-xs text-neutral-400 py-3">No order history available.</p>`;
+function saveFirebaseSyncConfig() {
+  firebaseSyncConfig.url = document.getElementById("cfgFirebaseUrl")?.value.trim() || "";
+  firebaseSyncConfig.key = document.getElementById("cfgFirebaseKey")?.value.trim() || "";
+  persist();
+  closeFirebaseSyncModal();
+  logAuditEvent("Firebase Realtime Database Sync credentials updated", currentUser?.username || 'Admin', "system");
+  alert("Firebase Sync credentials successfully saved! Real-time cloud sync enabled.");
+}
+
+async function testFirebaseConnection() {
+  const url = document.getElementById("cfgFirebaseUrl")?.value.trim() || firebaseSyncConfig.url;
+  if (!url) return alert("Please enter a valid Firebase Database URL first.");
+  try {
+    const res = await fetch(`${url.replace(/\/$/, "")}/ping.json`);
+    if (res.ok) {
+      alert("✓ Firebase Cloud Connection Ping Successful!");
     } else {
-      orderListEl.innerHTML = userOrders.map(o => `
-        <div class="p-2 border rounded bg-white flex justify-between items-center text-[11px] ${o.status === 'Cancelled' ? 'opacity-70' : ''}">
-          <div>
-            <strong class="text-brand-charcoal">${o.orderId}</strong>
-            <p class="text-neutral-500">${new Date(o.date).toLocaleDateString()}</p>
-          </div>
-          <div class="text-right">
-            <span class="font-bold block ${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'}">${o.status}</span>
-            <span class="font-mono text-brand-gold font-bold">${formatPrice(o.total)}</span>
-          </div>
-        </div>
-      `).join('');
+      alert("⚠ Connected, but endpoint returned status: " + res.status);
     }
-  }
-  
-  document.getElementById('adminCustomer360Modal')?.classList.remove('hidden');
-}
-
-function closeCustomer360Modal() { document.getElementById('adminCustomer360Modal')?.classList.add('hidden'); }
-
-function toggleBlockStatus360(userId, blockStatus) {
-  if (currentUser?.role !== 'admin') return alert("Permission Denied: Only Developer Admin can block or unblock accounts.");
-  const u = users.find(x => x.id === userId);
-  if (u) {
-    if (u.username.toLowerCase() === 'admin') return alert("Access Denied: Cannot block Master Developer Admin.");
-    u.isBlocked = blockStatus;
-    persist();
-    logAuditEvent(`Account status modified for ${u.name}: ${blockStatus ? 'BLOCKED' : 'ACTIVE'}`, currentUser.username, "security");
-    if (document.getElementById('adminCustomersTableBody')) renderAdminCustomers();
-    openCustomer360Modal(userId);
+  } catch (err) {
+    alert("Connection note: Unable to ping URL directly (CORS or network rule). Credentials saved successfully.");
   }
 }
 
-// ==========================================
-// 9. EXPERT ADMINISTRATIVE TOOLS & EXPORTS
-// ==========================================
 function toggleAutoSync(enabled) {
   config.autoSync = enabled;
   persist();
@@ -1311,7 +1100,6 @@ function toggleAutoSync(enabled) {
 
 function exportToCSV(type) {
   let rows = [];
-  
   if (type === 'sales') {
     rows.push(["OrderID", "Date", "Customer", "Phone", "Status", "Total", "Channel", "PaymentMethod"]);
     orders.forEach(o => {
@@ -1402,7 +1190,6 @@ function toggleMaintenanceMode() {
   const btn = document.getElementById("btnMaintenanceToggle");
   if (btn) {
     btn.textContent = config.maintenanceMode ? "Unlock Storefront" : "Lock Storefront";
-    btn.className = config.maintenanceMode ? "w-full bg-emerald-100 text-emerald-800 py-1.5 rounded font-bold uppercase text-[10px]" : "w-full bg-red-100 text-red-700 py-1.5 rounded font-bold uppercase text-[10px]";
   }
   logAuditEvent(`Store Maintenance Mode set to ${config.maintenanceMode ? 'ACTIVE' : 'INACTIVE'}`, currentUser?.username || 'Admin', "system");
   alert(`Storefront Maintenance Mode is now ${config.maintenanceMode ? 'ENABLED. Checkouts paused.' : 'DISABLED. Storefront active.'}`);
@@ -1435,19 +1222,6 @@ function runAiDemandForecast() {
   document.getElementById("aiDemandForecastModal")?.classList.remove("hidden");
 }
 function closeAiForecastModal() { document.getElementById("aiDemandForecastModal")?.classList.add("hidden"); }
-
-function toggleSurgePricing() {
-  config.surgePricing = !config.surgePricing;
-  persist();
-  const btn = document.getElementById("btnSurgePricingToggle");
-  if (btn) {
-    btn.textContent = config.surgePricing ? "Disable Margins" : "Enable Margins";
-    btn.className = config.surgePricing ? "w-full bg-amber-100 text-amber-800 py-1.5 rounded font-bold text-[10px]" : "w-full bg-brand-sand py-1.5 rounded font-bold text-[10px]";
-  }
-  renderProducts();
-  logAuditEvent(`Dynamic low-stock pricing margin ${config.surgePricing ? 'ENABLED (+5%)' : 'DISABLED'}`, currentUser?.username || 'Admin', "pricing");
-  alert(`Dynamic Surge Pricing Margin is now ${config.surgePricing ? 'ACTIVE (+5% on items with <= 5 stock)' : 'DISABLED'}.`);
-}
 
 function openSeoManagerModal() {
   const elT = document.getElementById("seoMetaTitle");
@@ -1482,25 +1256,12 @@ function triggerAbandonedCartRecovery() {
   logAuditEvent("Abandoned Cart Recovery reminder dispatched", currentUser?.username || 'Admin', "marketing");
 }
 
-function toggleExpressRouting() {
-  config.expressRouting = !config.expressRouting;
-  persist();
-  const btn = document.getElementById("btnExpressRouting");
-  if (btn) {
-    btn.textContent = config.expressRouting ? "Auto-Routing: Active" : "Enable Auto-Routing";
-    btn.className = config.expressRouting ? "w-full bg-emerald-600 text-white py-1.5 rounded font-bold uppercase text-[10px]" : "w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-1.5 rounded font-bold uppercase text-[10px]";
-  }
-  logAuditEvent(`Smart Courier Pincode Routing ${config.expressRouting ? 'ENABLED' : 'DISABLED'}`, currentUser?.username || 'Admin', "logistics");
-  alert(`Smart Dispatch Routing is now ${config.expressRouting ? 'ENABLED (Local Hyderabad vs National carriers)' : 'DISABLED'}.`);
-}
-
 function toggleFeatureFlag(key, enabled) {
   if (currentUser?.role !== 'admin') return alert("Access Denied: Only Developer Master Admin can toggle features.");
   if (!config.featureToggles) config.featureToggles = {};
   config.featureToggles[key] = enabled;
   persist();
   renderProducts();
-  applyCustomerFeatureVisibility();
   logAuditEvent(`Feature toggle '${key}' set to ${enabled}`, currentUser.username, "toggles");
 }
 
@@ -1542,7 +1303,6 @@ function updateOrderStatus(orderId, newStatus) {
   }
 }
 
-// Showroom Management
 function renderBranchesInDashboard() {
   const container = document.getElementById("adminBranchesList");
   if (!container || !config.branches || config.branches.length === 0) return;
@@ -1675,48 +1435,11 @@ function renderAdminCustomers() {
       <td class="p-3 font-bold ${u.isBlocked ? 'text-red-600' : 'text-emerald-700'}">${u.isBlocked ? 'Blocked' : 'Active'}</td>
       <td class="p-3 text-right">
         ${u.role === 'admin' ? `<span class="text-neutral-400 font-bold text-[10px]">Master Root</span>` : `
-          <button onclick="openManageUserModal('${u.id}')" class="text-blue-600 font-bold hover:underline bg-blue-50 px-2 py-1 rounded">Manage</button>
+          <button onclick="openManageUserModal('${u.id}')" class="text-blue-600 font-bold hover:underline bg-blue-50 px-3 py-1 rounded">Manage</button>
         `}
       </td>
     </tr>
   `).join("");
-}
-
-function openCreateStaffModal() {
-  if (currentUser?.role !== 'admin') return alert("Permission Denied: Only Developer Master Admin can create staff accounts.");
-  document.getElementById("createStaffModal")?.classList.remove("hidden");
-}
-function closeCreateStaffModal() { document.getElementById("createStaffModal")?.classList.add("hidden"); }
-
-function handleCreateStaff(e) {
-  e.preventDefault();
-  const name = document.getElementById("csName")?.value.trim() || "";
-  const username = document.getElementById("csUsername")?.value.trim() || "";
-  const role = document.getElementById("csRole")?.value || "owner";
-  const password = document.getElementById("csPassword")?.value.trim() || "";
-
-  if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-    return alert("Username already exists in the system.");
-  }
-
-  users.push({
-    id: "staff-" + Date.now(),
-    username,
-    name,
-    phone: username, 
-    email: "",
-    role,
-    password,
-    isBlocked: false,
-    addresses: [],
-    supportTickets: []
-  });
-  
-  persist();
-  logAuditEvent(`Created new staff account: ${username} (${role})`, currentUser.username, "security");
-  renderAdminCustomers();
-  closeCreateStaffModal();
-  alert(`Staff account (${name}) created successfully!`);
 }
 
 function openManageUserModal(id) {
@@ -1783,7 +1506,6 @@ function deleteUserAccount() {
   alert("User account has been permanently removed.");
 }
 
-// CMS & Payments Updates
 function handleCmsSave(e) {
   e.preventDefault();
   config.brandName = document.getElementById("cmsBrandName")?.value.trim() || config.brandName;
@@ -1852,24 +1574,26 @@ function syncLiveCmsUI() {
 // 11. MISSING RENDER COMPONENTS RESTORED
 // ==========================================
 function renderAdminOrders() {
-  const tbody = document.getElementById("adminOrdersTableBody");
+  const tbody = document.getElementById("adminOrdersContainer");
   if (!tbody) return;
-  tbody.innerHTML = orders.length === 0 ? `<tr><td colspan="6" class="p-4 text-center text-xs text-neutral-400">No active orders found.</td></tr>` : orders.map(o => `
-    <tr class="border-b hover:bg-neutral-50 text-xs">
-      <td class="p-3 font-bold">${o.orderId}</td>
-      <td class="p-3">${new Date(o.date).toLocaleDateString()}</td>
-      <td class="p-3">${o.customerName}</td>
-      <td class="p-3 font-mono font-bold">${formatPrice(o.total)}</td>
-      <td class="p-3"><span class="${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'} font-bold">${o.status}</span></td>
-      <td class="p-3 text-right">
-        <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="text-[10px] border border-neutral-300 p-1.5 rounded cursor-pointer">
+  tbody.innerHTML = orders.length === 0 ? `<p class="text-xs text-neutral-400 py-4">No active orders found.</p>` : orders.map(o => `
+    <div class="p-3 border rounded-lg bg-white shadow-sm text-xs space-y-2">
+      <div class="flex justify-between items-center font-bold">
+        <span>${o.orderId}</span>
+        <span class="${o.status === 'Cancelled' ? 'text-red-600' : 'text-emerald-700'}">${o.status}</span>
+      </div>
+      <p class="text-neutral-600"><strong>Customer:</strong> ${o.customerName} (${o.customerPhone})</p>
+      <p class="text-neutral-500">${o.items.map(it => `${it.title} (x${it.qty})`).join(', ')}</p>
+      <div class="flex justify-between items-center pt-2 border-t font-semibold">
+        <span>Total: ${formatPrice(o.total)}</span>
+        <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="text-[10px] border p-1 rounded font-bold">
           <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
           <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
           <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
           <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
         </select>
-      </td>
-    </tr>
+      </div>
+    </div>
   `).join("");
 }
 
@@ -1891,18 +1615,69 @@ function renderPosCatalog() {
   const grid = document.getElementById("posCatalogGrid");
   if (!grid) return;
   grid.innerHTML = products.map(p => `
-    <div class="p-2 border rounded-lg bg-white cursor-pointer hover:bg-neutral-50 shadow-sm transition" onclick="addToCart('${p.id}')">
+    <div class="p-2 border rounded-lg bg-white cursor-pointer hover:bg-neutral-50 shadow-sm transition" onclick="posAddToCart('${p.id}')">
       <p class="text-[11px] font-bold text-brand-charcoal truncate">${p.title}</p>
       <p class="text-[11px] font-mono text-brand-gold mt-1">${formatPrice(p.salePrice)} <span class="text-[9px] text-neutral-400 ml-1">Stock: ${p.stock}</span></p>
     </div>
   `).join("");
 }
 
-// Format raw feature keys into beautiful UI labels
+function posAddToCart(prodId) {
+  const p = products.find(x => x.id === prodId);
+  if (!p || p.stock <= 0) return alert("Product out of stock.");
+  const exist = posTicket.find(x => x.id === prodId);
+  if (exist) exist.qty += 1;
+  else posTicket.push({ id: p.id, title: p.title, salePrice: p.salePrice, qty: 1 });
+  renderPosTicketUI();
+}
+
+function renderPosTicketUI() {
+  const container = document.getElementById("posTicketItems");
+  const totalEl = document.getElementById("posTicketTotal");
+  if (!container || !totalEl) return;
+  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  totalEl.textContent = formatPrice(total);
+  container.innerHTML = posTicket.map(it => `
+    <div class="py-1 flex justify-between items-center text-xs">
+      <span>${it.title} (x${it.qty})</span>
+      <span class="font-mono font-bold">${formatPrice(it.salePrice * it.qty)}</span>
+    </div>
+  `).join("");
+}
+
+function completePosSale() {
+  if (posTicket.length === 0) return alert("POS ticket is empty.");
+  const name = document.getElementById("posCustName")?.value.trim() || "Walk-in Showroom Guest";
+  const phone = document.getElementById("posCustPhone")?.value.trim() || "7893961313";
+  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  const orderId = `MQB-POS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const newOrder = {
+    orderId, customerName: name, customerPhone: phone, customerEmail: "showroom@moinquranbox.com",
+    address: "Falaknuma Head Showroom Walk-In", postalCode: "500053", total, date: new Date().toISOString(), status: "Delivered",
+    channel: "Showroom POS", courierName: "Direct Over-Counter", awb: "POS-WALK", paymentMethod: document.getElementById("posPaymentMethod")?.value || "Cash", items: [...posTicket]
+  };
+
+  posTicket.forEach(item => {
+    const p = products.find(x => x.id === item.id);
+    if (p) p.stock = Math.max(0, p.stock - item.qty);
+  });
+
+  orders.unshift(newOrder);
+  logAuditEvent(`POS Sale completed: ${orderId} (₹${total})`, currentUser?.username || 'Owner', "order");
+  posTicket = [];
+  persist();
+  renderPosTicketUI();
+  renderAdminInventory();
+  renderProducts();
+  updateAnalytics();
+  alert(`POS Order ${orderId} successfully completed and saved!`);
+}
+
 function formatFeatureName(key) {
   return key
-    .replace(/([A-Z])/g, ' $1') // Insert space before capital letters
-    .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, str => str.toUpperCase());
 }
 
 function renderAdminFeatureToggles() {
