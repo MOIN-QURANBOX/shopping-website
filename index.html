@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>MOIN QURAN BOX | Luxury Islamic Store & Manufacturer Hyderabad</title>
   
-  <!-- External Fonts -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -42,7 +42,7 @@
     }
   </script>
 
-  <!-- External Modular Theme Stylesheet -->
+  <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/theme.css" />
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
@@ -90,19 +90,13 @@
 
         <!-- Right: Actions -->
         <div class="flex items-center gap-0.5 sm:gap-2 shrink-0">
-          <button onclick="openWishlistModal()" class="p-2 text-brand-charcoal hover:text-red-500 relative transition" title="Wishlist">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-            </svg>
-          </button>
-
           <button onclick="openSearchModal()" class="p-2 text-brand-charcoal hover:opacity-70 transition" title="Search Store">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </button>
 
-          <button onclick="handleUserAccountClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Account / Login">
+          <button onclick="handleUserAccountClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Staff Portal">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
@@ -159,11 +153,11 @@
           <p class="text-[10px] text-brand-muted truncate">BlueDart, DTDC, Porter</p>
         </div>
       </div>
-      <div onclick="openAuthModal('face')" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
-        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-base">📷</div>
+      <div onclick="openAdminLoginModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-base">🔐</div>
         <div class="truncate">
-          <p class="font-bold text-brand-charcoal">Face / PIN Login</p>
-          <p class="text-[10px] text-brand-muted truncate">Instant Biometrics</p>
+          <p class="font-bold text-brand-charcoal">Staff Portal</p>
+          <p class="text-[10px] text-brand-muted truncate">Admin &amp; Owner Access</p>
         </div>
       </div>
       <div onclick="openContactModal()" class="bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm transition">
@@ -179,7 +173,7 @@
     <div id="catalogTopAnchor" class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pb-4 border-b border-brand-border gap-3">
       <div>
         <h2 id="currentCategoryHeading" class="serif-title text-2xl sm:text-3xl font-semibold text-brand-charcoal">Our Bestsellers</h2>
-        <p class="text-xs text-brand-muted mt-0.5 uppercase tracking-wider">Authentic prints, handcrafted boxes, and sacred accessories</p>
+        <p class="text-xs text-brand-muted mt-0.5 uppercase tracking-wider">Direct manufacturer wholesale &amp; retail inventory</p>
       </div>
       <div class="flex items-center gap-2 text-xs">
         <label class="flex items-center gap-1.5 cursor-pointer bg-white border border-brand-border px-2.5 py-1.5 rounded-lg">
@@ -264,11 +258,11 @@
         </nav>
       </div>
       <div class="pt-6 border-t border-brand-border">
-        <button onclick="handleUserAccountClick(); toggleDrawer(false);" class="flex items-center gap-3 text-sm font-medium text-brand-charcoal hover:text-brand-gold">
+        <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="flex items-center gap-3 text-sm font-medium text-brand-charcoal hover:text-brand-gold">
           <svg class="w-5 h-5 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
-          <span id="drawerAccountText">Customer Login</span>
+          <span>Staff Login (Admin / Owner)</span>
         </button>
       </div>
     </div>
@@ -316,110 +310,32 @@
     </div>
   </div>
 
-  <!-- ================= AUTH MODAL ================= -->
-  <div id="authModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative max-h-[92vh] overflow-y-auto">
-      <button onclick="closeAuthModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      
-      <div class="flex border-b border-brand-border mb-6">
-        <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-brand-charcoal text-brand-charcoal">Password / PIN</button>
-        <button id="authTabFace" onclick="switchAuthTab('face')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400">Face Scan</button>
-        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 pb-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400">Register</button>
-      </div>
-
-      <!-- Tab 1: Password Login -->
-      <div id="loginFormContainer">
-        <form onsubmit="handleCustomerLogin(event)" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Email or Mobile Number</label>
-            <input type="text" id="loginIdentifier" required placeholder="Enter registered email or phone" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-xs focus:outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-1">Password or 4-Digit PIN</label>
-            <input type="password" id="loginPassword" required placeholder="Enter password or PIN" class="w-full bg-white border border-brand-border rounded-lg px-3.5 py-2.5 text-xs focus:outline-none" />
-          </div>
-          <button type="submit" class="w-full py-3 bg-brand-charcoal text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-800 transition shadow">
-            Sign In to Customer Account
-          </button>
-        </form>
-      </div>
-
-      <!-- Tab 2: Strict Face Verification -->
-      <div id="faceScanContainer" class="hidden space-y-4 text-center">
-        <p class="text-xs text-brand-muted">Enter your registered Phone/Email below. Camera scans and strictly verifies against your specific account only.</p>
-        <div class="max-w-xs mx-auto">
-          <input type="text" id="faceLoginIdentifier" placeholder="Enter Phone or Email first" class="w-full bg-white border rounded-lg px-3 py-2 text-xs font-medium text-center mb-3" />
-        </div>
-        <div class="relative w-64 h-64 mx-auto rounded-2xl overflow-hidden bg-black border-2 border-brand-gold shadow-lg flex items-center justify-center">
-          <video id="faceLoginVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-          <div class="scanner-line"></div>
-          <div id="faceScanStatusOverlay" class="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] py-1 px-2 rounded font-mono">
-            Initializing Camera...
-          </div>
-        </div>
-        <div class="flex gap-2 justify-center">
-          <button type="button" onclick="triggerFaceCaptureAndMatch()" class="bg-brand-darkgreen text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow">
-            🔍 Verify &amp; Unlock
-          </button>
-          <button type="button" onclick="stopFaceCamera()" class="border border-brand-border bg-white px-3 py-2.5 rounded-lg text-xs font-semibold">Cancel</button>
-        </div>
-      </div>
-
-      <!-- Tab 3: Register -->
-      <div id="registerFormContainer" class="hidden">
-        <form onsubmit="handleCustomerRegister(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Full Name *</label>
-            <input type="text" id="regName" required placeholder="e.g. Mohammed Farhan" class="w-full bg-white border rounded-lg px-3 py-2 text-xs" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Email Address</label>
-              <input type="email" id="regEmail" placeholder="farhan@example.com" class="w-full bg-white border rounded-lg px-3 py-2 text-xs" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Mobile Phone *</label>
-              <input type="tel" id="regPhone" required placeholder="10-digit mobile" class="w-full bg-white border rounded-lg px-3 py-2 text-xs" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">Password *</label>
-              <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-white border rounded-lg px-3 py-2 text-xs" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-brand-charcoal uppercase mb-0.5">4-Digit PIN</label>
-              <input type="password" maxlength="4" id="regPin" placeholder="e.g. 1234" class="w-full bg-white border rounded-lg px-3 py-2 text-xs text-center font-mono" />
-            </div>
-          </div>
-          <button type="submit" class="w-full py-3 bg-brand-charcoal text-white text-xs font-bold uppercase rounded-lg">Create Account</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
   <!-- ================= MANAGEMENT PORTAL LOGIN ================= -->
   <div id="adminLoginModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-brand-cream border border-brand-border rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
       <button onclick="closeAdminLoginModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
-      <h3 class="serif-title text-xl font-bold text-brand-charcoal text-center mb-4">Management Portal</h3>
+      <div class="text-center mb-4">
+        <h3 class="serif-title text-xl font-bold text-brand-charcoal">Management Portal</h3>
+        <p class="text-[11px] text-brand-muted mt-1">Authorized Developer Admin &amp; Store Owner Access</p>
+      </div>
       <form onsubmit="handlePortalLogin(event)" class="space-y-3.5 text-xs">
         <div>
           <label class="block font-semibold mb-1">Username / ID</label>
-          <input type="text" id="portalUsername" required class="w-full bg-white border rounded-lg px-3 py-2" />
+          <input type="text" id="portalUsername" required placeholder="Admin or Owner" class="w-full bg-white border rounded-lg px-3 py-2" />
         </div>
         <div>
           <label class="block font-semibold mb-1">Security PIN / Password</label>
-          <input type="password" id="portalPassword" required class="w-full bg-white border rounded-lg px-3 py-2" />
+          <input type="password" id="portalPassword" required placeholder="Enter password" class="w-full bg-white border rounded-lg px-3 py-2" />
         </div>
         <button type="submit" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded-lg">Unlock Dashboard</button>
       </form>
     </div>
   </div>
 
-  <!-- ================= MASTER DASHBOARD ================= -->
+  <!-- ================= MASTER MANAGEMENT CONTROL CENTER ================= -->
   <div id="adminDashboardModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-2 sm:p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-6xl w-full h-[95vh] flex flex-col overflow-hidden">
+      <!-- Top Bar -->
       <div class="bg-brand-darkgreen text-white p-3 sm:p-4 flex items-center justify-between shrink-0">
         <div>
           <h3 class="serif-title text-sm sm:text-base font-bold">Moin Quran Box — Master Operations &amp; POS</h3>
@@ -435,8 +351,10 @@
       <div class="bg-brand-sand border-b flex overflow-x-auto no-scrollbar text-xs font-bold uppercase tracking-wider shrink-0">
         <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
         <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock &amp; Inventory</button>
+        <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 Showroom POS</button>
         <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Sales Reports</button>
-        <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Reset / Override</button>
+        <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts</button>
+        <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Override</button>
         <button onclick="switchAdminTab('cms')" id="adminTabBtn-cms" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">✏️ Full Text CMS</button>
         <button onclick="switchAdminTab('payments')" id="adminTabBtn-payments" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">💳 UPI &amp; Bank</button>
       </div>
@@ -446,7 +364,7 @@
         <!-- TAB 1: ORDERS -->
         <div id="adminTab-orders" class="space-y-4">
           <div class="flex justify-between items-center">
-            <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders</h4>
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger</h4>
           </div>
           <div id="adminOrdersContainer" class="space-y-3"></div>
         </div>
@@ -454,7 +372,7 @@
         <!-- TAB 2: INVENTORY -->
         <div id="adminTab-inventory" class="hidden space-y-4">
           <div class="flex justify-between items-center">
-            <h4 class="serif-title text-base font-bold text-brand-charcoal">Stock &amp; Inventory</h4>
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Stock &amp; Pricing Inventory</h4>
             <button onclick="openProductEditModal(null)" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase">+ Add Product</button>
           </div>
           <div class="bg-white rounded-xl border border-brand-border overflow-x-auto shadow-sm">
@@ -473,9 +391,39 @@
           </div>
         </div>
 
-        <!-- TAB 3: ANALYTICS -->
+        <!-- TAB 3: SHOWROOM POS BILLING -->
+        <div id="adminTab-pos" class="hidden space-y-4">
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Falaknuma Showroom Walk-in Point of Sale (POS)</h4>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 bg-white p-3 rounded-xl border space-y-3">
+              <div id="posCatalogGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border flex flex-col justify-between space-y-3 text-xs">
+              <div>
+                <h5 class="font-bold border-b pb-2 uppercase text-brand-charcoal">Active POS Bill</h5>
+                <input type="text" id="posCustName" placeholder="Customer Name (optional)" class="w-full border rounded p-1.5 mt-2" />
+                <input type="tel" id="posCustPhone" placeholder="Mobile Number" class="w-full border rounded p-1.5 mt-1" />
+                <div id="posTicketItems" class="divide-y my-2 max-h-36 overflow-y-auto"></div>
+              </div>
+              <div class="border-t pt-2 space-y-2">
+                <div class="flex justify-between font-bold text-sm">
+                  <span>Total:</span>
+                  <span id="posTicketTotal" class="text-brand-gold">₹0</span>
+                </div>
+                <select id="posPaymentMethod" class="w-full border rounded p-1.5">
+                  <option value="Cash">Cash in Hand</option>
+                  <option value="UPI">Showroom QR / UPI</option>
+                  <option value="Card">Bank / Card</option>
+                </select>
+                <button onclick="completePosSale()" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded">Complete &amp; Print Bill</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: ANALYTICS -->
         <div id="adminTab-analytics" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Sales &amp; Revenue Overview</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Omnichannel Sales Analytics</h4>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-xl border shadow-sm">
               <p class="text-[11px] font-bold text-brand-muted uppercase">Gross Revenue</p>
@@ -488,9 +436,30 @@
           </div>
         </div>
 
-        <!-- TAB 4: SALES RESET / OVERRIDE -->
+        <!-- TAB 5: COUPONS & DISCOUNTS -->
+        <div id="adminTab-coupons" class="hidden space-y-4">
+          <div class="flex justify-between items-center">
+            <h4 class="serif-title text-base font-bold text-brand-charcoal">Store Discount Engine</h4>
+            <button onclick="promptCreateCoupon()" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded text-xs font-bold uppercase">+ Add Discount Code</button>
+          </div>
+          <div class="bg-white rounded-xl border overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-brand-sand border-b uppercase">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Discount</th>
+                  <th class="p-3">Min Order</th>
+                  <th class="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminCouponsTableBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 6: SALES OVERRIDE (ADMIN ONLY) -->
         <div id="adminTab-salesmodifier" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Sales Reset &amp; Offsets</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Developer Admin Sales Override</h4>
           <div class="bg-red-50 border border-red-200 p-4 rounded-xl space-y-3">
             <h5 class="text-xs font-bold text-red-900 uppercase">Reset All Recorded Sales To Zero</h5>
             <p class="text-xs text-red-700">Wipe test orders and revenue metrics back to ₹0 with one click.</p>
@@ -500,9 +469,9 @@
           </div>
         </div>
 
-        <!-- TAB 5: CMS SETTINGS -->
+        <!-- TAB 7: FULL TEXT CMS (ADMIN ONLY) -->
         <div id="adminTab-cms" class="hidden space-y-4">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Edit Store Details</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal">Edit Store Details &amp; Live Text</h4>
           <form onsubmit="handleCmsSave(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-2xl text-xs">
             <div>
               <label class="block font-bold mb-1">Store Name</label>
@@ -516,11 +485,25 @@
               <label class="block font-bold mb-1">Showroom Address</label>
               <textarea id="cmsAddress" rows="2" required class="w-full bg-brand-sand border rounded p-2"></textarea>
             </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold mb-1">Primary Call Phone</label>
+                <input type="tel" id="cmsPhone1" class="w-full bg-brand-sand border rounded p-2" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">Secondary Call Phone</label>
+                <input type="tel" id="cmsPhone2" class="w-full bg-brand-sand border rounded p-2" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Announcement Ticker Banner</label>
+              <input type="text" id="cmsAnnouncement" class="w-full bg-brand-sand border rounded p-2" />
+            </div>
             <button type="submit" class="bg-brand-charcoal text-white px-5 py-2 rounded font-bold uppercase">Save Live Text</button>
           </form>
         </div>
 
-        <!-- TAB 6: UPI & BANK -->
+        <!-- TAB 8: PAYMENTS -->
         <div id="adminTab-payments" class="hidden space-y-4">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Payment Receiving Details</h4>
           <form onsubmit="savePaymentSettings(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-xl text-xs">
@@ -617,9 +600,13 @@
           <label class="block font-semibold mb-1">Delivery Address *</label>
           <textarea id="chkAddress" required rows="2" class="w-full bg-brand-sand border rounded-lg p-2.5"></textarea>
         </div>
+        <div>
+          <label class="block font-semibold mb-1">Discount Coupon Code (Optional)</label>
+          <input type="text" id="chkCouponInput" placeholder="e.g. RAMADAN50" class="w-full bg-brand-sand border rounded-lg p-2 font-mono uppercase" />
+        </div>
         <div class="p-3 bg-brand-sand border rounded-lg">
           <span class="font-bold text-brand-forest">Instant UPI Transfer</span>
-          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark" id="displayCheckoutUpi">9390335673@ybl</strong></p>
+          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark">9390335673@ybl</strong></p>
         </div>
         <div class="flex justify-between items-center text-sm font-bold pt-2 border-t">
           <span>Amount Payable:</span>
@@ -687,20 +674,9 @@
     </div>
   </div>
 
-  <!-- ================= WISHLIST MODAL ================= -->
-  <div id="wishlistModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-5 relative max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center pb-3 border-b">
-        <h3 class="serif-title text-base font-bold text-brand-charcoal">Saved Wishlist ❤️</h3>
-        <button onclick="closeWishlistModal()" class="text-neutral-400">✕</button>
-      </div>
-      <div id="wishlistContainer" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs"></div>
-    </div>
-  </div>
-
   <div id="invoicePrintSection" class="hidden"></div>
 
-  <!-- External JavaScript Application Controller -->
+  <!-- Application Controller -->
   <script src="js/app.js"></script>
 </body>
 </html>
