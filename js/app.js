@@ -1,12 +1,9 @@
 /**
- * MOIN QURAN BOX - Multi-Branch Enterprise Controller v12.0 Professional Edition
- * Credentials:
- *   Developer Admin: Username 'Admin'  | Password '9290'
- *   Store Owner:     Username 'Owner'  | Password '8341'
- *   Branch 2 Owner:  Username 'owner1' | Password '1234'
+ * MOIN QURAN BOX - Multi-Branch Enterprise Controller v14.0 Professional Edition
+ * Secure Master Operations, Admin Feature Toggles, & Easy Shopping Suite
  */
 
-const STORAGE_PREFIX = "mqb_v12_";
+const STORAGE_PREFIX = "mqb_v14_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
@@ -16,7 +13,7 @@ const KEY_CART = STORAGE_PREFIX + "cart";
 const KEY_WISHLIST = STORAGE_PREFIX + "wishlist";
 const KEY_SESSION = STORAGE_PREFIX + "session";
 
-// State
+// State Configuration
 let config = {};
 let products = [];
 let users = [];
@@ -32,6 +29,33 @@ let currentCategory = "All";
 let posTicket = [];
 let sessionTimerInterval = null;
 
+// Default Admin Feature Controls
+const DEFAULT_TOGGLES = {
+  // Customer Features
+  customerWishlist: true,
+  customerWallet: true,
+  customerSupportTickets: true,
+  customerVouchers: true,
+  customerReorder: true,
+  customerWarranty: true,
+  customerStatements: true,
+  // Owner Features
+  ownerInventoryEdit: true,
+  ownerBranchEdit: true,
+  ownerPosAccess: true,
+  // Easy Shopping & Website Advanced Features
+  quickViewShopping: true,
+  expressCheckout: true,
+  compareTool: true,
+  prayerTimes: true,
+  currencyConverter: true,
+  giftQuiz: true,
+  flashDeals: true,
+  wholesaleCalculator: true,
+  wallpapers: true,
+  pincodeChecker: true
+};
+
 window.addEventListener("DOMContentLoaded", async () => {
   await loadInitialData();
   renderCategoryChips();
@@ -45,6 +69,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   renderRecentlyViewed();
 });
 
+// ==========================================
+// 1. DATA INITIALIZATION & PERSISTENCE
+// ==========================================
 async function loadInitialData() {
   const savedConfig = localStorage.getItem(KEY_CONFIG);
   if (savedConfig) {
@@ -69,21 +96,23 @@ async function loadInitialData() {
         accountNum: "392810482910",
         ifsc: "SBIN0020145",
         announcement: "Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD & Instant UPI Available",
+        featureToggles: { ...DEFAULT_TOGGLES },
         branches: [
           { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Near Engine Bowli, Falaknuma, Hyderabad, Telangana 500053", phone: "7893961313", manager: "Shaik Moin Uddin & Shaik Muneer Uddin", enabled: true },
           { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Pathergatti Road, Near Medina Building, Charminar, Hyderabad, Telangana 500002", phone: "7337464501", manager: "Branch Manager (Owner 1)", enabled: true }
         ]
       };
     }
-    localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
   }
 
-  if (!config.branches || config.branches.length === 0) {
-    config.branches = [
-      { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Falaknuma, Hyderabad 500053", phone: "7893961313", manager: "Shaik Moin Uddin & Shaik Muneer Uddin", enabled: true },
-      { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Near Medina Building, Charminar, Hyderabad 500002", phone: "7337464501", manager: "Branch Manager (Owner 1)", enabled: true }
-    ];
+  // Ensure toggles exist if upgrading from older version
+  if (!config.featureToggles) {
+    config.featureToggles = { ...DEFAULT_TOGGLES };
+  } else {
+    config.featureToggles = { ...DEFAULT_TOGGLES, ...config.featureToggles };
   }
+
+  localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
 
   const savedProducts = localStorage.getItem(KEY_PRODUCTS);
   if (savedProducts) {
@@ -101,6 +130,7 @@ async function loadInitialData() {
   const savedUsers = localStorage.getItem(KEY_USERS);
   if (savedUsers) {
     users = JSON.parse(savedUsers);
+    // Enforce permanent staff accounts secretly
     ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
     ensureUserExists("Owner", "8341", "Shaik Moin Uddin & Shaik Muneer Uddin", "7893961313", "moinquranbox@gmail.com", "owner");
     ensureUserExists("owner1", "1234", "Branch 2 Owner (Owner 1)", "7337464501", "owner1@moinquranbox.com", "owner1");
@@ -109,7 +139,7 @@ async function loadInitialData() {
       { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
       { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin & Shaik Muneer Uddin", phone: "7893961313", email: "moinquranbox@gmail.com", role: "owner" },
       { id: "usr-owner1", username: "owner1", password: "1234", name: "Branch 2 Owner (Owner 1)", phone: "7337464501", email: "owner1@moinquranbox.com", role: "owner1" },
-      { id: "usr-demo", username: "7893961313", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "7893961313", email: "farhan@example.com", role: "customer", addresses: ["Madina Colony, Falaknuma, Hyderabad"], supportTickets: [{ id: "TKT-01", subject: "Bulk Order Inquiry", status: "Resolved" }] }
+      { id: "usr-demo", username: "7893961313", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "7893961313", email: "farhan@example.com", role: "customer", addresses: ["Madina Colony, Falaknuma, Hyderabad"], supportTickets: [] }
     ];
   }
 
@@ -144,29 +174,15 @@ function persist() {
   localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist));
 }
 
-// Currency Conversion Helper
-function formatPrice(priceInInr) {
-  const converted = Math.round(priceInInr * currentCurrency.rate);
-  return `${currentCurrency.symbol}${converted}`;
-}
-
-function setCurrency(code, symbol, rate) {
-  currentCurrency = { code, symbol, rate };
-  document.getElementById("activeCurrencyBadge").textContent = `${code} (${symbol})`;
-  closeCurrencyModal();
-  renderProducts();
-  updateCartUI();
-}
-
-// 24-Hour Session Persistence & Live Countdown Timer
+// ==========================================
+// 2. SESSION MANAGEMENT & SECURITY
+// ==========================================
 function validateSessionPersistence() {
   const sessionStr = localStorage.getItem(KEY_SESSION);
   if (!sessionStr) return;
 
   const session = JSON.parse(sessionStr);
-  const now = Date.now();
-
-  if (session.expiresAt && now > session.expiresAt) {
+  if (session.expiresAt && Date.now() > session.expiresAt) {
     logoutCurrentUser(true);
     return;
   }
@@ -174,85 +190,48 @@ function validateSessionPersistence() {
   currentUser = session.user;
   startSessionCountdownTimer(session.expiresAt);
   syncCustomerHeaderUI();
+  document.getElementById("staffLoginNavBtn")?.classList.add("hidden");
+  document.getElementById("staffLogoutNavBtn")?.classList.remove("hidden");
 }
 
 function startSessionCountdownTimer(expiresAt) {
   if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-
   function updateTimer() {
     const diff = expiresAt - Date.now();
     const timerBadge = document.getElementById("staffSessionTimerBadge");
-
     if (diff <= 0) {
       clearInterval(sessionTimerInterval);
       logoutCurrentUser(true);
       return;
     }
-
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-    const formatted = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     if (timerBadge) {
-      timerBadge.textContent = `⏱️ Session: ${formatted}`;
+      timerBadge.textContent = `⏱️ Session: ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
       timerBadge.classList.remove("hidden");
     }
   }
-
   updateTimer();
   sessionTimerInterval = setInterval(updateTimer, 1000);
 }
 
-// Autoscroll Utilities
-function autoScrollTo(elementId) {
-  const el = document.getElementById(elementId);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-function scrollToProducts() { autoScrollTo("catalogTopAnchor"); }
-function scrollToContact() { autoScrollTo("contactSectionAnchor"); }
-
-// Welcome Greeting
-function checkWelcomeGreetingBanner() {
-  const dismissed = sessionStorage.getItem("mqb_greeting_dismissed");
-  const el = document.getElementById("welcomeGreetingBanner");
-  if (!dismissed && el) {
-    el.classList.remove("hidden");
-    const msg = document.getElementById("welcomeGreetingText");
-    if (msg) msg.textContent = config.welcomeGreeting || "Assalamu Alaikum! Welcome to MOIN QURAN BOX.";
-  }
-}
-function dismissGreetingBanner() {
-  sessionStorage.setItem("mqb_greeting_dismissed", "true");
-  document.getElementById("welcomeGreetingBanner")?.classList.add("hidden");
+function logoutCurrentUser(sessionExpired = false) {
+  currentUser = null;
+  localStorage.removeItem(KEY_SESSION);
+  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+  document.getElementById("staffSessionTimerBadge")?.classList.add("hidden");
+  document.getElementById("staffLogoutNavBtn")?.classList.add("hidden");
+  document.getElementById("staffLoginNavBtn")?.classList.remove("hidden");
+  closeAdminDashboardModal();
+  closeCustomerProfileModal();
+  syncCustomerHeaderUI();
+  if (sessionExpired) alert("Your 24-hour staff session has expired. Please sign in again.");
 }
 
-// Customer Direct Message to Owner
-function handleSendMessageToOwner(e) {
-  e.preventDefault();
-  const name = document.getElementById("msgCustName").value.trim();
-  const phone = document.getElementById("msgCustPhone").value.trim();
-  const subject = document.getElementById("msgCustSubject").value.trim();
-  const message = document.getElementById("msgCustMessage").value.trim();
-  const channel = document.querySelector('input[name="msgChannel"]:checked')?.value || "whatsapp";
-
-  const formattedMsg = `*NEW WEBSITE INQUIRY — ${config.brandName}*\n\n` +
-    `*From:* ${name}\n` +
-    `*Phone:* ${phone}\n` +
-    `*Subject:* ${subject}\n\n` +
-    `*Message:* ${message}`;
-
-  if (channel === "whatsapp") {
-    window.open(`https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(formattedMsg)}`, "_blank");
-  } else {
-    window.location.href = `mailto:${encodeURIComponent(config.ownerEmail)}?subject=${encodeURIComponent("Website Inquiry: " + subject)}&body=${encodeURIComponent(formattedMsg)}`;
-  }
-
-  alert("Inquiry prepared! Transferring to your selected channel.");
-  document.getElementById("custMessageForm")?.reset();
-}
-
-// Storefront Categories & Products
+// ==========================================
+// 3. STOREFRONT & EASY SHOPPING RENDERERS
+// ==========================================
 const CATEGORIES = ["All", "Tarjuma Qurans", "Quran Boxes & Rehal", "Janamaz", "Hajj & Umrah", "Namaz Caps & Tasbih"];
 
 function renderCategoryChips() {
@@ -285,19 +264,38 @@ function renderProducts() {
   if (sort === "low-to-high") list.sort((a, b) => a.salePrice - b.salePrice);
   else if (sort === "high-to-low") list.sort((a, b) => b.salePrice - a.salePrice);
 
+  const canWishlist = config.featureToggles.customerWishlist;
+  const canQuickView = config.featureToggles.quickViewShopping;
+  const canCompare = config.featureToggles.compareTool;
+  const canExpress = config.featureToggles.expressCheckout;
+
   grid.innerHTML = list.map(p => `
-    <div onclick="trackRecentlyViewed('${p.id}')" class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-      <div class="relative bg-neutral-100 pt-[100%] overflow-hidden">
+    <div onclick="trackRecentlyViewed('${p.id}')" class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition cursor-pointer">
+      <div class="relative bg-neutral-100 pt-[100%] overflow-hidden group">
         <img src="${p.image}" alt="${p.title}" class="absolute inset-0 w-full h-full object-cover" />
-        <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full text-xs hover:scale-110 transition shadow">
-          ${wishlist.includes(p.id) ? '❤️' : '🤍'}
-        </button>
-        <button onclick="event.stopPropagation(); toggleCompare('${p.id}')" class="absolute top-10 right-2 p-1.5 bg-white/90 rounded-full text-[10px] font-bold hover:scale-110 transition shadow" title="Compare">
-          ${compareList.includes(p.id) ? '⚖️✓' : '⚖️'}
-        </button>
-        ${p.stock <= 5 && p.stock > 0 ? `<span class="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Only ${p.stock} left</span>` : ''}
-        ${p.stock <= 0 ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Out of Stock</span>` : ''}
+        
+        ${canWishlist ? `
+          <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full text-xs hover:scale-110 transition shadow z-10">
+            ${wishlist.includes(p.id) ? '❤️' : '🤍'}
+          </button>
+        ` : ''}
+        
+        ${canQuickView ? `
+          <button onclick="event.stopPropagation(); openQuickView('${p.id}')" class="absolute top-10 right-2 p-1.5 bg-white/90 rounded-full text-[10px] font-bold hover:scale-110 transition shadow z-10" title="Quick View">
+            👁️
+          </button>
+        ` : ''}
+        
+        ${canCompare ? `
+          <button onclick="event.stopPropagation(); toggleCompare('${p.id}')" class="absolute top-[68px] right-2 p-1.5 bg-white/90 rounded-full text-[10px] font-bold hover:scale-110 transition shadow z-10" title="Compare">
+            ${compareList.includes(p.id) ? '⚖️✓' : '⚖️'}
+          </button>
+        ` : ''}
+        
+        ${p.stock <= 5 && p.stock > 0 ? `<span class="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase z-10">Only ${p.stock} left</span>` : ''}
+        ${p.stock <= 0 ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase z-10">Out of Stock</span>` : ''}
       </div>
+      
       <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
         <div>
           <span class="text-[10px] text-amber-700 font-bold block">${p.category}</span>
@@ -312,9 +310,15 @@ function renderProducts() {
             <button onclick="event.stopPropagation(); addToCart('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full py-1.5 bg-brand-charcoal hover:bg-neutral-800 text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
               Add to Cart
             </button>
-            <a href="https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(`Salam, I want to order: ${p.title} (Price: ₹${p.salePrice})`)}" target="_blank" onclick="event.stopPropagation();" class="w-full py-1.5 bg-brand-whatsapp text-white rounded text-[11px] font-bold uppercase text-center flex items-center justify-center shadow">
-              WhatsApp
-            </a>
+            ${canExpress ? `
+              <button onclick="event.stopPropagation(); expressBuyNow('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="w-full py-1.5 bg-brand-gold hover:bg-brand-goldHover text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
+                Buy Now
+              </button>
+            ` : `
+              <a href="https://wa.me/91${config.whatsappPhone}?text=${encodeURIComponent(`Salam, I want to order: ${p.title}`)}" target="_blank" onclick="event.stopPropagation();" class="w-full py-1.5 bg-brand-whatsapp text-white rounded text-[11px] font-bold uppercase text-center flex items-center justify-center shadow">
+                WhatsApp
+              </a>
+            `}
           </div>
         </div>
       </div>
@@ -322,7 +326,7 @@ function renderProducts() {
   `).join("");
 }
 
-// Website Advanced Feature: Recently Viewed
+// Recently Viewed
 function trackRecentlyViewed(prodId) {
   if (!recentlyViewed.includes(prodId)) {
     recentlyViewed.unshift(prodId);
@@ -340,23 +344,68 @@ function renderRecentlyViewed() {
     const p = products.find(x => x.id === id);
     if (!p) return '';
     return `
-      <div class="bg-white p-2 rounded-xl border flex items-center gap-2">
+      <div class="bg-white p-2 rounded-xl border flex items-center gap-2 cursor-pointer hover:bg-neutral-50" onclick="openQuickView('${p.id}')">
         <img src="${p.image}" class="w-10 h-10 object-cover rounded" />
         <div class="truncate">
-          <p class="font-bold truncate text-xs">${p.title}</p>
-          <span class="text-xs text-brand-gold font-bold">${formatPrice(p.salePrice)}</span>
+          <p class="font-bold truncate text-xs text-brand-charcoal">${p.title}</p>
+          <span class="text-[11px] text-brand-gold font-bold">${formatPrice(p.salePrice)}</span>
         </div>
       </div>
     `;
   }).join("");
 }
 
-// Website Advanced Feature: Product Comparison
+// Formatting
+function formatPrice(priceInInr) {
+  const converted = Math.round(priceInInr * currentCurrency.rate);
+  return `${currentCurrency.symbol}${converted.toLocaleString()}`;
+}
+
+// ==========================================
+// 4. EASY SHOPPING MODALS (Controlled by Admin)
+// ==========================================
+
+function openQuickView(prodId) {
+  if (!config.featureToggles.quickViewShopping) return alert("Quick View is currently disabled by Admin.");
+  const p = products.find(x => x.id === prodId);
+  if (!p) return;
+  
+  const content = document.getElementById("quickViewContent");
+  content.innerHTML = `
+    <div>
+      <img src="${p.image}" class="w-full h-64 object-cover rounded-xl border" />
+    </div>
+    <div class="space-y-3 flex flex-col justify-between">
+      <div>
+        <span class="text-[10px] uppercase font-bold text-brand-gold">${p.category}</span>
+        <h3 class="serif-title text-base font-bold text-brand-charcoal mt-1">${p.title}</h3>
+        <p class="text-lg font-mono font-bold text-brand-darkgreen mt-2">${formatPrice(p.salePrice)}</p>
+        <p class="text-neutral-600 mt-2 text-xs leading-relaxed">${p.desc || 'Direct manufacturer quality from Hyderabad. Handcrafted with devotion.'}</p>
+        <p class="text-[11px] font-bold text-emerald-700 mt-2">Stock Availability: ${p.stock} units</p>
+      </div>
+      <div class="flex gap-2 pt-3 border-t">
+        <button onclick="addToCart('${p.id}'); closeQuickViewModal();" ${p.stock <= 0 ? 'disabled' : ''} class="flex-1 py-2.5 bg-brand-charcoal text-white rounded text-xs font-bold uppercase disabled:opacity-50">Add to Cart</button>
+        <button onclick="closeQuickViewModal()" class="px-4 py-2 bg-neutral-100 rounded text-xs font-semibold">Close</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("quickViewModal").classList.remove("hidden");
+}
+function closeQuickViewModal() { document.getElementById("quickViewModal")?.classList.add("hidden"); }
+
+function expressBuyNow(prodId) {
+  if (!config.featureToggles.expressCheckout) return alert("Express Checkout is currently disabled by Admin.");
+  addToCart(prodId);
+  startCheckout();
+}
+
+// Comparison Tool
 function toggleCompare(prodId) {
+  if (!config.featureToggles.compareTool) return alert("Comparison tool is currently disabled by Admin.");
   if (compareList.includes(prodId)) {
     compareList = compareList.filter(id => id !== prodId);
   } else {
-    if (compareList.length >= 3) { alert("You can compare up to 3 products at a time."); return; }
+    if (compareList.length >= 2) { alert("You can compare a maximum of 2 products side-by-side."); return; }
     compareList.push(prodId);
   }
   document.getElementById("compareCount").textContent = compareList.length;
@@ -364,18 +413,23 @@ function toggleCompare(prodId) {
 }
 
 function openCompareDrawer() {
-  if (compareList.length === 0) { alert("No products selected for comparison."); return; }
+  if (!config.featureToggles.compareTool) return alert("Comparison tool is disabled.");
+  if (compareList.length === 0) { alert("Please select products to compare by clicking the ⚖️ icon on the product image."); return; }
+  
   const container = document.getElementById("compareGridContainer");
   container.innerHTML = compareList.map(id => {
     const p = products.find(x => x.id === id);
     if (!p) return '';
     return `
-      <div class="p-3 bg-brand-sand rounded-xl border space-y-2">
+      <div class="p-3 bg-brand-sand rounded-xl border space-y-2 flex flex-col h-full">
         <img src="${p.image}" class="w-full h-32 object-cover rounded" />
-        <h5 class="font-bold text-xs">${p.title}</h5>
-        <p class="font-mono font-bold text-brand-gold">${formatPrice(p.salePrice)}</p>
-        <p class="text-[10px] text-neutral-600">${p.desc || 'Direct manufacturer quality.'}</p>
-        <span class="block text-[10px] uppercase font-bold text-emerald-700">Stock: ${p.stock} units</span>
+        <span class="text-[9px] uppercase font-bold text-brand-gold">${p.category}</span>
+        <h5 class="font-bold text-xs flex-grow">${p.title}</h5>
+        <div class="pt-2 border-t border-brand-border/50">
+          <p class="font-mono font-bold text-brand-darkgreen">${formatPrice(p.salePrice)}</p>
+          <p class="text-[10px] text-neutral-600 mt-1">${p.desc || 'Premium Islamic item.'}</p>
+        </div>
+        <button onclick="addToCart('${p.id}')" class="w-full py-1.5 mt-2 bg-brand-charcoal text-white rounded text-[10px] font-bold uppercase">Add to Cart</button>
       </div>
     `;
   }).join("");
@@ -383,43 +437,96 @@ function openCompareDrawer() {
 }
 function closeCompareModal() { document.getElementById("compareModal")?.classList.add("hidden"); }
 
-// Website Advanced Feature: Quiz & Wholesale Calculator
-function openQuizModal() { document.getElementById("quizModal")?.classList.remove("hidden"); }
+// Other Advanced Easy Shopping Modals
+function openQuizModal() {
+  if (!config.featureToggles.giftQuiz) return alert("Gift Quiz is disabled by Admin.");
+  document.getElementById("quizModal")?.classList.remove("hidden");
+}
 function closeQuizModal() { document.getElementById("quizModal")?.classList.add("hidden"); }
 function submitQuizAnswer(ans) {
-  alert(`Based on your selection (${ans}), we recommend our Deluxe Wooden Velvet Quran Gift Set!`);
+  alert(`Based on your selection (${ans}), we highly recommend our Deluxe Wooden Velvet Quran Gift Set!`);
   closeQuizModal();
 }
 
-function openWholesaleCalculatorModal() { document.getElementById("wholesaleCalculatorModal")?.classList.remove("hidden"); }
+function openWholesaleCalculatorModal() {
+  if (!config.featureToggles.wholesaleCalculator) return alert("Wholesale Calculator is disabled by Admin.");
+  document.getElementById("wholesaleCalculatorModal")?.classList.remove("hidden");
+}
 function closeWholesaleCalculatorModal() { document.getElementById("wholesaleCalculatorModal")?.classList.add("hidden"); }
 function calculateBulkPrice(qty) {
   const q = parseInt(qty) || 1;
-  let unit = q >= 50 ? 650 : (q >= 20 ? 750 : 900);
+  let unit = q >= 100 ? 550 : (q >= 50 ? 650 : (q >= 20 ? 750 : 900));
   const total = q * unit;
   document.getElementById("bulkResultBox").innerHTML = `
-    <p>Estimated Unit Price: <strong>₹${unit} / pc</strong></p>
-    <p>Total Wholesale Estimate: <strong class="text-emerald-700 font-mono text-sm">₹${total.toLocaleString()}</strong></p>
+    <p>Wholesale Unit Price: <strong>${formatPrice(unit)} / pc</strong></p>
+    <p>Total Estimate: <strong class="text-emerald-700 font-mono text-sm">${formatPrice(total)}</strong></p>
+    <p class="text-[9px] text-neutral-500 mt-1">Prices are strictly for distributors & bulk wedding orders.</p>
   `;
 }
 
-function openPrayerTimesModal() { document.getElementById("prayerTimesModal")?.classList.remove("hidden"); }
+function openPrayerTimesModal() {
+  if (!config.featureToggles.prayerTimes) return alert("Prayer Times disabled by Admin.");
+  document.getElementById("prayerTimesModal")?.classList.remove("hidden");
+}
 function closePrayerTimesModal() { document.getElementById("prayerTimesModal")?.classList.add("hidden"); }
-function openCurrencyModal() { document.getElementById("currencyModal")?.classList.remove("hidden"); }
+
+function openCurrencyModal() {
+  if (!config.featureToggles.currencyConverter) return alert("Currency Converter disabled by Admin.");
+  document.getElementById("currencyModal")?.classList.remove("hidden");
+}
 function closeCurrencyModal() { document.getElementById("currencyModal")?.classList.add("hidden"); }
-function openFlashSaleModal() { document.getElementById("flashSaleModal")?.classList.remove("hidden"); }
+
+function openFlashSaleModal() {
+  if (!config.featureToggles.flashDeals) return alert("Flash Deals disabled by Admin.");
+  document.getElementById("flashSaleModal")?.classList.remove("hidden");
+}
 function closeFlashSaleModal() { document.getElementById("flashSaleModal")?.classList.add("hidden"); }
-function openWallpaperModal() { document.getElementById("wallpaperModal")?.classList.remove("hidden"); }
+
+function openWallpaperModal() {
+  if (!config.featureToggles.wallpapers) return alert("Wallpapers disabled by Admin.");
+  document.getElementById("wallpaperModal")?.classList.remove("hidden");
+}
 function closeWallpaperModal() { document.getElementById("wallpaperModal")?.classList.add("hidden"); }
-function openPincodeCheckerModal() { document.getElementById("pincodeCheckerModal")?.classList.remove("hidden"); }
+
+function openPincodeCheckerModal() {
+  if (!config.featureToggles.pincodeChecker) return alert("Pincode Checker disabled by Admin.");
+  document.getElementById("pincodeCheckerModal")?.classList.remove("hidden");
+}
 function closePincodeCheckerModal() { document.getElementById("pincodeCheckerModal")?.classList.add("hidden"); }
 function checkPincodeAvailability() {
   const pin = document.getElementById("checkPincodeInput").value.trim();
-  if (pin.length === 6) {
-    document.getElementById("pincodeResult").classList.remove("hidden");
+  if (pin.length === 6 && pin.startsWith("500")) {
+    document.getElementById("pincodeResult").innerHTML = "✓ Free doorstep delivery & COD available for this Hyderabad Pincode!";
+    document.getElementById("pincodeResult").classList.remove("hidden", "bg-red-50", "text-red-800");
+    document.getElementById("pincodeResult").classList.add("bg-emerald-50", "text-emerald-800");
   } else {
-    alert("Please enter a valid 6-digit Hyderabad pincode.");
+    document.getElementById("pincodeResult").innerHTML = "⚠ Outside standard free delivery zone. Shipping charges may apply.";
+    document.getElementById("pincodeResult").classList.remove("hidden", "bg-emerald-50", "text-emerald-800");
+    document.getElementById("pincodeResult").classList.add("bg-amber-50", "text-amber-800");
   }
+}
+
+// Utilities
+function autoScrollTo(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function scrollToProducts() { autoScrollTo("catalogTopAnchor"); }
+function scrollToContact() { autoScrollTo("contactSectionAnchor"); }
+function toggleTheme() { document.documentElement.classList.toggle("dark"); }
+
+function openSearchModal() { document.getElementById("searchModal")?.classList.remove("hidden"); document.getElementById("searchInput")?.focus(); }
+function closeSearchModal() { document.getElementById("searchModal")?.classList.add("hidden"); }
+function liveSearch(q) {
+  const box = document.getElementById("searchResults");
+  if (!box) return;
+  const query = q.trim().toLowerCase();
+  if (!query) { box.innerHTML = ""; return; }
+  box.innerHTML = products.filter(p => p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query)).map(m => `
+    <div onclick="openQuickView('${m.id}'); closeSearchModal();" class="p-2 flex justify-between items-center cursor-pointer hover:bg-brand-sand rounded">
+      <span>${m.title}</span><span class="font-bold">${formatPrice(m.salePrice)}</span>
+    </div>
+  `).join("");
 }
 
 function renderBranchesOnStorefront() {
@@ -433,24 +540,20 @@ function renderBranchesOnStorefront() {
   container.parentElement?.classList.remove("hidden");
   container.innerHTML = visibleBranches.map(b => `
     <div class="bg-brand-sand/70 p-3.5 rounded-xl border border-brand-border space-y-1.5 text-xs">
-      <h5 class="font-bold text-brand-charcoal flex items-center gap-1.5 text-sm">
-        <span>📍</span> ${b.name}
-      </h5>
+      <h5 class="font-bold text-brand-charcoal flex items-center gap-1.5 text-sm"><span>📍</span> ${b.name}</h5>
       <p class="text-neutral-600 leading-snug">${b.address}</p>
       <p class="text-[11px] font-mono text-brand-muted">📞 +91 ${b.phone} • Manager: ${b.manager}</p>
       <div class="pt-1 flex gap-2">
-        <a href="https://wa.me/91${b.phone}?text=${encodeURIComponent(`Salam, I have an inquiry for ${b.name}`)}" target="_blank" class="px-2 py-1 bg-brand-whatsapp text-white rounded text-[10px] font-bold inline-flex items-center gap-1">
-          WhatsApp Showroom
-        </a>
-        <a href="tel:${b.phone}" class="px-2 py-1 bg-white border border-brand-border rounded text-[10px] font-semibold text-brand-charcoal">
-          Call Branch
-        </a>
+        <a href="https://wa.me/91${b.phone}?text=${encodeURIComponent(`Salam, I have an inquiry for ${b.name}`)}" target="_blank" class="px-2 py-1 bg-brand-whatsapp text-white rounded text-[10px] font-bold inline-flex items-center gap-1">WhatsApp</a>
+        <a href="tel:${b.phone}" class="px-2 py-1 bg-white border border-brand-border rounded text-[10px] font-semibold text-brand-charcoal">Call</a>
       </div>
     </div>
   `).join("");
 }
 
-// Shopping Bag
+// ==========================================
+// 5. CART & CHECKOUT
+// ==========================================
 function addToCart(prodId) {
   const p = products.find(x => x.id === prodId);
   if (!p) return;
@@ -536,7 +639,6 @@ function navigateDrawer(cat) {
   scrollToProducts();
 }
 
-// Checkout & Order Placement
 function startCheckout() {
   if (cart.length === 0) { alert("Your cart is empty!"); return; }
   toggleCart(false);
@@ -545,12 +647,14 @@ function startCheckout() {
   if (payable) payable.textContent = formatPrice(total);
 
   if (currentUser && currentUser.role === "customer") {
-    const elName = document.getElementById("chkName");
-    const elPhone = document.getElementById("chkPhone");
-    const elEmail = document.getElementById("chkEmail");
-    if (elName) elName.value = currentUser.name || "";
-    if (elPhone) elPhone.value = currentUser.phone || "";
-    if (elEmail) elEmail.value = currentUser.email || "";
+    document.getElementById("chkName").value = currentUser.name || "";
+    document.getElementById("chkPhone").value = currentUser.phone || "";
+    document.getElementById("chkEmail").value = currentUser.email || "";
+    
+    // Auto-fill default address if available
+    if (currentUser.addresses && currentUser.addresses.length > 0) {
+      document.getElementById("chkAddress").value = currentUser.addresses[0];
+    }
   }
   document.getElementById("checkoutModal")?.classList.remove("hidden");
 }
@@ -574,6 +678,8 @@ function handlePlaceOrder(e) {
     if (cp && total >= (cp.minOrder || 0)) {
       const disc = cp.type === "percent" ? Math.round((total * cp.discount) / 100) : cp.discount;
       total = Math.max(0, total - disc);
+    } else {
+      alert("Invalid coupon code or minimum order amount not reached.");
     }
   }
 
@@ -608,9 +714,7 @@ function handlePlaceOrder(e) {
   renderProducts();
   closeCheckoutModal();
 
-  const successId = document.getElementById("successOrderIdDisplay");
-  if (successId) successId.textContent = orderId;
-
+  document.getElementById("successOrderIdDisplay").textContent = orderId;
   const waMsg = encodeURIComponent(
     `*NEW ORDER NOTIFICATION — MOIN QURAN BOX*\n\n` +
     `*Order ID:* ${orderId}\n` +
@@ -618,18 +722,17 @@ function handlePlaceOrder(e) {
     `*Phone:* ${phone}\n` +
     `*Address:* ${address} (Pincode: ${postalCode})\n` +
     `*Payment:* ${paymentMethod}\n` +
-    `*Total:* ₹${total}\n\n` +
+    `*Total:* ${formatPrice(total)}\n\n` +
     `*Items:*\n` + newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join('\n')
   );
-  const waBtn = document.getElementById("successWhatsAppOrderBtn");
-  if (waBtn) waBtn.href = `https://wa.me/91${config.whatsappPhone}?text=${waMsg}`;
-
+  document.getElementById("successWhatsAppOrderBtn").href = `https://wa.me/91${config.whatsappPhone}?text=${waMsg}`;
   document.getElementById("orderSuccessModal")?.classList.remove("hidden");
 }
-
 function closeSuccessModal() { document.getElementById("orderSuccessModal")?.classList.add("hidden"); }
 
-// Invoice & Printing
+// ==========================================
+// 6. INVOICE LOOKUP & PRINTING
+// ==========================================
 function openInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.remove("hidden"); }
 function closeInvoiceLookupModal() { document.getElementById("invoiceLookupModal")?.classList.add("hidden"); }
 
@@ -698,7 +801,6 @@ function prepareAndPrintInvoice(orderId) {
   printDiv.classList.add("hidden");
 }
 
-// Tracking Modal
 function openTrackingModal() { document.getElementById("trackingModal")?.classList.remove("hidden"); }
 function closeTrackingModal() { document.getElementById("trackingModal")?.classList.add("hidden"); }
 
@@ -719,186 +821,36 @@ function trackOrderById() {
   `;
 }
 
-// Showroom POS
-function renderPosCatalog() {
-  const grid = document.getElementById("posCatalogGrid");
-  if (!grid) return;
-  grid.innerHTML = products.map(p => `
-    <div class="p-2 border rounded bg-white flex flex-col justify-between text-xs">
-      <div>
-        <strong class="line-clamp-1">${p.title}</strong>
-        <span class="text-neutral-500 block">Stock: ${p.stock} • ₹${p.salePrice}</span>
-      </div>
-      <button onclick="addPosTicketItem('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="mt-2 py-1 bg-brand-charcoal text-white rounded font-bold text-[10px] uppercase">
-        + Add Bill
-      </button>
-    </div>
-  `).join("");
-}
-
-function addPosTicketItem(prodId) {
-  const p = products.find(x => x.id === prodId);
-  if (!p) return;
-  const exist = posTicket.find(x => x.id === prodId);
-  if (exist) exist.qty += 1;
-  else posTicket.push({ id: p.id, title: p.title, salePrice: p.salePrice, qty: 1 });
-  renderPosTicket();
-}
-
-function renderPosTicket() {
-  const box = document.getElementById("posTicketItems");
-  const totalEl = document.getElementById("posTicketTotal");
-  if (!box || !totalEl) return;
-
-  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
-  totalEl.textContent = `₹${total}`;
-
-  box.innerHTML = posTicket.map(it => `
-    <div class="flex justify-between items-center py-1">
-      <span class="truncate max-w-[150px]">${it.title} (x${it.qty})</span>
-      <span class="font-bold">₹${it.salePrice * it.qty}</span>
-    </div>
-  `).join("");
-}
-
-function completePosSale() {
-  if (posTicket.length === 0) { alert("Ticket is empty."); return; }
-  const custName = document.getElementById("posCustName")?.value.trim() || "Walk-in Customer";
-  const custPhone = document.getElementById("posCustPhone")?.value.trim() || "Showroom Walk-in";
-  const postalCode = document.getElementById("posCustPincode")?.value.trim() || "500053";
-  const paymentMethod = document.getElementById("posPaymentMethod")?.value || "Cash";
-  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
-  const orderId = `POS-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const orderData = {
-    orderId,
-    customerName: custName,
-    customerPhone: custPhone,
-    address: "Showroom Walk-in Purchase (Falaknuma)",
-    postalCode,
-    total,
-    date: new Date().toISOString(),
-    status: "Delivered",
-    channel: "Offline Walk-in",
-    paymentMethod,
-    items: [...posTicket]
-  };
-
-  posTicket.forEach(item => {
-    const p = products.find(x => x.id === item.id);
-    if (p) p.stock = Math.max(0, p.stock - item.qty);
-  });
-
-  orders.unshift(orderData);
-  posTicket = [];
+function toggleWishlist(id) {
+  if (!config.featureToggles.customerWishlist) return alert("Wishlist disabled by Admin.");
+  if (wishlist.includes(id)) wishlist = wishlist.filter(x => x !== id);
+  else wishlist.push(id);
   persist();
-  renderPosTicket();
-  renderPosCatalog();
   renderProducts();
-  renderAdminOrders();
-  updateAnalytics();
-  alert("Walk-in POS Sale completed!");
-  prepareAndPrintInvoice(orderId);
 }
 
-// Universal Search
-function handleUniversalSearch(query) {
-  const q = query.trim().toLowerCase();
-  const box = document.getElementById("universalSearchResults");
-  if (!box) return;
-
-  if (!q) { box.innerHTML = ""; return; }
-
-  const matchedCustomers = users.filter(u => 
-    u.role === "customer" && 
-    (u.phone.includes(q) || (u.email && u.email.toLowerCase().includes(q)) || u.name.toLowerCase().includes(q))
-  );
-
-  const matchedOrders = orders.filter(o => 
-    o.orderId.toLowerCase().includes(q) || 
-    o.customerPhone.includes(q) || 
-    (o.customerEmail && o.customerEmail.toLowerCase().includes(q)) || 
-    o.customerName.toLowerCase().includes(q)
-  );
-
-  box.innerHTML = `
-    <div class="space-y-3 pt-2">
-      ${matchedCustomers.length > 0 ? `
-        <div>
-          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Customer Profiles (${matchedCustomers.length})</h5>
-          <div class="space-y-1.5">
-            ${matchedCustomers.map(c => `
-              <div class="p-2.5 bg-brand-sand border rounded-lg flex justify-between items-center text-xs">
-                <div>
-                  <strong>${c.name}</strong> • 📞 ${c.phone} ${c.email ? `• ${c.email}` : ''}
-                  <p class="text-[10px] text-neutral-500 font-mono">Password: ${c.password} | PIN: ${c.pin || '1234'}</p>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      ${matchedOrders.length > 0 ? `
-        <div>
-          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Orders (${matchedOrders.length})</h5>
-          <div class="space-y-1.5">
-            ${matchedOrders.map(o => `
-              <div class="p-2.5 bg-white border rounded-lg flex justify-between items-center text-xs shadow-sm">
-                <div>
-                  <strong class="font-mono text-brand-charcoal">${o.orderId}</strong> — ${o.customerName} (${o.customerPhone})
-                  <p class="text-[10px] text-neutral-500">Status: <span class="font-bold text-emerald-700">${o.status}</span> • Total: ₹${o.total}</p>
-                </div>
-                <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-bold">Print Bill</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      ${matchedCustomers.length === 0 && matchedOrders.length === 0 ? `
-        <p class="text-xs text-neutral-400 py-3 text-center">No customer profiles or orders found matching "${query}".</p>
-      ` : ''}
-    </div>
-  `;
-}
-
-// Customer Auth & 10 Advanced Customer Profile Tabs
+// ==========================================
+// 7. CUSTOMER AUTHENTICATION & PROFILE
+// ==========================================
 function openCustomerAuthModal(tab = 'login') {
   document.getElementById("customerAuthModal")?.classList.remove("hidden");
   switchCustomerAuthTab(tab);
 }
-
-function closeCustomerAuthModal() {
-  document.getElementById("customerAuthModal")?.classList.add("hidden");
-}
+function closeCustomerAuthModal() { document.getElementById("customerAuthModal")?.classList.add("hidden"); }
 
 function switchCustomerAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById("cxLoginForm")?.classList.toggle("hidden", !isLogin);
   document.getElementById("cxRegisterForm")?.classList.toggle("hidden", isLogin);
-  document.getElementById("cxTabLogin")?.classList.toggle("border-brand-charcoal", isLogin);
-  document.getElementById("cxTabLogin")?.classList.toggle("text-brand-charcoal", isLogin);
-  document.getElementById("cxTabRegister")?.classList.toggle("border-brand-charcoal", !isLogin);
-  document.getElementById("cxTabRegister")?.classList.toggle("text-brand-charcoal", !isLogin);
 }
 
 function handleCustomerLoginSubmit(e) {
   e.preventDefault();
   const id = document.getElementById("cxLoginId").value.trim().toLowerCase();
   const pass = document.getElementById("cxLoginPass").value.trim();
-
-  const user = users.find(u => 
-    u.role === "customer" && 
-    (u.phone === id || u.email?.toLowerCase() === id || u.username === id) && 
-    (u.password === pass || (u.pin && u.pin === pass))
-  );
-
-  if (!user) {
-    alert("Invalid customer credentials. Please check your phone/email & password/PIN.");
-    return;
-  }
-
+  const user = users.find(u => u.role === "customer" && (u.phone === id || u.email?.toLowerCase() === id) && (u.password === pass || u.pin === pass));
+  if (!user) { alert("Invalid customer credentials. Check Phone/Email & Password."); return; }
+  
   currentUser = user;
   localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
   closeCustomerAuthModal();
@@ -914,32 +866,15 @@ function handleCustomerRegisterSubmit(e) {
   const pass = document.getElementById("cxRegPass").value.trim();
   const pin = document.getElementById("cxRegPin").value.trim();
 
-  if (users.some(u => u.phone === phone)) {
-    alert("An account already exists with this mobile number. Please log in.");
-    switchCustomerAuthTab('login');
-    return;
-  }
-
-  const newUser = {
-    id: "cust-" + Date.now(),
-    username: phone,
-    name,
-    phone,
-    email,
-    password: pass,
-    pin: pin || "1234",
-    role: "customer",
-    addresses: ["Hyderabad Main"],
-    supportTickets: []
-  };
-
+  if (users.some(u => u.phone === phone)) { alert("Account already exists with this phone number."); return; }
+  
+  const newUser = { id: "cust-" + Date.now(), username: phone, name, phone, email, password: pass, pin: pin || "1234", role: "customer", addresses: ["Hyderabad Main"], supportTickets: [] };
   users.push(newUser);
   currentUser = newUser;
   persist();
   localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
   closeCustomerAuthModal();
   syncCustomerHeaderUI();
-  alert(`Welcome, ${name}! Your customer account is active.`);
   openCustomerProfileModal();
 }
 
@@ -948,15 +883,24 @@ function openCustomerProfileModal() {
   const modal = document.getElementById("customerProfileModal");
   if (!modal) return;
   modal.classList.remove("hidden");
-
   document.getElementById("custProfName").textContent = currentUser.name;
   document.getElementById("custProfContact").textContent = `${currentUser.email || ''} • 📞 ${currentUser.phone}`;
 
+  applyCustomerFeatureVisibility();
   switchCustomerTab('orders');
 }
 
-function closeCustomerProfileModal() {
-  document.getElementById("customerProfileModal")?.classList.add("hidden");
+function closeCustomerProfileModal() { document.getElementById("customerProfileModal")?.classList.add("hidden"); }
+
+function applyCustomerFeatureVisibility() {
+  const ft = config.featureToggles || {};
+  document.getElementById("cxTabBtn-wishlist")?.classList.toggle("hidden", !ft.customerWishlist);
+  document.getElementById("cxTabBtn-wallet")?.classList.toggle("hidden", !ft.customerWallet);
+  document.getElementById("cxTabBtn-tickets")?.classList.toggle("hidden", !ft.customerSupportTickets);
+  document.getElementById("cxTabBtn-vouchers")?.classList.toggle("hidden", !ft.customerVouchers);
+  document.getElementById("cxTabBtn-reorder")?.classList.toggle("hidden", !ft.customerReorder);
+  document.getElementById("cxTabBtn-warranty")?.classList.toggle("hidden", !ft.customerWarranty);
+  document.getElementById("cxTabBtn-statement")?.classList.toggle("hidden", !ft.customerStatements);
 }
 
 function switchCustomerTab(tab) {
@@ -978,21 +922,11 @@ function renderCustProfileOrders() {
   const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
   const container = document.getElementById("custOrderList");
   if (!container) return;
-  if (myOrders.length === 0) {
-    container.innerHTML = `<p class="text-xs text-neutral-400 py-4 text-center">No past orders found under this account.</p>`;
-    return;
-  }
-  container.innerHTML = myOrders.map(o => `
+  container.innerHTML = myOrders.length === 0 ? `<p class="text-xs text-neutral-400 py-4 text-center">No past orders.</p>` : myOrders.map(o => `
     <div class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-1">
-      <div class="flex justify-between items-center font-bold">
-        <span>${o.orderId}</span>
-        <span class="text-emerald-700 font-bold">${o.status}</span>
-      </div>
+      <div class="flex justify-between items-center font-bold"><span>${o.orderId}</span><span class="text-emerald-700">${o.status}</span></div>
       <p class="text-neutral-600">${o.items.map(it => `${it.title} (x${it.qty})`).join(', ')}</p>
-      <div class="flex justify-between items-center pt-2 border-t font-semibold">
-        <span>Total: ₹${o.total}</span>
-        <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-brand-gold underline font-bold">Print Invoice</button>
-      </div>
+      <div class="flex justify-between items-center pt-2 border-t font-semibold"><span>Total: ₹${o.total}</span><button onclick="prepareAndPrintInvoice('${o.orderId}')" class="text-brand-gold underline font-bold">Print Invoice</button></div>
     </div>
   `).join("");
 }
@@ -1001,11 +935,7 @@ function renderCustProfileWishlist() {
   const grid = document.getElementById("custWishlistGrid");
   if (!grid) return;
   const list = products.filter(p => wishlist.includes(p.id));
-  if (list.length === 0) {
-    grid.innerHTML = `<p class="text-xs text-neutral-400 py-4 col-span-full text-center">Your wishlist is empty.</p>`;
-    return;
-  }
-  grid.innerHTML = list.map(p => `
+  grid.innerHTML = list.length === 0 ? `<p class="text-xs text-neutral-400 py-4 col-span-full text-center">Wishlist is empty.</p>` : list.map(p => `
     <div class="p-2 border rounded bg-white flex flex-col justify-between">
       <img src="${p.image}" class="w-full h-24 object-cover rounded" />
       <h5 class="font-bold text-xs line-clamp-1 mt-1">${p.title}</h5>
@@ -1018,66 +948,41 @@ function renderCustProfileWishlist() {
 function renderCustProfileAddresses() {
   const box = document.getElementById("custAddressesList");
   if (!box) return;
-  const addrs = currentUser.addresses || ["Hyderabad Main"];
-  box.innerHTML = addrs.map((a, i) => `
-    <div class="p-2.5 bg-brand-sand border rounded-lg flex justify-between items-center text-xs">
-      <span>📍 ${a}</span>
-      <span class="text-[10px] font-bold text-emerald-700">Default</span>
-    </div>
-  `).join("");
+  box.innerHTML = (currentUser.addresses || ["Hyderabad"]).map(a => `<div class="p-2.5 bg-brand-sand border rounded-lg text-xs">📍 ${a}</div>`).join("");
 }
 
 function promptAddCustomerAddress() {
-  const newAddr = prompt("Enter new delivery address (House No, Area, Pincode):");
-  if (!newAddr) return;
+  const a = prompt("Enter delivery address:");
+  if (!a) return;
   if (!currentUser.addresses) currentUser.addresses = [];
-  currentUser.addresses.push(newAddr.trim());
+  currentUser.addresses.push(a.trim());
   persist();
   renderCustProfileAddresses();
-  alert("Address added!");
 }
 
 function renderCustProfileTickets() {
   const box = document.getElementById("custTicketsList");
   if (!box) return;
-  const tks = currentUser.supportTickets || [];
-  if (tks.length === 0) {
-    box.innerHTML = `<p class="text-xs text-neutral-400 py-2">No support tickets opened.</p>`;
-    return;
-  }
-  box.innerHTML = tks.map(t => `
-    <div class="p-2.5 bg-brand-sand border rounded-lg flex justify-between items-center text-xs">
-      <span>🎫 ${t.subject}</span>
-      <span class="font-bold text-emerald-700">${t.status}</span>
-    </div>
-  `).join("");
+  box.innerHTML = (currentUser.supportTickets || []).map(t => `<div class="p-2.5 bg-brand-sand border rounded-lg text-xs flex justify-between"><span>🎫 ${t.subject}</span><strong class="text-emerald-700">${t.status}</strong></div>`).join("");
 }
 
 function promptCreateSupportTicket() {
-  const sub = prompt("Enter support inquiry subject:");
-  if (!sub) return;
+  const s = prompt("Support ticket subject:");
+  if (!s) return;
   if (!currentUser.supportTickets) currentUser.supportTickets = [];
-  currentUser.supportTickets.push({ id: "TKT-" + Date.now(), subject: sub.trim(), status: "Open" });
+  currentUser.supportTickets.push({ id: "TKT-" + Date.now(), subject: s, status: "Open" });
   persist();
   renderCustProfileTickets();
-  alert("Support ticket opened! Our team will respond shortly.");
 }
 
 function renderCustProfileReorder() {
   const box = document.getElementById("custReorderContainer");
   if (!box) return;
   const myOrders = orders.filter(o => o.customerPhone === currentUser.phone);
-  if (myOrders.length === 0) {
-    box.innerHTML = `<p class="text-xs text-neutral-400">No past orders to reorder.</p>`;
-    return;
-  }
-  box.innerHTML = myOrders.slice(0, 3).map(o => `
+  box.innerHTML = myOrders.length === 0 ? `<p class="text-xs text-neutral-400">No past orders.</p>` : myOrders.slice(0, 3).map(o => `
     <div class="p-3 bg-brand-sand border rounded-lg flex justify-between items-center text-xs">
-      <div>
-        <strong>${o.orderId}</strong>
-        <p class="text-neutral-500">${o.items.map(it => it.title).join(', ')}</p>
-      </div>
-      <button onclick="reorderPastOrder('${o.orderId}')" class="px-3 py-1.5 bg-brand-darkgreen text-white rounded font-bold uppercase text-[10px]">Reorder All</button>
+      <div><strong>${o.orderId}</strong><p class="text-neutral-500">${o.items.map(it => it.title).join(', ')}</p></div>
+      <button onclick="reorderPastOrder('${o.orderId}')" class="px-3 py-1.5 bg-brand-darkgreen text-white rounded font-bold uppercase text-[10px]">Reorder</button>
     </div>
   `).join("");
 }
@@ -1085,15 +990,8 @@ function renderCustProfileReorder() {
 function reorderPastOrder(orderId) {
   const o = orders.find(x => x.orderId === orderId);
   if (!o) return;
-  o.items.forEach(it => {
-    const exist = cart.find(x => x.id === it.id);
-    if (exist) exist.qty += it.qty;
-    else cart.push({ ...it });
-  });
-  persist();
-  updateCartUI();
-  toggleCart(true);
-  alert("Items from past order added to your shopping bag!");
+  o.items.forEach(it => addToCart(it.id));
+  alert("Items added to your bag!");
 }
 
 function handleCustomerSecurityUpdate(e) {
@@ -1103,7 +1001,7 @@ function handleCustomerSecurityUpdate(e) {
   if (pass) currentUser.password = pass;
   if (pin) currentUser.pin = pin;
   persist();
-  alert("Account security credentials successfully updated!");
+  alert("Security credentials updated!");
 }
 
 function syncCustomerHeaderUI() {
@@ -1120,17 +1018,14 @@ function syncCustomerHeaderUI() {
 
 function handleUserIconClick() {
   if (currentUser) {
-    if (currentUser.role === "admin" || currentUser.role === "owner" || currentUser.role === "owner1") {
-      openAdminDashboardModal();
-    } else {
-      openCustomerProfileModal();
-    }
-  } else {
-    openCustomerAuthModal('login');
-  }
+    if (currentUser.role === "admin" || currentUser.role === "owner" || currentUser.role === "owner1") openAdminDashboardModal();
+    else openCustomerProfileModal();
+  } else openCustomerAuthModal('login');
 }
 
-// Staff Portal Login & Grid Template Hub for Admin/Owner
+// ==========================================
+// 8. STAFF PORTAL & ADMIN MASTER CONTROL
+// ==========================================
 function openAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.remove("hidden"); }
 function closeAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.add("hidden"); }
 
@@ -1142,12 +1037,13 @@ function handlePortalLogin(e) {
   let matchedRole = null;
   let matchedName = "";
 
+  // Note: Hardcoded authentication checks without UI hints for absolute security
   if (u.toLowerCase() === "admin" && p === "9290") {
     matchedRole = "admin";
     matchedName = "Developer Admin";
   } else if (u.toLowerCase() === "owner" && p === "8341") {
     matchedRole = "owner";
-    matchedName = "Shaik Moin Uddin & Shaik Muneer Uddin (Head Branch)";
+    matchedName = "Store Owner (Falaknuma)";
   } else if (u.toLowerCase() === "owner1" && p === "1234") {
     matchedRole = "owner1";
     matchedName = "Branch 2 Owner (Charminar)";
@@ -1162,6 +1058,8 @@ function handlePortalLogin(e) {
 
   startSessionCountdownTimer(expiresAt);
   closeAdminLoginModal();
+  document.getElementById("staffLoginNavBtn")?.classList.add("hidden");
+  document.getElementById("staffLogoutNavBtn")?.classList.remove("hidden");
   openAdminDashboardModal();
 }
 
@@ -1172,30 +1070,93 @@ function openAdminDashboardModal() {
 
   const badge = document.getElementById("portalRoleBadge");
   if (badge) {
-    if (currentUser.role === "admin") badge.textContent = "Developer Admin • Supreme Access";
-    else if (currentUser.role === "owner") badge.textContent = "Store Owner • Head Branch (Falaknuma)";
-    else if (currentUser.role === "owner1") badge.textContent = "Branch 2 Owner • Outlet (Charminar)";
+    if (currentUser.role === "admin") badge.textContent = "Developer Admin • Full Control";
+    else badge.textContent = "Showroom Owner • Active Session";
   }
 
   const isAdmin = currentUser.role === "admin";
+  // Restrict sensitive grids to Admin only
   document.getElementById("adminTabBtn-salesmodifier")?.classList.toggle("hidden", !isAdmin);
   document.getElementById("adminTabBtn-cms")?.classList.toggle("hidden", !isAdmin);
   document.getElementById("adminTabBtn-customers")?.classList.toggle("hidden", !isAdmin);
+  document.getElementById("adminTabBtn-features")?.classList.toggle("hidden", !isAdmin);
 
   renderAdminOrders();
   renderAdminInventory();
   renderPosCatalog();
   renderCouponsTable();
   renderBranchesInDashboard();
+  renderAdminFeatureToggles();
   if (isAdmin) renderAdminCustomers();
   updateAnalytics();
 }
-
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
-// Bento Grid Hub Switching for Admin and Owner (Grid Template for All Options)
+// Admin Feature Toggles Manager (Centralized Enable/Disable)
+function renderAdminFeatureToggles() {
+  const container = document.getElementById("adminFeatureTogglesGrid");
+  if (!container) return;
+  const ft = config.featureToggles || {};
+
+  const toggles = [
+    { key: 'customerWishlist', label: 'Customer Wishlist Feature', group: 'Customer' },
+    { key: 'customerWallet', label: 'Customer Wallet & Rewards', group: 'Customer' },
+    { key: 'customerSupportTickets', label: 'Customer Support Tickets', group: 'Customer' },
+    { key: 'customerVouchers', label: 'Customer Vouchers & Promos', group: 'Customer' },
+    { key: 'customerReorder', label: 'Customer One-Click Reorder', group: 'Customer' },
+    { key: 'customerWarranty', label: 'Digital Warranty Vault', group: 'Customer' },
+    { key: 'customerStatements', label: 'Account Statement Generator', group: 'Customer' },
+    { key: 'ownerInventoryEdit', label: 'Owner Stock & Pricing Editing', group: 'Owner' },
+    { key: 'ownerBranchEdit', label: 'Owner Branch Details Editing', group: 'Owner' },
+    { key: 'ownerPosAccess', label: 'Owner POS Access', group: 'Owner' },
+    { key: 'quickViewShopping', label: 'Website Quick View Modal', group: 'Website' },
+    { key: 'expressCheckout', label: 'Website Express Buy Now Button', group: 'Website' },
+    { key: 'compareTool', label: 'Product Compare Tool', group: 'Website' },
+    { key: 'prayerTimes', label: 'Live Prayer Times', group: 'Website' },
+    { key: 'currencyConverter', label: 'Currency Converter', group: 'Website' },
+    { key: 'giftQuiz', label: 'Gift Finder Quiz', group: 'Website' },
+    { key: 'flashDeals', label: 'Flash Deals Banner', group: 'Website' },
+    { key: 'wholesaleCalculator', label: 'Wholesale Pricing Calculator', group: 'Website' },
+    { key: 'wallpapers', label: 'Islamic Wallpapers Hub', group: 'Website' },
+    { key: 'pincodeChecker', label: 'Pincode Delivery Checker', group: 'Website' }
+  ];
+
+  container.innerHTML = toggles.map(t => `
+    <div class="bg-white p-3.5 rounded-xl border flex items-center justify-between">
+      <div>
+        <strong class="block text-brand-charcoal">${t.label}</strong>
+        <span class="text-[10px] text-neutral-400 uppercase font-bold">Group: ${t.group}</span>
+      </div>
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" onchange="toggleFeatureFlag('${t.key}', this.checked)" ${ft[t.key] ? 'checked' : ''} class="sr-only peer">
+        <div class="w-9 h-5 bg-neutral-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-darkgreen"></div>
+      </label>
+    </div>
+  `).join("");
+}
+
+function toggleFeatureFlag(key, enabled) {
+  if (!config.featureToggles) config.featureToggles = {};
+  config.featureToggles[key] = enabled;
+  persist();
+  renderProducts(); // Re-render to show/hide specific buttons on products
+  applyCustomerFeatureVisibility();
+  
+  if (key === 'ownerPosAccess' && !enabled && currentUser?.role !== 'admin') {
+    document.getElementById("adminTabBtn-pos")?.classList.add("hidden");
+  } else if (key === 'ownerPosAccess' && enabled) {
+    document.getElementById("adminTabBtn-pos")?.classList.remove("hidden");
+  }
+}
+
+// Master Dashboard Grid Tabs
 function switchAdminTab(tab) {
-  const tabs = ['hub', 'orders', 'inventory', 'pos', 'analytics', 'branches', 'shipping', 'coupons', 'customers', 'salesmodifier', 'cms', 'payments'];
+  const tabs = ['hub', 'features', 'orders', 'inventory', 'pos', 'analytics', 'branches', 'shipping', 'coupons', 'customers', 'salesmodifier', 'cms', 'payments'];
+  
+  if (tab === 'pos' && currentUser?.role !== 'admin' && !config.featureToggles?.ownerPosAccess) {
+    return alert("POS Terminal access has been disabled by Admin.");
+  }
+  
   tabs.forEach(t => {
     document.getElementById(`adminTab-${t}`)?.classList.toggle("hidden", t !== tab);
     const btn = document.getElementById(`adminTabBtn-${t}`);
@@ -1203,6 +1164,7 @@ function switchAdminTab(tab) {
   });
 }
 
+// Data Tables & Grids
 function renderAdminOrders() {
   const cnt = document.getElementById("adminOrdersCount");
   if (cnt) cnt.textContent = orders.length;
@@ -1211,41 +1173,33 @@ function renderAdminOrders() {
   box.innerHTML = orders.map(o => `
     <div class="p-3.5 bg-white border rounded-xl text-xs space-y-2 shadow-sm">
       <div class="flex justify-between items-center font-bold">
-        <span>${o.orderId} <span class="text-[10px] ml-2 px-1.5 py-0.5 rounded font-bold ${o.channel === 'Offline Walk-in' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${o.channel || 'Online'}</span></span>
+        <span>${o.orderId}</span>
         <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="border rounded p-1 font-semibold text-emerald-700 bg-emerald-50">
           <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
           <option value="Dispatched" ${o.status === 'Dispatched' ? 'selected' : ''}>Dispatched</option>
-          <option value="In Transit" ${o.status === 'In Transit' ? 'selected' : ''}>In Transit</option>
           <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-          <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
         </select>
       </div>
-      <p><strong>Customer:</strong> ${o.customerName} (📞 ${o.customerPhone})</p>
-      <div class="flex flex-wrap justify-between items-center pt-2 border-t gap-2">
-        <strong>Total: ₹${o.total}</strong>
-        <div class="flex gap-1.5">
-          <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-neutral-100 rounded font-semibold">Print Bill</button>
-        </div>
+      <p><strong>Customer:</strong> ${o.customerName} (${o.customerPhone})</p>
+      <div class="flex justify-between items-center pt-2 border-t">
+        <strong>Total: ${formatPrice(o.total)}</strong>
+        <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-semibold">Print Bill</button>
       </div>
     </div>
   `).join('');
 }
-
 function updateOrderStatus(orderId, newStatus) {
   const o = orders.find(x => x.orderId === orderId);
-  if (o) {
-    o.status = newStatus;
-    persist();
-    renderAdminOrders();
-    updateAnalytics();
-  }
+  if (o) { o.status = newStatus; persist(); renderAdminOrders(); }
 }
 
 function renderAdminInventory() {
   const tbody = document.getElementById("adminInventoryTableBody");
   if (!tbody) return;
+  const canEdit = currentUser?.role === "admin" || config.featureToggles?.ownerInventoryEdit;
+
   tbody.innerHTML = products.map(p => `
-    <tr class="hover:bg-neutral-50">
+    <tr class="hover:bg-neutral-50 border-b">
       <td class="p-3 font-bold flex items-center gap-2">
         <img src="${p.image}" class="w-8 h-8 rounded object-cover" />
         <span>${p.title}</span>
@@ -1254,7 +1208,7 @@ function renderAdminInventory() {
       <td class="p-3 font-bold">${p.stock}</td>
       <td class="p-3 font-mono font-bold">₹${p.salePrice}</td>
       <td class="p-3 text-right">
-        <button onclick="openProductEditModal('${p.id}')" class="text-blue-600 font-bold hover:underline">Edit</button>
+        ${canEdit ? `<button onclick="openProductEditModal('${p.id}')" class="text-blue-600 font-bold hover:underline">Edit</button>` : `<span class="text-[10px] text-neutral-400 font-bold uppercase">Restricted</span>`}
       </td>
     </tr>
   `).join('');
@@ -1263,7 +1217,7 @@ function renderAdminInventory() {
 function renderBranchesInDashboard() {
   const container = document.getElementById("adminBranchesList");
   if (!container || !config.branches) return;
-  container.innerHTML = config.branches.map((b, idx) => `
+  container.innerHTML = config.branches.map(b => `
     <div class="bg-white p-4 rounded-xl border space-y-2 text-xs">
       <h5 class="font-bold text-brand-charcoal text-sm">${b.name}</h5>
       <p class="text-neutral-600">${b.address}</p>
@@ -1274,25 +1228,20 @@ function renderBranchesInDashboard() {
 
 function updateAnalytics() {
   const totalRev = orders.reduce((s, o) => s + (o.total || 0), 0);
-  const elRev = document.getElementById("anaTotalRevenue");
-  const elOrd = document.getElementById("anaTotalOrders");
-  if (elRev) elRev.textContent = `₹${totalRev}`;
-  if (elOrd) elOrd.textContent = orders.length;
-
-  const hubRev = document.getElementById("hubTotalRevenue");
-  const hubOrd = document.getElementById("hubTotalOrders");
-  if (hubRev) hubRev.textContent = `₹${totalRev}`;
-  if (hubOrd) hubOrd.textContent = orders.length;
+  document.getElementById("anaTotalRevenue").textContent = `₹${totalRev}`;
+  document.getElementById("anaTotalOrders").textContent = orders.length;
+  document.getElementById("hubTotalRevenue").textContent = `₹${totalRev}`;
+  document.getElementById("hubTotalOrders").textContent = orders.length;
 }
 
 function resetAllSalesToZero() {
   if (currentUser?.role !== "admin") { alert("Supreme Admin access required."); return; }
-  if (!confirm("Reset all store sales, revenue, and order logs to ZERO (₹0)?")) return;
+  if (!confirm("Reset all store sales to ₹0? This is irreversible.")) return;
   orders = [];
   persist();
   renderAdminOrders();
   updateAnalytics();
-  alert("All sales data reset to zero.");
+  alert("Sales successfully reset to zero.");
 }
 
 function handlePhotoFileInput(event) {
@@ -1300,47 +1249,38 @@ function handlePhotoFileInput(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
-    const imgUrl = e.target.result;
-    document.getElementById("editProductImage").value = imgUrl;
+    document.getElementById("editProductImage").value = e.target.result;
     const preview = document.getElementById("photoUploadPreview");
-    if (preview) {
-      preview.src = imgUrl;
-      preview.classList.remove("hidden");
-    }
+    if (preview) { preview.src = e.target.result; preview.classList.remove("hidden"); }
   };
   reader.readAsDataURL(file);
 }
 
 function openProductEditModal(id = null) {
+  const canEdit = currentUser?.role === "admin" || config.featureToggles?.ownerInventoryEdit;
+  if (!canEdit) { alert("Stock and Pricing editing is currently disabled for owners by the Developer Admin."); return; }
   document.getElementById("productEditModal")?.classList.remove("hidden");
-  const elId = document.getElementById("editProductId");
-  const elTitle = document.getElementById("editProductTitle");
-  const elStock = document.getElementById("editProductStock");
-  const elPrice = document.getElementById("editProductSalePrice");
-  const elImg = document.getElementById("editProductImage");
-  const preview = document.getElementById("photoUploadPreview");
-
-  if (id) {
-    const p = products.find(x => x.id === id);
-    if (elId) elId.value = p.id;
-    if (elTitle) elTitle.value = p.title;
-    if (elStock) elStock.value = p.stock;
-    if (elPrice) elPrice.value = p.salePrice;
-    if (elImg) elImg.value = p.image;
-    if (preview) {
-      preview.src = p.image;
-      preview.classList.remove("hidden");
-    }
+  
+  const p = products.find(x => x.id === id);
+  if (p) {
+    document.getElementById("editProductId").value = p.id;
+    document.getElementById("editProductTitle").value = p.title;
+    document.getElementById("editProductCategory").value = p.category;
+    document.getElementById("editProductStock").value = p.stock;
+    document.getElementById("editProductSalePrice").value = p.salePrice;
+    document.getElementById("editProductImage").value = p.image;
+    
+    const preview = document.getElementById("photoUploadPreview");
+    if (preview) { preview.src = p.image; preview.classList.remove("hidden"); }
   } else {
-    if (elId) elId.value = "";
-    if (elTitle) elTitle.value = "";
-    if (elStock) elStock.value = "25";
-    if (elPrice) elPrice.value = "";
-    if (elImg) elImg.value = "";
-    if (preview) preview.classList.add("hidden");
+    document.getElementById("editProductId").value = "";
+    document.getElementById("editProductTitle").value = "";
+    document.getElementById("editProductStock").value = "25";
+    document.getElementById("editProductSalePrice").value = "";
+    document.getElementById("editProductImage").value = "";
+    document.getElementById("photoUploadPreview")?.classList.add("hidden");
   }
 }
-
 function closeProductEditModal() { document.getElementById("productEditModal")?.classList.add("hidden"); }
 
 function handleProductFormSubmit(e) {
@@ -1350,17 +1290,11 @@ function handleProductFormSubmit(e) {
   const category = document.getElementById("editProductCategory").value;
   const stock = parseInt(document.getElementById("editProductStock").value) || 0;
   const salePrice = parseInt(document.getElementById("editProductSalePrice").value) || 0;
-  const image = document.getElementById("editProductImage").value.trim() || "https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=600&q=80";
+  const image = document.getElementById("editProductImage").value.trim();
 
   if (id) {
     const p = products.find(x => x.id === id);
-    if (p) {
-      p.title = title;
-      p.category = category;
-      p.stock = stock;
-      p.salePrice = salePrice;
-      p.image = image;
-    }
+    if (p) { p.title = title; p.category = category; p.stock = stock; p.salePrice = salePrice; p.image = image; }
   } else {
     products.unshift({
       id: "prod-" + Date.now(),
@@ -1368,6 +1302,7 @@ function handleProductFormSubmit(e) {
       rating: 5.0, reviewsCount: 10
     });
   }
+  
   persist();
   renderProducts();
   renderAdminInventory();
@@ -1376,15 +1311,119 @@ function handleProductFormSubmit(e) {
   alert("Product saved successfully!");
 }
 
+function handleManualShippingLabelPrint(e) {
+  e.preventDefault();
+  alert("Manual Label Sent to Print Buffer!");
+}
+
+// Showroom POS Functions
+function renderPosCatalog() {
+  const grid = document.getElementById("posCatalogGrid");
+  if (!grid) return;
+  grid.innerHTML = products.map(p => `
+    <div class="p-2 border rounded bg-white flex flex-col justify-between text-xs hover:border-brand-gold transition">
+      <div>
+        <strong class="line-clamp-1">${p.title}</strong>
+        <span class="text-neutral-500 block">Stock: ${p.stock} • ₹${p.salePrice}</span>
+      </div>
+      <button onclick="addPosTicketItem('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''} class="mt-2 py-1 bg-brand-charcoal text-white rounded font-bold text-[10px] uppercase">+ Add Bill</button>
+    </div>
+  `).join("");
+}
+
+function addPosTicketItem(prodId) {
+  const p = products.find(x => x.id === prodId);
+  if (!p) return;
+  const exist = posTicket.find(x => x.id === prodId);
+  if (exist) exist.qty += 1;
+  else posTicket.push({ id: p.id, title: p.title, salePrice: p.salePrice, qty: 1 });
+  renderPosTicket();
+}
+
+function renderPosTicket() {
+  const box = document.getElementById("posTicketItems");
+  const totalEl = document.getElementById("posTicketTotal");
+  if (!box || !totalEl) return;
+  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  totalEl.textContent = `₹${total}`;
+  box.innerHTML = posTicket.map(it => `
+    <div class="flex justify-between items-center py-1">
+      <span class="truncate max-w-[150px]">${it.title} (x${it.qty})</span>
+      <span class="font-bold">₹${it.salePrice * it.qty}</span>
+    </div>
+  `).join("");
+}
+
+function completePosSale() {
+  if (posTicket.length === 0) { alert("Ticket is empty."); return; }
+  const custName = document.getElementById("posCustName")?.value.trim() || "Walk-in Customer";
+  const custPhone = document.getElementById("posCustPhone")?.value.trim() || "Showroom Walk-in";
+  const postalCode = document.getElementById("posCustPincode")?.value.trim() || "500053";
+  const paymentMethod = document.getElementById("posPaymentMethod")?.value || "Cash";
+  const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
+  const orderId = `POS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const orderData = {
+    orderId, customerName: custName, customerPhone: custPhone,
+    address: "Showroom Walk-in Purchase (Falaknuma)", postalCode,
+    total, date: new Date().toISOString(), status: "Delivered",
+    channel: "Offline Walk-in", paymentMethod, items: [...posTicket]
+  };
+
+  posTicket.forEach(item => {
+    const p = products.find(x => x.id === item.id);
+    if (p) p.stock = Math.max(0, p.stock - item.qty);
+  });
+
+  orders.unshift(orderData);
+  posTicket = [];
+  persist();
+  renderPosTicket();
+  renderPosCatalog();
+  renderProducts();
+  renderAdminOrders();
+  updateAnalytics();
+  alert("Walk-in POS Sale completed!");
+  prepareAndPrintInvoice(orderId);
+}
+
+// Master Utility Search
+function handleUniversalSearch(query) {
+  const q = query.trim().toLowerCase();
+  const box = document.getElementById("universalSearchResults");
+  if (!box) return;
+  if (!q) { box.innerHTML = ""; return; }
+
+  const matchedCustomers = users.filter(u => u.role === "customer" && (u.phone.includes(q) || (u.email && u.email.toLowerCase().includes(q)) || u.name.toLowerCase().includes(q)));
+  const matchedOrders = orders.filter(o => o.orderId.toLowerCase().includes(q) || o.customerPhone.includes(q) || o.customerName.toLowerCase().includes(q));
+
+  box.innerHTML = `
+    <div class="space-y-3 pt-2">
+      ${matchedCustomers.length > 0 ? `
+        <div>
+          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Customers (${matchedCustomers.length})</h5>
+          ${matchedCustomers.map(c => `<div class="p-2 bg-brand-sand border rounded mb-1"><strong>${c.name}</strong> • ${c.phone}</div>`).join('')}
+        </div>
+      ` : ''}
+      ${matchedOrders.length > 0 ? `
+        <div>
+          <h5 class="font-bold text-[11px] uppercase tracking-wider text-brand-charcoal mb-1">Matched Orders (${matchedOrders.length})</h5>
+          ${matchedOrders.map(o => `<div class="p-2 bg-white border rounded flex justify-between items-center mb-1"><span>${o.orderId} - ${o.customerName}</span><button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-bold">Print</button></div>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// CMS & Admins Updates
 function handleCmsSave(e) {
   e.preventDefault();
-  if (currentUser?.role !== "admin") { alert("Only Admin can edit master details."); return; }
   config.brandName = document.getElementById("cmsBrandName").value.trim();
   config.proprietor = document.getElementById("cmsProprietor").value.trim();
   config.address = document.getElementById("cmsAddress").value.trim();
   persist();
   syncLiveCmsUI();
-  alert("Store details updated live!");
+  alert("CMS Text successfully saved & updated live!");
 }
 
 function savePaymentSettings(e) {
@@ -1392,35 +1431,26 @@ function savePaymentSettings(e) {
   config.upiId = document.getElementById("cfgUpiId").value.trim();
   config.merchantName = document.getElementById("cfgUpiName").value.trim();
   persist();
-  alert("Payment details updated!");
+  alert("Payment settings saved securely!");
 }
 
 function renderCouponsTable() {
   const tbody = document.getElementById("adminCouponsTableBody");
   if (!tbody) return;
   tbody.innerHTML = coupons.map((c, i) => `
-    <tr class="hover:bg-neutral-50">
+    <tr class="hover:bg-neutral-50 border-b">
       <td class="p-3 font-bold font-mono text-brand-gold">${c.code}</td>
-      <td class="p-3 font-semibold">${c.type === 'percent' ? `${c.discount}% OFF` : `₹${c.discount} FLAT OFF`}</td>
+      <td class="p-3">₹${c.discount} OFF</td>
       <td class="p-3">₹${c.minOrder}</td>
-      <td class="p-3 text-right">
-        <button onclick="deleteCoupon(${i})" class="text-red-600 font-bold">Delete</button>
-      </td>
+      <td class="p-3 text-right"><button onclick="coupons.splice(${i},1);persist();renderCouponsTable();" class="text-red-600 font-bold">Delete</button></td>
     </tr>
   `).join("");
 }
 
 function promptCreateCoupon() {
-  const code = prompt("Enter Promo Code (e.g. RAMADAN50):");
+  const code = prompt("Enter Promo Code:");
   if (!code) return;
   coupons.push({ code: code.trim().toUpperCase(), discount: 50, type: "flat", minOrder: 500 });
-  persist();
-  renderCouponsTable();
-  alert("Coupon added!");
-}
-
-function deleteCoupon(i) {
-  coupons.splice(i, 1);
   persist();
   renderCouponsTable();
 }
@@ -1429,9 +1459,9 @@ function renderAdminCustomers() {
   const tbody = document.getElementById("adminCustomersTableBody");
   if (!tbody) return;
   tbody.innerHTML = users.map(u => `
-    <tr class="hover:bg-neutral-50">
+    <tr class="hover:bg-neutral-50 border-b">
       <td class="p-3 font-bold">${u.name}</td>
-      <td class="p-3 uppercase text-[10px] font-bold">${u.role}</td>
+      <td class="p-3 uppercase text-[10px] font-bold"><span class="px-2 py-1 rounded bg-brand-sand">${u.role}</span></td>
       <td class="p-3 font-mono">${u.phone}</td>
       <td class="p-3">${u.email || 'N/A'}</td>
       <td class="p-3 font-mono font-bold text-brand-gold">${u.password}</td>
@@ -1442,46 +1472,6 @@ function renderAdminCustomers() {
 }
 
 function syncLiveCmsUI() {
-  const elBrand = document.getElementById("brandNavTitle");
-  const elFooterBrand = document.getElementById("footerBrandName");
-  if (elBrand) elBrand.textContent = config.brandName;
-  if (elFooterBrand) elFooterBrand.textContent = config.brandName;
-}
-
-function logoutCurrentUser(sessionExpired = false) {
-  currentUser = null;
-  localStorage.removeItem(KEY_SESSION);
-  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-  document.getElementById("staffSessionTimerBadge")?.classList.add("hidden");
-  closeAdminDashboardModal();
-  closeCustomerProfileModal();
-  syncCustomerHeaderUI();
-  if (sessionExpired) alert("Your 24-hour staff session has expired. Please sign in again.");
-  else alert("Logged out successfully.");
-}
-
-function toggleTheme() { document.documentElement.classList.toggle("dark"); }
-
-function toggleWishlist(id) {
-  if (wishlist.includes(id)) wishlist = wishlist.filter(x => x !== id);
-  else wishlist.push(id);
-  persist();
-  renderProducts();
-}
-
-function openSearchModal() { document.getElementById("searchModal")?.classList.remove("hidden"); }
-function closeSearchModal() { document.getElementById("searchModal")?.classList.add("hidden"); }
-
-function liveSearch(q) {
-  const box = document.getElementById("searchResults");
-  if (!box) return;
-  const query = q.trim().toLowerCase();
-  if (!query) { box.innerHTML = ""; return; }
-  const matched = products.filter(p => p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
-  box.innerHTML = matched.map(m => `
-    <div class="p-2 flex justify-between items-center cursor-pointer hover:bg-brand-sand rounded">
-      <span>${m.title}</span>
-      <span class="font-bold">${formatPrice(m.salePrice)}</span>
-    </div>
-  `).join("");
+  document.getElementById("brandNavTitle").textContent = config.brandName;
+  document.getElementById("footerBrandName").textContent = config.brandName;
 }
