@@ -31,8 +31,9 @@ let currentCategory = "All";
 let posTicket = [];
 let sessionTimerInterval = null;
 
-// Default Admin Feature Controls
+// Default Admin Feature Controls (Now with 10 New Advanced Modules)
 const DEFAULT_TOGGLES = {
+  // Existing Store Features
   customerWishlist: true,
   customerWallet: true,
   customerSupportTickets: true,
@@ -52,7 +53,19 @@ const DEFAULT_TOGGLES = {
   flashDeals: true,
   wholesaleCalculator: true,
   wallpapers: true,
-  pincodeChecker: true
+  pincodeChecker: true,
+  
+  // 10 NEW ENTERPRISE FEATURES
+  autoStockAlerts: true,           // 1. WhatsApp Stock Alerts for Owners
+  abandonedCartRecovery: true,     // 2. Automated Cart Recovery Triggers
+  aiSmartUpsell: true,             // 3. AI "Frequently Bought Together"
+  loyaltyRewards: true,            // 4. Customer Points / Rewards Engine
+  waDispatchSync: true,            // 5. Automated WhatsApp Tracking Sync
+  codFraudShield: true,            // 6. Anti-Bot COD Verification
+  seasonalAutoTheme: true,         // 7. Dynamic Ramadan / Eid Storefront Theming
+  geofenceDelivery: true,          // 8. Hyper-local Free Delivery Zone Fencing
+  staffAuditMode: true,            // 9. Strict Staff Activity Logging
+  b2bWholesalePortal: true         // 10. B2B Hidden Pricing Portal
 };
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -1885,16 +1898,27 @@ function renderPosCatalog() {
   `).join("");
 }
 
+// Format raw feature keys into beautiful UI labels
+function formatFeatureName(key) {
+  return key
+    .replace(/([A-Z])/g, ' $1') // Insert space before capital letters
+    .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+}
+
 function renderAdminFeatureToggles() {
   const container = document.getElementById("adminTogglesContainer");
   if (!container) return;
   const flags = Object.keys(config.featureToggles || {});
+  
   container.innerHTML = flags.map(key => `
-    <div class="flex justify-between items-center p-3 border-b text-xs hover:bg-neutral-50">
-      <span class="font-mono font-semibold">${key}</span>
+    <div class="flex justify-between items-center p-3.5 hover:bg-neutral-50 transition">
+      <div>
+        <span class="font-bold text-brand-charcoal text-xs block">${formatFeatureName(key)}</span>
+        <span class="text-[10px] text-brand-muted font-mono">${key}</span>
+      </div>
       <label class="relative inline-flex items-center cursor-pointer">
         <input type="checkbox" class="sr-only peer" ${config.featureToggles[key] ? 'checked' : ''} onchange="toggleFeatureFlag('${key}', this.checked)">
-        <div class="w-8 h-4 bg-red-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+        <div class="w-9 h-5 bg-red-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
       </label>
     </div>
   `).join("");
