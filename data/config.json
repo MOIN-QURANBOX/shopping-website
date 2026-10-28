@@ -21,15 +21,15 @@
       "id": "branch-1",
       "name": "Branch 1 - Falaknuma Head Showroom",
       "address": "Madina Colony, Near Engine Bowli, Falaknuma, Hyderabad, Telangana 500053",
-      "phone": "9390335673",
-      "manager": "Shaik Moin Uddin",
+      "phone": "7893961313",
+      "manager": "Shaik Moin Uddin & Shaik Muneer Uddin",
       "enabled": true
     },
     {
       "id": "branch-2",
       "name": "Branch 2 - Charminar Heritage Outlet",
       "address": "Pathergatti Road, Near Medina Building, Charminar, Hyderabad, Telangana 500002",
-      "phone": "8142140905",
+      "phone": "7337464501",
       "manager": "Branch Manager (Owner 1)",
       "enabled": true
     }
