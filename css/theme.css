@@ -18,6 +18,19 @@ body {
   color: #e5e7eb;
 }
 
+.dark .bg-white {
+  background-color: #1d2420 !important;
+  color: #f3f4f6 !important;
+}
+
+.dark .bg-brand-sand {
+  background-color: #242c27 !important;
+}
+
+.dark .border-brand-border {
+  border-color: #2f3833 !important;
+}
+
 .serif-title {
   font-family: 'Cinzel', serif;
   letter-spacing: 0.03em;
