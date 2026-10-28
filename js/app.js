@@ -1,12 +1,12 @@
 /**
- * MOIN QURAN BOX - Complete Controller v9.0
- * Roles:
- *   Developer Admin: Username 'Admin' | Password '9290'
- *   Store Owner:     Username 'Owner' | Password '8341'
- *   Customer:        Self-registered
+ * MOIN QURAN BOX - Multi-Branch Enterprise Controller v10.0
+ * Roles & Credentials:
+ *   Developer Admin: Username 'Admin'  | Password '9290'
+ *   Store Owner:     Username 'Owner'  | Password '8341'
+ *   Branch 2 Owner:  Username 'owner1' | Password '1234'
  */
 
-const STORAGE_PREFIX = "mqb_v9_";
+const STORAGE_PREFIX = "mqb_v10_";
 const KEY_CONFIG = STORAGE_PREFIX + "config";
 const KEY_PRODUCTS = STORAGE_PREFIX + "products";
 const KEY_USERS = STORAGE_PREFIX + "users";
@@ -27,15 +27,18 @@ let wishlist = [];
 let currentUser = null;
 let currentCategory = "All";
 let posTicket = [];
+let sessionTimerInterval = null;
 
 window.addEventListener("DOMContentLoaded", async () => {
   await loadInitialData();
   renderCategoryChips();
   renderProducts();
+  renderBranchesOnStorefront();
   updateCartUI();
   syncLiveCmsUI();
   syncCustomerHeaderUI();
   checkWelcomeGreetingBanner();
+  validateSessionPersistence();
 });
 
 async function loadInitialData() {
@@ -60,10 +63,21 @@ async function loadInitialData() {
         accountNum: "392810482910",
         ifsc: "SBIN0020145",
         announcement: "Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD & Instant UPI Available",
-        welcomeGreeting: "Assalamu Alaikum! Welcome to MOIN QURAN BOX — Hyderabad's premier manufacturer and stockist of Holy Quran-e-Majeed, velvet gift boxes, and authentic Islamic essentials."
+        branches: [
+          { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Falaknuma, Hyderabad 500053", phone: "9390335673", manager: "Shaik Moin Uddin", enabled: true },
+          { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Near Medina Building, Charminar, Hyderabad 500002", phone: "8142140905", manager: "Branch Manager (Owner 1)", enabled: true }
+        ]
       };
     }
     localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
+  }
+
+  // Ensure default branches structure
+  if (!config.branches || config.branches.length === 0) {
+    config.branches = [
+      { id: "branch-1", name: "Branch 1 - Falaknuma Head Showroom", address: "Madina Colony, Falaknuma, Hyderabad 500053", phone: "9390335673", manager: "Shaik Moin Uddin", enabled: true },
+      { id: "branch-2", name: "Branch 2 - Charminar Heritage Outlet", address: "Near Medina Building, Charminar, Hyderabad 500002", phone: "8142140905", manager: "Branch Manager (Owner 1)", enabled: true }
+    ];
   }
 
   const savedProducts = localStorage.getItem(KEY_PRODUCTS);
@@ -79,43 +93,23 @@ async function loadInitialData() {
     localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
   }
 
-  // Exact credentials check: Admin: 9290 | Owner: 8341
+  // Strict Roles & Credentials Configuration
   const savedUsers = localStorage.getItem(KEY_USERS);
   if (savedUsers) {
     users = JSON.parse(savedUsers);
-    const adm = users.find(u => u.role === "admin");
-    if (adm) { adm.username = "Admin"; adm.password = "9290"; }
-    else users.push({ id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" });
-
-    const own = users.find(u => u.role === "owner");
-    if (own) { own.username = "Owner"; own.password = "8341"; }
-    else users.push({ id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" });
+    ensureUserExists("Admin", "9290", "Developer Admin", "9290", "admin@moinquranbox.com", "admin");
+    ensureUserExists("Owner", "8341", "Shaik Moin Uddin", "9390335673", "moinquranbox@gmail.com", "owner");
+    ensureUserExists("owner1", "1234", "Branch 2 Owner (Owner 1)", "8142140905", "owner1@moinquranbox.com", "owner1");
   } else {
     users = [
       { id: "usr-admin", username: "Admin", password: "9290", name: "Developer Admin", phone: "9290", email: "admin@moinquranbox.com", role: "admin" },
       { id: "usr-owner", username: "Owner", password: "8341", name: "Shaik Moin Uddin", phone: "9390335673", email: "moinquranbox@gmail.com", role: "owner" },
+      { id: "usr-owner1", username: "owner1", password: "1234", name: "Branch 2 Owner (Owner 1)", phone: "8142140905", email: "owner1@moinquranbox.com", role: "owner1" },
       { id: "usr-demo", username: "9390335673", password: "user123", pin: "1234", name: "Mohammed Farhan", phone: "9390335673", email: "farhan@example.com", role: "customer" }
     ];
   }
 
-  orders = JSON.parse(localStorage.getItem(KEY_ORDERS)) || [
-    {
-      orderId: "MQB-2026-1082",
-      customerName: "Shaik Naveed",
-      customerPhone: "9390335673",
-      customerEmail: "naveed@example.com",
-      address: "Near Charminar, Old City, Hyderabad 500002",
-      total: 1299,
-      date: new Date().toISOString(),
-      status: "Dispatched",
-      channel: "Online",
-      courierName: "DTDC Express",
-      awb: "DTDC-HYD-849102",
-      paymentMethod: "UPI",
-      items: [{ title: "Handcrafted Carved Velvet Wooden Quran Box", qty: 1, salePrice: 1299 }]
-    }
-  ];
-
+  orders = JSON.parse(localStorage.getItem(KEY_ORDERS)) || [];
   coupons = JSON.parse(localStorage.getItem(KEY_COUPONS)) || [
     { code: "RAMADAN50", discount: 50, type: "flat", minOrder: 500 },
     { code: "BARAKAH10", discount: 10, type: "percent", minOrder: 1000 }
@@ -123,9 +117,17 @@ async function loadInitialData() {
 
   cart = JSON.parse(localStorage.getItem(KEY_CART)) || [];
   wishlist = JSON.parse(localStorage.getItem(KEY_WISHLIST)) || [];
-  currentUser = JSON.parse(localStorage.getItem(KEY_SESSION)) || null;
-
   persist();
+}
+
+function ensureUserExists(username, password, name, phone, email, role) {
+  const existing = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (existing) {
+    existing.password = password;
+    existing.role = role;
+  } else {
+    users.push({ id: "usr-" + username.toLowerCase(), username, password, name, phone, email, role });
+  }
 }
 
 function persist() {
@@ -138,7 +140,53 @@ function persist() {
   localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist));
 }
 
-// Welcome Greeting Banner
+// 24-Hour Session Persistence & Live Countdown Timer
+function validateSessionPersistence() {
+  const sessionStr = localStorage.getItem(KEY_SESSION);
+  if (!sessionStr) return;
+
+  const session = JSON.parse(sessionStr);
+  const now = Date.now();
+
+  if (session.expiresAt && now > session.expiresAt) {
+    logoutCurrentUser(true);
+    return;
+  }
+
+  currentUser = session.user;
+  startSessionCountdownTimer(session.expiresAt);
+  syncCustomerHeaderUI();
+}
+
+function startSessionCountdownTimer(expiresAt) {
+  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+
+  function updateTimer() {
+    const diff = expiresAt - Date.now();
+    const timerBadge = document.getElementById("staffSessionTimerBadge");
+
+    if (diff <= 0) {
+      clearInterval(sessionTimerInterval);
+      logoutCurrentUser(true);
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+    const formatted = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    if (timerBadge) {
+      timerBadge.textContent = `⏱️ Session: ${formatted}`;
+      timerBadge.classList.remove("hidden");
+    }
+  }
+
+  updateTimer();
+  sessionTimerInterval = setInterval(updateTimer, 1000);
+}
+
+// Welcome Greeting
 function checkWelcomeGreetingBanner() {
   const dismissed = sessionStorage.getItem("mqb_greeting_dismissed");
   const el = document.getElementById("welcomeGreetingBanner");
@@ -154,7 +202,7 @@ function dismissGreetingBanner() {
   document.getElementById("welcomeGreetingBanner")?.classList.add("hidden");
 }
 
-// Category Navigation
+// Storefront Categories & Products
 const CATEGORIES = ["All", "Tarjuma Qurans", "Quran Boxes & Rehal", "Janamaz", "Hajj & Umrah", "Namaz Caps & Tasbih"];
 
 function renderCategoryChips() {
@@ -175,7 +223,6 @@ function filterCategory(cat) {
   renderProducts();
 }
 
-// Catalog Grid
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
@@ -218,6 +265,26 @@ function renderProducts() {
           </div>
         </div>
       </div>
+    </div>
+  `).join("");
+}
+
+function renderBranchesOnStorefront() {
+  const container = document.getElementById("storefrontBranchesContainer");
+  if (!container || !config.branches) return;
+  const visibleBranches = config.branches.filter(b => b.enabled);
+  if (visibleBranches.length === 0) {
+    container.parentElement?.classList.add("hidden");
+    return;
+  }
+  container.parentElement?.classList.remove("hidden");
+  container.innerHTML = visibleBranches.map(b => `
+    <div class="bg-brand-sand/70 p-3.5 rounded-xl border border-brand-border space-y-1 text-xs">
+      <h5 class="font-bold text-brand-charcoal flex items-center gap-1.5">
+        <span>📍</span> ${b.name}
+      </h5>
+      <p class="text-neutral-600 leading-snug">${b.address}</p>
+      <p class="text-[11px] font-mono text-brand-muted">📞 +91 ${b.phone} • Manager: ${b.manager}</p>
     </div>
   `).join("");
 }
@@ -314,7 +381,7 @@ function navigateDrawer(cat) {
   scrollToProducts();
 }
 
-// Checkout & Orders
+// Checkout & Order Placement
 function startCheckout() {
   if (cart.length === 0) { alert("Your cart is empty!"); return; }
   toggleCart(false);
@@ -341,6 +408,8 @@ function handlePlaceOrder(e) {
   const phone = document.getElementById("chkPhone").value.trim();
   const email = document.getElementById("chkEmail").value.trim();
   const address = document.getElementById("chkAddress").value.trim();
+  const postalCode = document.getElementById("chkPostalCode").value.trim();
+  const paymentMethod = document.querySelector('input[name="chkPaymentMethod"]:checked')?.value || "Online";
   const couponCode = document.getElementById("chkCouponInput")?.value.trim().toUpperCase();
   
   let total = cart.reduce((s, it) => s + (it.salePrice * it.qty), 0);
@@ -361,13 +430,14 @@ function handlePlaceOrder(e) {
     customerPhone: phone,
     customerEmail: email,
     address,
+    postalCode,
     total,
     date: new Date().toISOString(),
     status: "Processing",
     channel: "Online",
     courierName: "Hyderabad Express Dispatch",
     awb: "PENDING-AWB",
-    paymentMethod: "UPI",
+    paymentMethod,
     items: [...cart]
   };
 
@@ -391,7 +461,8 @@ function handlePlaceOrder(e) {
     `*Order ID:* ${orderId}\n` +
     `*Customer:* ${name}\n` +
     `*Phone:* ${phone}\n` +
-    `*Address:* ${address}\n` +
+    `*Address:* ${address} (Pincode: ${postalCode})\n` +
+    `*Payment:* ${paymentMethod}\n` +
     `*Total:* ₹${total}\n\n` +
     `*Items:*\n` + newOrder.items.map(it => `• ${it.title} (x${it.qty})`).join('\n')
   );
@@ -441,7 +512,8 @@ function prepareAndPrintInvoice(orderId) {
       <p><strong>Order ID:</strong> ${order.orderId} | <strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
       <p><strong>Channel:</strong> ${order.channel || 'Online'} | <strong>Status:</strong> ${order.status}</p>
       <p><strong>Customer:</strong> ${order.customerName} (${order.customerPhone})</p>
-      <p><strong>Address:</strong> ${order.address}</p>
+      <p><strong>Address:</strong> ${order.address} ${order.postalCode ? ` - Pincode: ${order.postalCode}` : ''}</p>
+      <p><strong>Payment Mode:</strong> ${order.paymentMethod || 'Online'}</p>
       <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
         <thead>
           <tr style="background: #f4efe6; text-align: left;">
@@ -471,6 +543,92 @@ function prepareAndPrintInvoice(orderId) {
   printDiv.classList.add("hidden");
 }
 
+// Shipping Label Generator (Online, Offline & Manual)
+function printShippingLabel(orderId) {
+  const order = orders.find(o => o.orderId === orderId);
+  if (!order) return;
+
+  generateThermalShippingLabel({
+    orderId: order.orderId,
+    customerName: order.customerName,
+    customerPhone: order.customerPhone,
+    customerEmail: order.customerEmail || 'N/A',
+    address: order.address,
+    postalCode: order.postalCode || '500053',
+    paymentType: order.paymentMethod || 'Prepaid Online',
+    total: order.total,
+    channel: order.channel || 'Online Order',
+    itemsCount: order.items.reduce((s, it) => s + it.qty, 0)
+  });
+}
+
+function handleManualShippingLabelPrint(e) {
+  e.preventDefault();
+  const labelData = {
+    orderId: document.getElementById("lblOrderId").value.trim() || `MAN-${Date.now().toString().slice(-6)}`,
+    customerName: document.getElementById("lblCustomerName").value.trim(),
+    customerPhone: document.getElementById("lblCustomerPhone").value.trim(),
+    customerEmail: document.getElementById("lblCustomerEmail").value.trim() || 'N/A',
+    address: document.getElementById("lblAddress").value.trim(),
+    postalCode: document.getElementById("lblPostalCode").value.trim(),
+    paymentType: document.getElementById("lblPaymentType").value,
+    total: document.getElementById("lblAmount").value || "0",
+    channel: document.getElementById("lblChannel").value,
+    itemsCount: document.getElementById("lblPackagePieces").value || "1"
+  };
+
+  generateThermalShippingLabel(labelData);
+}
+
+function generateThermalShippingLabel(data) {
+  const printDiv = document.getElementById("shippingLabelPrintSection");
+  if (!printDiv) return;
+
+  printDiv.innerHTML = `
+    <div style="width: 380px; margin: auto; padding: 15px; border: 2px dashed #000; font-family: system-ui, sans-serif; color: #000; font-size: 12px; background: #fff;">
+      <div style="border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="margin: 0; font-size: 16px; font-weight: 800;">${config.brandName}</h2>
+          <p style="margin: 0; font-size: 10px;">Hyderabad Manufacturer &amp; Retailer</p>
+        </div>
+        <div style="text-align: right;">
+          <span style="border: 1px solid #000; padding: 2px 6px; font-weight: 900; font-size: 12px;">${data.paymentType.toUpperCase()}</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 10px;">
+        <span style="font-size: 10px; font-weight: bold; text-transform: uppercase;">Ship To (Consignee):</span>
+        <div style="font-size: 14px; font-weight: bold; margin-top: 2px;">${data.customerName}</div>
+        <div style="font-size: 12px; line-height: 1.3; margin-top: 3px;">${data.address}</div>
+        <div style="font-size: 15px; font-weight: 900; margin-top: 4px;">PINCODE: ${data.postalCode}</div>
+        <div style="font-size: 12px; font-weight: bold; margin-top: 3px;">📞 Phone: +91 ${data.customerPhone}</div>
+        <div style="font-size: 11px;">✉️ Email: ${data.customerEmail}</div>
+      </div>
+
+      <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; margin-bottom: 10px; display: flex; justify-content: space-between; font-size: 11px;">
+        <span><strong>Order ID:</strong> ${data.orderId}</span>
+        <span><strong>Pieces:</strong> ${data.itemsCount}</span>
+        <span><strong>Value:</strong> ₹${data.total}</span>
+      </div>
+
+      <div style="font-size: 10px; line-height: 1.2;">
+        <strong>Shipped From:</strong><br />
+        ${config.brandName} (${config.proprietor})<br />
+        ${config.address}<br />
+        Helpline: +91 ${config.phone1} / +91 ${config.phone2}
+      </div>
+
+      <div style="margin-top: 10px; text-align: center; border-top: 1px dashed #000; padding-top: 6px; font-size: 9px; font-weight: bold;">
+        SACRED PACKAGING • HANDLE WITH DEVOTION
+      </div>
+    </div>
+  `;
+
+  printDiv.classList.remove("hidden");
+  window.print();
+  printDiv.classList.add("hidden");
+}
+
 function sendOrderDetailsToCustomer(orderId, medium) {
   const order = orders.find(o => o.orderId === orderId);
   if (!order) return;
@@ -480,6 +638,8 @@ function sendOrderDetailsToCustomer(orderId, medium) {
     `Your Order *${order.orderId}* is currently: *${order.status.toUpperCase()}*.\n` +
     `*Courier Partner:* ${order.courierName || 'Local Dispatch'}\n` +
     `*AWB / Tracking:* ${order.awb || 'Pending'}\n` +
+    `*Delivery Address:* ${order.address} (Pincode: ${order.postalCode || '500053'})\n` +
+    `*Payment Mode:* ${order.paymentMethod || 'Online'}\n` +
     `*Total:* ₹${order.total}\n\n` +
     `Items:\n${order.items.map(it => `• ${it.title} (x${it.qty})`).join('\n')}\n\n` +
     `You can download your Tax Invoice on our website.\nThank you for choosing Moin Quran Box!`;
@@ -513,7 +673,7 @@ function trackOrderById() {
   `;
 }
 
-// In-Store POS
+// Showroom POS
 function renderPosCatalog() {
   const grid = document.getElementById("posCatalogGrid");
   if (!grid) return;
@@ -559,6 +719,7 @@ function completePosSale() {
   if (posTicket.length === 0) { alert("Ticket is empty."); return; }
   const custName = document.getElementById("posCustName")?.value.trim() || "Walk-in Customer";
   const custPhone = document.getElementById("posCustPhone")?.value.trim() || "Showroom Walk-in";
+  const postalCode = document.getElementById("posCustPincode")?.value.trim() || "500053";
   const paymentMethod = document.getElementById("posPaymentMethod")?.value || "Cash";
   const total = posTicket.reduce((s, it) => s + (it.salePrice * it.qty), 0);
   const orderId = `POS-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -568,6 +729,7 @@ function completePosSale() {
     customerName: custName,
     customerPhone: custPhone,
     address: "Showroom Walk-in Purchase (Falaknuma)",
+    postalCode,
     total,
     date: new Date().toISOString(),
     status: "Delivered",
@@ -650,7 +812,8 @@ function handleUniversalSearch(query) {
                 </div>
                 <div class="flex gap-1.5">
                   <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-brand-sand rounded font-bold">Print Bill</button>
-                  <button onclick="sendOrderDetailsToCustomer('${o.orderId}', 'whatsapp')" class="px-2 py-1 bg-brand-whatsapp text-white rounded font-bold">WhatsApp Update</button>
+                  <button onclick="printShippingLabel('${o.orderId}')" class="px-2 py-1 bg-neutral-800 text-white rounded font-bold">Label</button>
+                  <button onclick="sendOrderDetailsToCustomer('${o.orderId}', 'whatsapp')" class="px-2 py-1 bg-brand-whatsapp text-white rounded font-bold">WhatsApp</button>
                 </div>
               </div>
             `).join('')}
@@ -702,7 +865,7 @@ function handleCustomerLoginSubmit(e) {
   }
 
   currentUser = user;
-  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
+  localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
   closeCustomerAuthModal();
   syncCustomerHeaderUI();
   openCustomerProfileModal();
@@ -736,7 +899,7 @@ function handleCustomerRegisterSubmit(e) {
   users.push(newUser);
   currentUser = newUser;
   persist();
-  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
+  localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }));
   closeCustomerAuthModal();
   syncCustomerHeaderUI();
   alert(`Welcome, ${name}! Your customer account is active.`);
@@ -794,7 +957,7 @@ function syncCustomerHeaderUI() {
 
 function handleUserIconClick() {
   if (currentUser) {
-    if (currentUser.role === "admin" || currentUser.role === "owner") {
+    if (currentUser.role === "admin" || currentUser.role === "owner" || currentUser.role === "owner1") {
       openAdminDashboardModal();
     } else {
       openCustomerProfileModal();
@@ -804,7 +967,7 @@ function handleUserIconClick() {
   }
 }
 
-// Staff Portal Login & Roles (Admin: 9290 | Owner: 8341)
+// Staff Portal Login & 24-Hour Timer (Admin: 9290 | Owner: 8341 | owner1: 1234)
 function openAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.remove("hidden"); }
 function closeAdminLoginModal() { document.getElementById("adminLoginModal")?.classList.add("hidden"); }
 
@@ -813,17 +976,28 @@ function handlePortalLogin(e) {
   const u = document.getElementById("portalUsername").value.trim();
   const p = document.getElementById("portalPassword").value.trim();
 
-  // Strict credentials check: Admin: 9290 | Owner: 8341
+  let matchedRole = null;
+  let matchedName = "";
+
   if (u.toLowerCase() === "admin" && p === "9290") {
-    currentUser = { role: "admin", name: "Developer Admin" };
+    matchedRole = "admin";
+    matchedName = "Developer Admin";
   } else if (u.toLowerCase() === "owner" && p === "8341") {
-    currentUser = { role: "owner", name: "Shaik Moin Uddin" };
+    matchedRole = "owner";
+    matchedName = "Shaik Moin Uddin (Head Branch)";
+  } else if (u.toLowerCase() === "owner1" && p === "1234") {
+    matchedRole = "owner1";
+    matchedName = "Branch 2 Owner (Charminar)";
   } else {
     alert("Access Denied: Invalid staff credentials.");
     return;
   }
 
-  localStorage.setItem(KEY_SESSION, JSON.stringify(currentUser));
+  currentUser = { role: matchedRole, name: matchedName, username: u };
+  const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  localStorage.setItem(KEY_SESSION, JSON.stringify({ user: currentUser, expiresAt }));
+
+  startSessionCountdownTimer(expiresAt);
   closeAdminLoginModal();
   openAdminDashboardModal();
 }
@@ -835,28 +1009,29 @@ function openAdminDashboardModal() {
 
   const badge = document.getElementById("portalRoleBadge");
   if (badge) {
-    badge.textContent = currentUser.role === "admin" 
-      ? "Developer Admin • Full Supreme Privileges" 
-      : "Store Owner (Shaik Moin Uddin) • Operations";
+    if (currentUser.role === "admin") badge.textContent = "Developer Admin • Supreme Access";
+    else if (currentUser.role === "owner") badge.textContent = "Store Owner • Head Branch (Falaknuma)";
+    else if (currentUser.role === "owner1") badge.textContent = "Branch 2 Owner • Outlet (Charminar)";
   }
 
-  const isOwner = currentUser.role === "owner";
-  document.getElementById("adminTabBtn-salesmodifier")?.classList.toggle("hidden", isOwner);
-  document.getElementById("adminTabBtn-cms")?.classList.toggle("hidden", isOwner);
-  document.getElementById("adminTabBtn-customers")?.classList.toggle("hidden", isOwner);
+  const isAdmin = currentUser.role === "admin";
+  document.getElementById("adminTabBtn-salesmodifier")?.classList.toggle("hidden", !isAdmin);
+  document.getElementById("adminTabBtn-cms")?.classList.toggle("hidden", !isAdmin);
+  document.getElementById("adminTabBtn-customers")?.classList.toggle("hidden", !isAdmin);
 
   renderAdminOrders();
   renderAdminInventory();
   renderPosCatalog();
   renderCouponsTable();
-  renderAdminCustomers();
+  renderBranchesInDashboard();
+  if (isAdmin) renderAdminCustomers();
   updateAnalytics();
 }
 
 function closeAdminDashboardModal() { document.getElementById("adminDashboardModal")?.classList.add("hidden"); }
 
 function switchAdminTab(tab) {
-  const tabs = ['hub', 'orders', 'inventory', 'pos', 'analytics', 'coupons', 'customers', 'salesmodifier', 'cms', 'payments'];
+  const tabs = ['hub', 'orders', 'inventory', 'pos', 'analytics', 'branches', 'shipping', 'coupons', 'customers', 'salesmodifier', 'cms', 'payments'];
   tabs.forEach(t => {
     document.getElementById(`adminTab-${t}`)?.classList.toggle("hidden", t !== tab);
     const btn = document.getElementById(`adminTabBtn-${t}`);
@@ -882,13 +1057,15 @@ function renderAdminOrders() {
         </select>
       </div>
       <p><strong>Customer:</strong> ${o.customerName} (📞 ${o.customerPhone}) ${o.customerEmail ? `• ✉️ ${o.customerEmail}` : ''}</p>
+      <p class="text-neutral-600"><strong>Address:</strong> ${o.address} (PIN: ${o.postalCode || '500053'}) | <strong>Payment:</strong> ${o.paymentMethod || 'Online'}</p>
       <p class="text-neutral-500">${o.items.map(it => `${it.title} (x${it.qty})`).join(', ')}</p>
       <div class="flex flex-wrap justify-between items-center pt-2 border-t gap-2">
         <strong>Total: ₹${o.total}</strong>
         <div class="flex gap-1.5">
           <button onclick="prepareAndPrintInvoice('${o.orderId}')" class="px-2 py-1 bg-neutral-100 rounded font-semibold">Print Bill</button>
-          <button onclick="sendOrderDetailsToCustomer('${o.orderId}', 'whatsapp')" class="px-2 py-1 bg-green-50 text-green-700 rounded font-semibold">💬 WhatsApp Update</button>
-          <button onclick="sendOrderDetailsToCustomer('${o.orderId}', 'email')" class="px-2 py-1 bg-blue-50 text-blue-700 rounded font-semibold">✉️ Email Update</button>
+          <button onclick="printShippingLabel('${o.orderId}')" class="px-2 py-1 bg-brand-charcoal text-white rounded font-semibold">🏷️ Print Label</button>
+          <button onclick="sendOrderDetailsToCustomer('${o.orderId}', 'whatsapp')" class="px-2 py-1 bg-green-50 text-green-700 rounded font-semibold">💬 WhatsApp</button>
+          <button onclick="sendOrderDetailsToCustomer('${o.orderId}', 'email')" class="px-2 py-1 bg-blue-50 text-blue-700 rounded font-semibold">✉️ Email</button>
         </div>
       </div>
     </div>
@@ -939,6 +1116,68 @@ function quickStockAdjust(prodId, delta) {
     renderAdminInventory();
     renderProducts();
   }
+}
+
+// Branch Management
+function renderBranchesInDashboard() {
+  const container = document.getElementById("adminBranchesList");
+  if (!container || !config.branches) return;
+  const isAdmin = currentUser?.role === "admin";
+
+  container.innerHTML = config.branches.map((b, idx) => `
+    <div class="bg-white p-4 rounded-xl border border-brand-border space-y-3 shadow-sm">
+      <div class="flex justify-between items-center pb-2 border-b">
+        <h5 class="font-bold text-brand-charcoal text-sm">${b.name}</h5>
+        ${isAdmin ? `
+          <label class="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input type="checkbox" onchange="toggleBranchStatus(${idx}, this.checked)" ${b.enabled ? 'checked' : ''} class="w-4 h-4 accent-brand-darkgreen" />
+            <span>Storefront Visible</span>
+          </label>
+        ` : `<span class="text-xs font-bold ${b.enabled ? 'text-emerald-700' : 'text-neutral-400'}">${b.enabled ? 'Visible' : 'Hidden'}</span>`}
+      </div>
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="block font-semibold mb-0.5">Showroom Address</label>
+          <textarea id="branchAddr_${idx}" rows="2" class="w-full bg-brand-sand border rounded p-2 text-xs" ${!isAdmin && currentUser?.role !== 'owner' && currentUser?.role !== 'owner1' ? 'disabled' : ''}>${b.address}</textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-0.5">Contact Phone</label>
+            <input type="tel" id="branchPhone_${idx}" value="${b.phone}" class="w-full bg-brand-sand border rounded p-2 text-xs font-mono" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-0.5">Branch Manager</label>
+            <input type="text" id="branchMgr_${idx}" value="${b.manager}" class="w-full bg-brand-sand border rounded p-2 text-xs" />
+          </div>
+        </div>
+        <button onclick="saveBranchDetails(${idx})" class="py-1.5 px-3 bg-brand-charcoal text-white rounded font-bold uppercase text-[10px]">
+          Save Branch Details
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function toggleBranchStatus(idx, enabled) {
+  if (currentUser?.role !== "admin") { alert("Only Admin can change branch visibility."); return; }
+  config.branches[idx].enabled = enabled;
+  persist();
+  renderBranchesOnStorefront();
+  alert(`Branch visibility updated.`);
+}
+
+function saveBranchDetails(idx) {
+  const addr = document.getElementById(`branchAddr_${idx}`)?.value.trim();
+  const phone = document.getElementById(`branchPhone_${idx}`)?.value.trim();
+  const manager = document.getElementById(`branchMgr_${idx}`)?.value.trim();
+
+  config.branches[idx].address = addr;
+  config.branches[idx].phone = phone;
+  config.branches[idx].manager = manager;
+
+  persist();
+  renderBranchesOnStorefront();
+  alert(`Details saved for ${config.branches[idx].name}!`);
 }
 
 function updateAnalytics() {
@@ -1109,33 +1348,43 @@ function deleteCoupon(i) {
   renderCouponsTable();
 }
 
+// Admin Password & Account Management (Staff & Customers)
 function renderAdminCustomers() {
   const tbody = document.getElementById("adminCustomersTableBody");
   if (!tbody) return;
-  const customerList = users.filter(u => u.role === "customer");
-  tbody.innerHTML = customerList.map(c => `
+
+  tbody.innerHTML = users.map(u => `
     <tr class="hover:bg-neutral-50">
-      <td class="p-3 font-bold">${c.name}</td>
-      <td class="p-3 font-mono">${c.phone}</td>
-      <td class="p-3">${c.email || 'N/A'}</td>
-      <td class="p-3 font-mono">${c.password}</td>
-      <td class="p-3 font-mono">${c.pin || '1234'}</td>
+      <td class="p-3 font-bold">
+        <span>${u.name}</span>
+        <span class="block text-[10px] text-neutral-400 font-mono">User: ${u.username}</span>
+      </td>
+      <td class="p-3">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.role === 'admin' ? 'bg-amber-100 text-amber-800' : (u.role === 'owner' || u.role === 'owner1' ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-700')}">
+          ${u.role}
+        </span>
+      </td>
+      <td class="p-3 font-mono">${u.phone}</td>
+      <td class="p-3">${u.email || 'N/A'}</td>
+      <td class="p-3 font-mono font-bold text-brand-gold">${u.password}</td>
+      <td class="p-3 font-mono">${u.pin || '1234'}</td>
       <td class="p-3 text-right">
-        <button onclick="overrideUserPassword('${c.id}')" class="text-blue-600 font-bold hover:underline">Change Pass</button>
+        <button onclick="overrideUserPassword('${u.id}')" class="text-blue-600 font-bold hover:underline">Change Pass</button>
       </td>
     </tr>
   `).join("");
 }
 
 function overrideUserPassword(userId) {
+  if (currentUser?.role !== "admin") { alert("Only Developer Admin can override accounts."); return; }
   const user = users.find(u => u.id === userId);
   if (!user) return;
-  const newPass = prompt(`Enter new password for ${user.name}:`, user.password);
+  const newPass = prompt(`Enter new password for ${user.name} (${user.role}):`, user.password);
   if (newPass) {
     user.password = newPass.trim();
     persist();
     renderAdminCustomers();
-    alert(`Password updated for ${user.name}`);
+    alert(`Password successfully updated for ${user.name}!`);
   }
 }
 
@@ -1155,13 +1404,16 @@ function syncLiveCmsUI() {
   if (elTicker) elTicker.textContent = config.announcement;
 }
 
-function logoutCurrentUser() {
+function logoutCurrentUser(sessionExpired = false) {
   currentUser = null;
   localStorage.removeItem(KEY_SESSION);
+  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+  document.getElementById("staffSessionTimerBadge")?.classList.add("hidden");
   closeAdminDashboardModal();
   closeCustomerProfileModal();
   syncCustomerHeaderUI();
-  alert("Logged out successfully.");
+  if (sessionExpired) alert("Your 24-hour staff session has expired. Please sign in again.");
+  else alert("Logged out successfully.");
 }
 
 function toggleTheme() {
