@@ -44,7 +44,7 @@
     try { const u = new URL(src); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
   };
   const price = n => Number.isFinite(Number(n)) ? Math.max(0, Number(n)) : 0;
-  const publicKeys = ['brandName','urduSubtitle','proprietor','address','phone1','phone2','whatsappPhone','announcement','maintenanceMode'];
+  const publicKeys = ['brandName','urduSubtitle','proprietor','address','phone1','phone2','whatsappPhone','instagramHandle','whatsappGreeting','announcement','maintenanceMode'];
   const publicConfig = () => Object.fromEntries(publicKeys.map(k => [k, config[k] ?? '']));
   const cleanSettings = () => {
     const copy = JSON.parse(JSON.stringify(config));
@@ -131,6 +131,8 @@
         this.on('publicSettings', data => {
           if(!data || typeof data!=='object') return;
           for(const k of publicKeys) if(Object.prototype.hasOwnProperty.call(data,k)) config[k]=data[k];
+          // Public social values win over an older administrator settings snapshot.
+          this.publicSocial=Object.fromEntries(['whatsappPhone','instagramHandle','whatsappGreeting'].filter(k=>Object.prototype.hasOwnProperty.call(data,k)).map(k=>[k,data[k]]));
           config.customCategories=Array.isArray(data.customCategories) ? data.customCategories.filter(x=>typeof x==='string').slice(0,75) : [];
           renderCategoryChips();refreshProductCategoryOptions();renderCustomCategoryList();
           syncLiveCmsUI(); renderProducts();
@@ -248,7 +250,7 @@
               this.applying=true;
               if(data.config) {
                 const publicCategories=Array.isArray(config.customCategories)?config.customCategories:[];
-                config={...config,...data.config,featureToggles:{...config.featureToggles,...data.config.featureToggles},customCategories:publicCategories};
+                config={...config,...data.config,...(this.publicSocial||{}),featureToggles:{...config.featureToggles,...data.config.featureToggles},customCategories:publicCategories};
               }
               // Public category data is canonical. Do not overwrite it with old settings snapshots.
               if(Array.isArray(data.coupons)) coupons=data.coupons;
@@ -484,7 +486,8 @@
         const snapshot=cleanSettings();
         try {
           await this.db.ref('adminData/settings').set(snapshot);
-          await this.db.ref('publicSettings').set(publicConfig());
+          // Merge only changed public fields; never erase custom categories or unrelated settings.
+          await this.db.ref('publicSettings').update(publicConfig());
           this.lastSettings=JSON.stringify(snapshot);
           this.setStatus('✓ Store settings saved in Firebase','ok');
         } catch(error) { this.setStatus('⚠ Changes are local; Firebase rejected save: '+textError(error),'bad'); }
@@ -496,6 +499,38 @@
   window.toggleTheme=()=>{
     const dark=document.documentElement.classList.toggle('dark');
     try{localStorage.setItem('mqb_theme',dark?'dark':'light');}catch{}
+  };
+  // V25.2: Admin-editable social links; writes only the public fields, never full orders/settings.
+  window.populateSocialContactForm=()=>{
+    if($('socialInstagramHandle')) $('socialInstagramHandle').value=String(config.instagramHandle||'');
+    if($('socialWhatsAppNumber')) $('socialWhatsAppNumber').value=String(config.whatsappPhone||'');
+    if($('socialWhatsAppGreeting')) $('socialWhatsAppGreeting').value=String(config.whatsappGreeting||'');
+    if($('socialContactSaveStatus')) $('socialContactSaveStatus').textContent='';
+  };
+  window.saveSocialContacts=async e=>{
+    e.preventDefault();
+    if(!ensureStoreEditor())return;
+    const status=$('socialContactSaveStatus'); const button=$('socialContactSaveBtn');
+    const show=(message,bad=false)=>{if(status){status.textContent=message;status.className='text-xs '+(bad?'text-red-700':'text-emerald-800');}};
+    const instagram=String($('socialInstagramHandle')?.value||'').trim().replace(/^@/,'');
+    const phoneInput=String($('socialWhatsAppNumber')?.value||'').replace(/[^0-9]/g,'');
+    const phone=phoneInput.length===12 && phoneInput.startsWith('91') ? phoneInput.slice(2) : phoneInput;
+    const greeting=String($('socialWhatsAppGreeting')?.value||'').trim();
+    if(instagram && !/^[A-Za-z0-9._]{1,30}$/.test(instagram)){show('Enter a valid Instagram username (letters, numbers, dot or underscore, up to 30 characters).',true);return;}
+    if(!/^[6-9][0-9]{9}$/.test(phone)){show('Enter a valid Indian WhatsApp mobile number with 10 digits or +91 country code.',true);return;}
+    if(greeting.length>220){show('WhatsApp message must be 220 characters or fewer.',true);return;}
+    if(!live.db){show('Firebase is not connected. Social links were not saved.',true);return;}
+    if(button)button.disabled=true;
+    show('Saving social links to Firebase…');
+    try{
+      const fields={instagramHandle:instagram,whatsappPhone:phone,whatsappGreeting:greeting};
+      await live.db.ref('publicSettings').update(fields);
+      Object.assign(config,fields);
+      localStorage.setItem('mqb_v19_config',JSON.stringify(config));
+      syncLiveCmsUI();
+      show('✓ Instagram and WhatsApp links saved. Customers can see the updated links.');
+    }catch(error){show('Firebase did not save the links: '+textError(error),true);}
+    finally{if(button)button.disabled=false;}
   };
   window.openContactModal=()=>$('contactModal')?.classList.remove('hidden');
   window.closeContactModal=()=>$('contactModal')?.classList.add('hidden');
