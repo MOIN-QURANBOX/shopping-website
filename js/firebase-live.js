@@ -68,11 +68,17 @@
       el.style.background=state==='ok'?'#e1f5e8':state==='bad'?'#ffe3e0':'#fcf5dc';
       el.style.color=state==='ok'?'#185b37':state==='bad'?'#922828':'#5d481b';
     },
-    on(path, fn, fallback) {
+    on(path, fn, fallback, options={}) {
       const reference=this.db.ref(path);
       const handler=snap=>fn(snap.val());
       reference.on('value',handler, error=> {
-        this.setStatus('Firebase read error: '+textError(error),'bad');
+        // Staff Roles are intentionally not available until reviewed V23 rules
+        // are published. Keep ALL database permissions unchanged: report this
+        // optional admin-only feature inside its panel, not on the storefront.
+        const permissionDenied=/permission[_-]?denied/i.test(String(error?.code||'')) ||
+          /permission[- ]denied/i.test(String(error?.message||''));
+        if(!(options.optionalRead && permissionDenied))
+          this.setStatus('Firebase read error: '+textError(error),'bad');
         if(fallback) fallback(error);
       });
       this.unsubs.push(()=>reference.off('value',handler));
@@ -182,7 +188,29 @@
             if(currentUser && currentUser.role!==record.role){this.applySession(u).catch(()=>{});}
           },()=>this.auth.signOut().catch(()=>{}));
         } else {
-          this.on('staffRoles', records=>{this.staffRecords=records||{};renderStaffRoleTable();});
+          this.on('staffRoles', records=>{
+            if(this.uid!==u.uid)return;
+            this.staffRecords=records||{};
+            renderStaffRoleTable();
+            const notice=$('staffRoleStatus');
+            if(notice && notice.dataset.staffReadWarning==='true'){
+              notice.textContent='';
+              delete notice.dataset.staffReadWarning;
+            }
+          }, error=>{
+            if(this.uid!==u.uid)return;
+            this.staffRecords={};
+            renderStaffRoleTable();
+            const notice=$('staffRoleStatus');
+            if(notice){
+              notice.dataset.staffReadWarning='true';
+              notice.className='text-xs text-amber-800';
+              notice.textContent=/permission[_-]?denied/i.test(String(error?.code||'')) ||
+                /permission[- ]denied/i.test(String(error?.message||''))
+                ? 'Staff Roles are not activated in Firebase yet. Keep the current database rules unchanged until the reviewed staff permissions are ready. Existing customer and Super Admin features can still work.'
+                : 'Staff Roles could not be loaded: '+textError(error);
+            }
+          }, {optionalRead:true});
         }
         this.posSales=[];this.customerOrdersForAdmin=[];
         this.on('orderRequests', record=>{
