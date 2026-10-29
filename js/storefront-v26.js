@@ -1,0 +1,85 @@
+/* MOIN QURAN BOX V26: branded editorial collections built only from the store's real catalog. */
+(() => {
+  'use strict';
+  const byId = id => document.getElementById(id);
+  const money = amount => '₹' + Number(amount||0).toLocaleString('en-IN', {maximumFractionDigits:2});
+  const dictionary = {
+    en: { collections:'Explore collections', goods:'Browse by what you are looking for', all:'View all products', picks:'Featured from our store', pickSub:'A selection from our current catalog', browse:'See the full collection', details:'View product details', trust1:'Shop with guidance', trust1s:'Product information before you order', trust2:'Guest order requests',trust2s:'No account or password needed',trust3:'Nationwide enquiries',trust3s:'Delivery quotation confirmed by PIN code',trust4:'Order support',trust4s:'Talk directly with our store', notice:'How payment works',noticeText:'Choose Cash on Delivery or Manual UPI at checkout. We confirm products, shipping and the final total before you pay. Card, net banking and wallet payments are not active yet.' },
+    hi: {collections:'हमारी श्रेणियाँ',goods:'अपनी पसंद का सामान देखें',all:'सभी सामान देखें',picks:'हमारे स्टोर से चुनिंदा सामान',pickSub:'हमारे उपलब्ध संग्रह से',browse:'पूरा संग्रह देखें',details:'उत्पाद की जानकारी',trust1:'खरीदारी में मदद',trust1s:'ऑर्डर से पहले सामान की जानकारी',trust2:'बिना अकाउंट ऑर्डर',trust2s:'अकाउंट या पासवर्ड ज़रूरी नहीं',trust3:'पूरे भारत में डिलीवरी',trust3s:'पिन कोड के अनुसार शुल्क की पुष्टि',trust4:'ऑर्डर सहायता',trust4s:'सीधे दुकान से बात करें',notice:'भुगतान कैसे होगा',noticeText:'चेकआउट पर COD या मैनुअल UPI चुनें। हम भुगतान से पहले सामान, डिलीवरी और अंतिम राशि की पुष्टि करेंगे। कार्ड, नेट बैंकिंग और वॉलेट अभी उपलब्ध नहीं हैं।'},
+    te: {collections:'మా విభాగాలు',goods:'మీకు కావలసిన వస్తువులు చూడండి',all:'అన్ని వస్తువులు',picks:'మా స్టోర్ ప్రత్యేక ఎంపికలు',pickSub:'ప్రస్తుతం మా కలెక్షన్ నుండి',browse:'పూర్తి కలెక్షన్ చూడండి',details:'వస్తువు వివరాలు',trust1:'కొనుగోలు సహాయం',trust1s:'ఆర్డర్ ముందు వస్తువు వివరాలు',trust2:'అకౌంట్ లేకుండా ఆర్డర్',trust2s:'పాస్‌వర్డ్ అవసరం లేదు',trust3:'భారతదేశం అంతటా',trust3s:'పిన్ కోడ్‌ను బట్టి చార్జీ నిర్ధారణ',trust4:'ఆర్డర్ సహాయం',trust4s:'నేరుగా మా షాపుతో మాట్లాడండి',notice:'చెల్లింపు విధానం',noticeText:'చెకౌట్‌లో COD లేదా మాన్యువల్ UPI ఎంచుకోండి. చెల్లింపుకు ముందు వస్తువులు, డెలివరీ చార్జీలు, మొత్తం నిర్ధారిస్తాము. కార్డు, నెట్ బ్యాంకింగ్, వాలెట్లు ఇంకా అందుబాటులో లేవు.'},
+    roman: {collections:'Hamari Collections',goods:'Apni pasand ka saman dekhein',all:'Saare products dekhein',picks:'Hamare store se khaas items',pickSub:'Hamare maujooda catalog se',browse:'Poori collection dekhein',details:'Product ki tafseel',trust1:'Shopping mein madad',trust1s:'Order se pehle poori maloomat',trust2:'Bina account order',trust2s:'Password ki zaroorat nahin',trust3:'Poore India mein delivery',trust3s:'PIN ke mutabiq charges confirm honge',trust4:'Order mein madad',trust4s:'Seedha dukaan se baat karein',notice:'Payment ka tareeqa',noticeText:'Checkout mein COD ya Manual UPI chunein. Payment se pehle hum products, delivery aur final amount confirm karenge. Cards, net banking aur wallets abhi available nahin.'}
+  };
+  const icon = category => /quran|tarjuma|book/i.test(category) ? '📖' : /kid|learn|qaida/i.test(category) ? '✏️' : /hajj|umrah/i.test(category) ? '🕋' : /janamaz|prayer/i.test(category) ? '🕌' : /box|gift|rehal/i.test(category) ? '🎁' : /tasbih|cap/i.test(category) ? '📿' : '✦';
+  const productsList=()=> {
+    if(!window.mqbLive?.catalogPublished)return []; // Never present demo JSON as live inventory.
+    return (typeof products !== 'undefined' && Array.isArray(products) ? products : []).filter(p=>p && p.id && p.title && Number(p.salePrice)>0);
+  };
+  const str = (tag,cls,txt) => { const el=document.createElement(tag); if(cls)el.className=cls; if(txt!==undefined)el.textContent=String(txt); return el; };
+  const currentLang=()=> { try{return window.MQBLang?.get?.()||localStorage.getItem('mqb_customer_language')||'en';}catch{return 'en';}};
+  function labels(){return dictionary[currentLang()]||dictionary.en;}
+  function openCategory(category) {
+    if (typeof filterCategory==='function') filterCategory(category);
+    const anchor=byId('catalogTopAnchor'); if(anchor)anchor.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function buildLayout(){
+    const services=byId('welcomeGreetingBanner')?.parentElement;
+    const main=document.querySelector('main');
+    const showroom=byId('storefrontBranchesContainer')?.parentElement;
+    if(!main||!showroom)return;
+    if(!byId('mqbV26Highlights')){
+      const block=str('div','',undefined);block.id='mqbV26Highlights';
+      block.innerHTML='<section id="mqbV26Trust" class="mqb26-trust" aria-label="How shopping with us works"></section><section aria-label="Shop by category"><div class="mqb26-intro"><div><div class="mqb26-eyebrow">MOIN QURAN BOX</div><h2 class="mqb26-title" id="mqbV26CatTitle"></h2><p class="mqb26-subtitle" id="mqbV26CatSub"></p></div><button type="button" id="mqbV26ShopAll" class="mqb26-textlink"></button></div><div id="mqbV26Categories" class="mqb26-collections"></div></section><section class="mqb26-featured" aria-label="Featured products"><div class="mqb26-intro"><div><div class="mqb26-eyebrow">OUR COLLECTION</div><h2 id="mqbV26FeaturedTitle" class="mqb26-title"></h2><p class="mqb26-subtitle" id="mqbV26FeaturedSub"></p></div><button type="button" id="mqbV26Explore" class="mqb26-textlink"></button></div><div id="mqbV26Products" class="mqb26-featuredgrid"></div></section><div id="mqbV26PaymentNotice" class="mqb26-notice"></div>';
+      main.insertBefore(block,showroom);
+      byId('mqbV26ShopAll')?.addEventListener('click',()=>openCategory('All'));
+      byId('mqbV26Explore')?.addEventListener('click',()=>openCategory('All'));
+    }
+  }
+  const oldPrice = p => (Number(p.oldPrice)>Number(p.salePrice)?Number(p.oldPrice):null);
+  function paint(){
+    buildLayout();
+    const t=labels();
+    const entries=productsList();
+    const categories=[...new Set(entries.map(p=>p.category).filter(Boolean))].slice(0,6);
+    const counts=Object.fromEntries(categories.map(c=>[c,entries.filter(p=>p.category===c).length]));
+    const set=(id,value)=>{const e=byId(id);if(e)e.textContent=value;};
+    set('mqbV26CatTitle',t.collections);set('mqbV26CatSub',t.goods);set('mqbV26ShopAll',t.all+' ↗');
+    set('mqbV26FeaturedTitle',t.picks);set('mqbV26FeaturedSub',t.pickSub);set('mqbV26Explore',t.browse+' ↗');
+    const trust=byId('mqbV26Trust');
+    if(trust){trust.replaceChildren();[
+      ['📘',t.trust1,t.trust1s],['🛍',t.trust2,t.trust2s],['🚚',t.trust3,t.trust3s],['💬',t.trust4,t.trust4s]
+    ].forEach(([symbol,title,subtitle])=>{
+      const item=str('div','mqb26-trust-item');item.appendChild(str('span','mqb26-trust-icon',symbol));
+      const text=str('div','');text.append(str('div','mqb26-trust-title',title),str('div','mqb26-trust-sub',subtitle));item.appendChild(text);trust.appendChild(item);
+    });}
+    const catWrap=byId('mqbV26Categories');
+    if(catWrap){catWrap.replaceChildren();categories.forEach(cat=>{
+      const b=str('button','mqb26-category');b.type='button';b.setAttribute('aria-pressed',String((typeof currentCategory==='string'?currentCategory:'All')===cat));
+      const main=str('div','mqb26-category-main');main.append(str('span','mqb26-symbol',icon(cat)),str('span','mqb26-count',counts[cat]+' '+(counts[cat]===1?'item':'items')));
+      b.append(main,str('span','mqb26-catname',cat));b.addEventListener('click',()=>openCategory(cat));catWrap.append(b);
+    });}
+    const featured=byId('mqbV26Products');
+    if(featured){featured.replaceChildren();entries.filter(p=>Number(p.stock)>0).slice(0,4).forEach(p=>{
+      const card=str('article','mqb26-product');const photo=str('button','mqb26-prodimage');photo.type='button';photo.setAttribute('aria-label','View '+p.title);
+      try{const url=new URL(p.image);if(url.protocol==='https:'){const img=document.createElement('img');img.src=url.href;img.alt=p.title;img.loading='lazy';photo.appendChild(img);}}catch{}
+      photo.addEventListener('click',()=>window.openProductDetails?.(p.id));
+      const body=str('div','mqb26-productbody');body.appendChild(str('div','mqb26-prodcat',p.category||'Collection'));
+      const name=str('button','mqb26-prodname',p.title);name.type='button';name.addEventListener('click',()=>window.openProductDetails?.(p.id));body.appendChild(name);
+      const pr=str('div','mqb26-prodprice',money(p.salePrice));if(oldPrice(p))pr.appendChild(str('span','mqb26-prodold',money(oldPrice(p))));body.appendChild(pr);
+      const action=str('button','mqb26-prodaction',t.details+' →');action.type='button';action.addEventListener('click',()=>window.openProductDetails?.(p.id));body.appendChild(action);
+      card.append(photo,body);featured.appendChild(card);
+    });}
+    const notice=byId('mqbV26PaymentNotice');if(notice){notice.replaceChildren(str('strong','',t.notice+' · '),document.createTextNode(t.noticeText));}
+    const whole=byId('mqbV26Highlights');if(whole)whole.hidden=entries.length===0;
+  }
+  function init(){
+    buildLayout();paint();
+    // Re-render only when the existing authenticated storefront redraws from Firebase.
+    if(typeof window.renderProducts==='function'){
+      const old=window.renderProducts;
+      window.renderProducts=function(){const result=old.apply(this,arguments);paint();return result;};
+    }
+    byId('mqbLanguageSelect')?.addEventListener('change',()=>queueMicrotask(paint));
+    // Do not write or import ANY product or settings data; visual presentation only.
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
