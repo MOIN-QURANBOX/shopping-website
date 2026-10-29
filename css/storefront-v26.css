@@ -64,3 +64,50 @@ body { background:#faf9f5; }
 .dark #mqbV26Highlights .mqb26-title,.dark #mqbV26Highlights .mqb26-catname,.dark #mqbV26Highlights .mqb26-prodname,.dark #mqbV26Highlights .mqb26-prodprice,.dark #mqbV26Highlights .mqb26-trust-title {color:#f7f7f1;}
 .dark #mqbV26Highlights .mqb26-notice {background:#273a2e;color:#e4efe4;border-color:#547059;}
 .dark #mqbV26Highlights .mqb26-prodaction{background:#2b4536;color:#eaf4e9;border-color:#648875;}
+
+/* V26.1 — compact, touch-friendly collection cards without affecting product/admin data. */
+.mqb26-collections{gap:10px;}
+.mqb26-category{min-height:82px;padding:12px 13px;gap:6px;border-radius:13px;}
+.mqb26-catname{font-size:13px;line-height:1.25;font-family:inherit;font-weight:750;}
+.mqb26-symbol{width:30px;height:30px;font-size:16px;border-radius:9px;}
+.mqb26-count{font-size:10px;}
+.mqb26-title{font-size:clamp(1.08rem,2vw,1.35rem);}
+.mqb26-intro{margin-bottom:12px;}
+.mqb26-trust{padding:9px;gap:6px;margin-bottom:20px;}
+.mqb26-featured{margin-top:22px;margin-bottom:24px;}
+@media (min-width: 768px) {
+  .mqb26-collections{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .mqb26-category{min-height:86px;padding:13px 14px;}
+}
+@media (min-width: 1050px) {
+  .mqb26-collections{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .mqb26-category{min-height:91px;}
+}
+@media (max-width: 639px) {
+  #mqbV26Highlights{margin-bottom:15px;}
+  .mqb26-collections{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .mqb26-category{padding:10px;min-height:69px;border-radius:12px;gap:7px;}
+  .mqb26-category-main{gap:3px;align-items:flex-start;}
+  .mqb26-symbol{width:24px;height:24px;font-size:13px;border-radius:7px;}
+  .mqb26-catname{font-size:12px;line-height:1.15;letter-spacing:0;font-family:inherit;}
+  .mqb26-count{font-size:9px;}
+  .mqb26-title{font-size:18px;line-height:1.24;}
+  .mqb26-eyebrow{font-size:9px;}
+  .mqb26-subtitle{font-size:11px;line-height:1.35;margin-top:3px;}
+  .mqb26-intro{gap:8px;align-items:center;}
+  .mqb26-textlink{font-size:10px;white-space:normal;text-align:right;line-height:1.3;}
+  .mqb26-featuredgrid{gap:8px;}
+  .mqb26-productbody{padding:10px;gap:6px;}
+  .mqb26-prodname{font-size:12px;line-height:1.3;}
+  .mqb26-prodprice{font-size:13px;}
+  .mqb26-trust{gap:4px;padding:7px;}
+  .mqb26-trust-item{gap:5px;padding:5px;}
+  .mqb26-trust-icon{font-size:16px;}
+  .mqb26-trust-title{font-size:11px;}
+  .mqb26-trust-sub{font-size:10px;}
+  #categoryChips button{padding:.45rem .6rem;font-size:11px;}
+}
+@media (max-width: 340px){
+  .mqb26-category{padding:8px;min-height:63px;}
+  .mqb26-catname{font-size:11px;}
+}
