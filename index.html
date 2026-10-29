@@ -760,6 +760,16 @@
             <div id="customCategoryList" class="space-y-2 text-xs"></div>
             <p id="customCategoryNotice" role="status" class="text-xs"></p>
           </section>
+          <!-- Catalog import utilities stay inside verified staff Stock, never as a storefront popup. -->
+          <section id="cloudAdminQuickActions" class="hidden bg-amber-50 rounded-xl border border-amber-200 p-4 space-y-3 text-xs" aria-label="Cloud catalog import utilities">
+            <h5 class="font-bold text-sm text-brand-charcoal">Cloud Catalog Import Tools</h5>
+            <p class="text-neutral-600">For verified Super Admin and Owner accounts only. Import products only after reviewing your inventory. Existing Firebase products are not overwritten.</p>
+            <p id="cloudAdminCatalogInfo" class="text-neutral-600" role="status">Checking cloud catalog…</p>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="window.mqbLive?.publishSampleCatalog?.()" class="rounded bg-brand-darkgreen px-3 py-2 text-white font-bold">Import missing JSON products</button>
+              <button type="button" onclick="window.mqbLive?.publishBrowserCatalog?.()" class="rounded bg-amber-100 px-3 py-2 font-bold">Import old browser products</button>
+            </div>
+          </section>
           <div class="bg-white rounded-xl border border-brand-border overflow-x-auto shadow-sm">
             <table class="w-full text-left text-xs">
               <thead class="bg-brand-sand uppercase tracking-wider text-brand-charcoal border-b border-brand-border">
@@ -1446,13 +1456,6 @@
     </div>
   </div>
 
-  <div id="cloudAdminQuickActions" class="hidden fixed bottom-3 left-3 z-40 max-w-xs rounded-xl border border-amber-200 bg-white/95 p-3 shadow-2xl text-xs">
-    <strong>Firebase Super Admin</strong>
-    <p id="cloudAdminCatalogInfo" class="my-2 text-neutral-600">Checking cloud catalog…</p>
-    <button type="button" onclick="window.mqbLive?.publishSampleCatalog?.()" class="rounded bg-brand-darkgreen px-3 py-2 text-white font-bold">Import missing JSON products</button>
-    <button type="button" onclick="window.mqbLive?.publishBrowserCatalog?.()" class="rounded bg-amber-100 px-2 py-2 font-bold">Import old browser products</button>
-    <button type="button" onclick="document.getElementById('cloudAdminQuickActions').classList.add('hidden')" class="ml-2 text-neutral-600">Hide</button>
-  </div>
   <div id="invoicePrintSection" class="hidden"></div>
   <div id="shippingLabelPrintSection" class="hidden"></div>
 
