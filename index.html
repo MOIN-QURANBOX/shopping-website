@@ -103,6 +103,11 @@
             </svg>
           </button>
 
+          <!-- V25.8: customer language choice, stored only on their device -->
+          <label class="sr-only" for="mqbLanguageSelect">Choose website language</label>
+          <select id="mqbLanguageSelect" onchange="window.MQBLang?.set(this.value)" aria-label="Website language" title="Website language" class="text-[10px] sm:text-xs font-bold border border-brand-border rounded px-1 py-1.5 bg-white text-brand-charcoal w-[78px] sm:w-[100px] shrink-0">
+            <option value="en">English</option><option value="hi">हिन्दी</option><option value="te">తెలుగు</option><option value="roman">Roman English</option>
+          </select>
           <!-- Customer Login / Profile Icon -->
           <button onclick="handleUserIconClick()" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Customer Login / Account">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -362,6 +367,27 @@
     </div>
   </div>
 
+  <!-- MOIN QURAN BOX: Cart-add confirmation, distinct from the shopping drawer -->
+  <div id="mqbAddedModal" class="hidden fixed inset-0 z-[58] bg-black/55 flex items-center justify-center p-3 sm:p-5" role="dialog" aria-modal="true" aria-labelledby="mqbAddedTitle" onclick="if(event.target===this)mqbCloseAddedToCart()">
+    <div class="relative w-full max-w-lg rounded-3xl bg-white p-5 sm:p-7 shadow-2xl text-brand-charcoal" style="max-height:92vh;overflow-y:auto">
+      <button type="button" onclick="mqbCloseAddedToCart()" aria-label="Close added to cart" class="absolute top-4 right-5 text-2xl text-neutral-500 hover:text-black">×</button>
+      <div class="flex items-center gap-3 pr-9 mb-6">
+        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xl">✓</span>
+        <h2 id="mqbAddedTitle" class="text-lg sm:text-xl font-semibold">Item added to your cart</h2>
+      </div>
+      <div class="flex items-center gap-4 mb-6">
+        <img id="mqbAddedImage" src="" alt="Added product" class="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl border border-brand-border bg-brand-sand object-cover" />
+        <div class="flex-1 min-w-0"><p id="mqbAddedName" class="serif-title text-lg sm:text-xl font-bold leading-snug break-words"></p><p id="mqbAddedPrice" class="text-brand-muted font-semibold mt-2"></p></div>
+      </div>
+      <div class="grid gap-3">
+        <button type="button" onclick="mqbAddedViewCart()" class="w-full rounded-xl border-2 border-brand-charcoal bg-white px-4 py-3.5 font-semibold text-brand-charcoal">View cart (<span id="mqbAddedCount">0</span>)</button>
+        <button type="button" onclick="mqbAddedStartCheckout()" class="w-full rounded-xl bg-brand-darkgreen text-white px-4 py-4 font-bold tracking-wide">Continue to checkout →</button>
+        <button type="button" onclick="mqbCloseAddedToCart()" class="w-full py-2 font-semibold underline underline-offset-4">Continue shopping</button>
+      </div>
+      <p class="text-center text-[11px] text-brand-muted mt-4">Pay only after the store confirms the amount. No payment is taken here.</p>
+    </div>
+  </div>
+
   <!-- ================= SLIDE-OUT CART ================= -->
   <div id="cartDrawer" class="fixed inset-0 z-50 transform translate-x-full transition-transform duration-300 ease-in-out pointer-events-none">
     <div id="cartBackdrop" onclick="toggleCart(false)" class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
@@ -377,7 +403,7 @@
           <span>Net Payable:</span>
           <span id="cartSubtotal" class="serif-title text-base text-brand-charcoal">₹0.00</span>
         </div>
-        <button onclick="startCheckout()" class="w-full py-3.5 bg-brand-charcoal hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow">Proceed to Delivery &amp; Pay</button>
+        <button onclick="startCheckout()" class="w-full py-3.5 bg-brand-charcoal hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow">Checkout — No Account Needed</button>
       </div>
     </div>
   </div>
@@ -1242,72 +1268,79 @@
     </div>
   </div>
 
-  <!-- ================= CHECKOUT MODAL ================= -->
-  <div id="checkoutModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-xl w-full p-6 max-h-[95vh] overflow-y-auto relative text-xs">
-      <button onclick="closeCheckoutModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
-      <h3 class="serif-title text-xl font-bold text-brand-charcoal mb-1">Delivery &amp; Payment</h3>
-      <p class="text-brand-muted mb-4">Direct manufacturer dispatch from Madina Colony, Falaknuma, Hyderabad</p>
-
-      <form onsubmit="handlePlaceOrder(event)" class="space-y-3">
-        <div>
-          <label class="block font-semibold mb-1">Customer Full Name *</label>
-          <input type="text" id="chkName" required class="w-full bg-brand-sand border rounded-lg p-2.5" />
+  <!-- ================= MOBILE-FIRST CHECKOUT / GUEST ORDER REQUEST ================= -->
+  <div id="checkoutModal" class="hidden fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="mqbCheckoutTitle">
+    <div class="relative bg-[#f5f6fa] w-full sm:max-w-xl h-full sm:h-auto sm:max-h-[94vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden text-sm text-brand-charcoal">
+      <header class="bg-white shrink-0 border-b border-brand-border px-4 sm:px-6 py-4 flex items-center gap-3">
+        <button type="button" onclick="closeCheckoutModal()" aria-label="Back to shopping" class="text-xl mr-1">←</button>
+        <div class="flex-1 text-center"><h3 id="mqbCheckoutTitle" class="serif-title font-bold text-lg">MOIN QURAN BOX</h3><p class="text-[11px] text-brand-muted">Secure order request · Guest checkout</p></div>
+        <button type="button" onclick="closeCheckoutModal()" aria-label="Close checkout" class="text-xl">×</button>
+      </header>
+      <form onsubmit="handlePlaceOrder(event)" class="p-3 sm:p-5 space-y-4 overflow-y-auto" style="overscroll-behavior:contain">
+        <section class="rounded-2xl bg-white shadow-sm border border-brand-border overflow-hidden">
+          <button type="button" onclick="mqbToggleCheckoutSummary()" aria-expanded="false" aria-controls="mqbCheckoutItems" id="mqbSummaryToggle" class="w-full flex items-center justify-between gap-2 px-4 py-4 text-left font-bold">
+            <span>Order summary (<span id="mqbCheckoutCount">0</span> items)</span>
+            <span class="flex items-center gap-2"><span id="checkoutTotalAmount" class="text-base font-bold">₹0.00</span><span id="mqbSummaryChevron">⌄</span></span>
+          </button>
+          <div id="mqbCheckoutItems" class="hidden border-t border-brand-border px-4 py-3 text-xs space-y-2"></div>
+          <p class="bg-emerald-50 text-emerald-800 px-4 py-2 text-xs">Item prices shown are estimates; final total and shipping are confirmed by the store.</p>
+        </section>
+        <div id="guestCheckoutNotice" class="rounded-xl bg-white border border-brand-border px-4 py-3 text-xs text-brand-charcoal">
+          <strong>✓ No account required</strong><p class="mt-1 text-brand-muted">You can place an order with just your name, phone and delivery details. Save your order ID for updates.</p>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold mb-1">WhatsApp Mobile *</label>
-            <input type="tel" id="chkPhone" required class="w-full bg-brand-sand border rounded-lg p-2.5" />
+        <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-3">
+          <h4 class="font-extrabold text-base">Contact &amp; delivery address</h4>
+          <div><label for="chkName" class="block text-xs font-semibold mb-1">Customer Full Name *</label><input id="chkName" type="text" required class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="name" /></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><label for="chkPhone" class="block text-xs font-semibold mb-1">WhatsApp Mobile *</label><input id="chkPhone" type="tel" required class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="tel" placeholder="10-digit mobile number" /></div>
+            <div><label for="chkEmail" class="block text-xs font-semibold mb-1">Email (optional)</label><input id="chkEmail" type="email" class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="email" placeholder="Optional for guest orders" /></div>
           </div>
-          <div>
-            <label class="block font-semibold mb-1">Email Address</label>
-            <input type="email" id="chkEmail" class="w-full bg-brand-sand border rounded-lg p-2.5" />
+          <div><label for="chkAddress" class="block text-xs font-semibold mb-1">Delivery Address *</label><textarea id="chkAddress" rows="2" required class="w-full border rounded-lg p-3 bg-white text-base" placeholder="House / Flat, Street, Area, Landmark" autocomplete="street-address"></textarea></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label for="chkPostalCode" class="block text-xs font-semibold mb-1">Postal Code *</label><input id="chkPostalCode" type="text" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" class="w-full border rounded-lg p-3 bg-white text-base" placeholder="6-digit PIN" autocomplete="postal-code" /></div>
+            <div><label for="chkDeliveryChoice" class="block text-xs font-semibold mb-1">Delivery choice</label><select id="chkDeliveryChoice" class="w-full border rounded-lg p-3 bg-white text-sm"><option value="Standard delivery">Standard delivery</option><option value="Showroom pickup">Showroom pickup</option><option value="Express inquiry">Express inquiry (subject to availability)</option></select></div>
           </div>
-        </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div class="col-span-2">
-            <label class="block font-semibold mb-1">Delivery Address *</label>
-            <input type="text" id="chkAddress" required placeholder="House No, Landmark, Area" class="w-full bg-brand-sand border rounded-lg p-2.5" />
+          <div class="rounded-lg bg-brand-sand p-3 space-y-2 text-xs">
+            <button type="button" onclick="mqbUseCurrentLocation()" id="mqbLocationButton" class="px-4 py-2.5 rounded-lg bg-brand-darkgreen text-white font-semibold">📍 Use My Current Location (Optional)</button>
+            <p id="mqbLocationStatus" class="text-brand-muted" aria-live="polite">Location is optional; please still enter your complete address and PIN code.</p>
+            <input id="mqbLocationLink" type="hidden" value="" />
+            <button type="button" onclick="mqbClearLocation()" class="underline text-brand-muted">Remove saved location pin</button>
           </div>
-          <div>
-            <label class="block font-semibold mb-1">Postal Code *</label>
-            <input type="text" id="chkPostalCode" required placeholder="500053" class="w-full bg-brand-sand border rounded-lg p-2.5 font-mono font-bold" />
+          <div><label for="chkDeliveryNote" class="block text-xs font-semibold mb-1">Delivery note (optional)</label><input id="chkDeliveryNote" maxlength="240" class="w-full border rounded-lg p-3 bg-white" placeholder="Landmark or delivery instructions" /></div>
+          <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery charges confirmed separately</strong><p>From dispatch PIN 500012 to your location, our team will confirm courier charges and availability before payment or dispatch.</p></div>
+        </section>
+        <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-3">
+          <h4 class="font-extrabold text-base">Pay via</h4>
+          <p class="text-xs text-brand-muted">Select your preferred way to pay. This website submits a request only; it cannot collect money at this step.</p>
+          <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border-2 border-brand-darkgreen bg-emerald-50 cursor-pointer">
+            <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked onchange="mqbUpdatePaymentDescription()" class="mt-1" />
+            <span class="flex-1"><strong>UPI payment</strong><small class="block text-brand-muted mt-1">Google Pay, PhonePe, Paytm or any UPI app — after order confirmation</small></span><span class="text-xs font-semibold text-emerald-700">Manual</span>
+          </label>
+          <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
+            <input type="radio" name="chkPaymentMethod" value="COD" onchange="mqbUpdatePaymentDescription()" class="mt-1" />
+            <span class="flex-1"><strong>Cash on delivery</strong><small class="block text-brand-muted mt-1">Pay when your eligible parcel arrives; subject to courier serviceability</small></span>
+          </label>
+          <div class="space-y-2 pt-1" aria-label="Future payment methods">
+            <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Credit / Debit Card</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
+            <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Net Banking</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
+            <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Wallets</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
           </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <label class="block font-semibold">Delivery choice<select id="chkDeliveryChoice" class="w-full bg-brand-sand border rounded-lg p-2.5 mt-1"><option value="Standard delivery">Standard delivery</option><option value="Showroom pickup">Showroom pickup</option><option value="Express inquiry">Express inquiry (subject to availability)</option></select></label>
-          <label class="block font-semibold">Delivery note<input id="chkDeliveryNote" maxlength="240" placeholder="Landmark, preferred timing" class="w-full bg-brand-sand border rounded-lg p-2.5 mt-1"></label>
-        </div>
-        <p class="text-[11px] text-amber-800 bg-amber-50 rounded p-2">Order requests are not paid orders. We confirm inventory, delivery charges, and payment separately.</p>
-        <div>
-          <label class="block font-semibold mb-1">Payment Type</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="p-2 border rounded-lg bg-white flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked />
-              <span>Manual UPI — pay only after owner confirms amount</span>
-            </label>
-            <label class="p-2 border rounded-lg bg-white flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="chkPaymentMethod" value="COD" />
-              <span>Cash on Delivery (COD)</span>
-            </label>
-          </div>
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">Discount Coupon Code (Optional)</label>
-          <input type="text" id="chkCouponInput" placeholder="e.g. RAMADAN50" class="w-full bg-brand-sand border rounded-lg p-2 font-mono uppercase" />
-        </div>
-        <div class="p-3 bg-amber-50 border border-amber-300 rounded-lg space-y-1">
-          <strong class="text-amber-900">Payment is NOT collected at checkout</strong>
-          <p class="text-[11px] text-amber-900">For manual UPI: submit an order request, wait for the owner to confirm the final price, stock, shipping and official UPI details, then pay. Send the transaction reference to the owner. A screenshot alone is not payment proof.</p>
-          <p class="text-[11px] text-amber-900">For COD: pay only on delivery. No advance payment is required by this checkout.</p>
-          <p class="text-[11px] text-brand-muted">The store UPI ID is managed by Super Admin; confirm it directly with the store before making a transfer.</p>
+          <div id="mqbPaymentDescription" class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-950" role="status" aria-live="polite">For UPI: submit your request now, then wait for confirmed product and shipping charges. Pay only to the verified business UPI ID after the store contacts you.</div>
+          <p class="text-xs text-brand-muted">Payment is NOT collected at checkout. Card, Net Banking and Wallets are not active yet.</p>
           <strong class="hidden" id="displayCheckoutUpi"></strong>
-        </div>
-        <div class="flex justify-between items-center text-sm font-bold pt-2 border-t">
-          <span>Estimated subtotal:</span>
-          <span id="checkoutTotalAmount" class="serif-title text-base text-brand-gold">₹0.00</span>
-        </div>
-        <button type="submit" class="w-full py-3 bg-brand-charcoal hover:bg-black text-white font-bold uppercase rounded-lg transition">Submit Order Request (No Payment)</button>
+        </section>
+        <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-2">
+          <label for="chkCouponInput" class="block text-xs font-bold">Discount Coupon Code (Optional)</label>
+          <input type="text" id="chkCouponInput" class="w-full border border-brand-border rounded-lg p-3 bg-white" placeholder="Enter coupon code (subject to confirmation)" />
+          <p class="text-[11px] text-brand-muted">Any coupon or discount will be checked and confirmed by the store; this field does not apply a discount automatically.</p>
+        </section>
+        <section class="border border-brand-border bg-white rounded-2xl p-4 space-y-2">
+          <div class="flex justify-between font-bold"><span>Estimated item subtotal</span><span id="mqbCheckoutFooterSubtotal">₹0.00</span></div>
+          <div class="flex justify-between text-xs text-brand-muted"><span>Delivery charge</span><span>Confirmed after PIN-code check</span></div>
+          <div class="border-t border-brand-border pt-2 text-xs text-amber-900">Final payable amount will be shared for approval. Payment remains unverified until the store checks it.</div>
+        </section>
+        <button type="submit" class="w-full py-4 bg-brand-darkgreen hover:bg-brand-forest text-white font-bold rounded-xl shadow-md text-base">Submit Order Request (No Payment)</button>
+        <p class="text-center text-[11px] text-brand-muted pb-3">You can order without a password. Saving your Order ID helps us assist you later.</p>
       </form>
     </div>
   </div>
@@ -1321,6 +1354,7 @@
         <span class="text-brand-muted block">Tracking Order ID</span>
         <div id="successOrderIdDisplay" class="font-mono text-base font-bold text-brand-charcoal select-all">MQB-2026-0000</div>
       </div>
+      <p class="text-xs text-brand-muted" id="guestReceiptNote">Keep your order ID or send it to the store on WhatsApp. Guest orders may not be accessible if you change devices or clear browser storage.</p>
       <div class="space-y-2 pt-2 text-xs">
         <a id="successWhatsAppOrderBtn" href="#" target="_blank" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold flex items-center justify-center gap-2">
           💬 Send Order Receipt to Owner on WhatsApp
@@ -1488,5 +1522,7 @@
   <script defer src="js/order-invoice-pdf.js"></script>
   <script defer src="js/shipping-label-pdf.js"></script>
   <script defer src="js/firebase-live.js"></script>
+  <script defer src="js/languages.js"></script>
+  <script defer src="js/checkout-experience.js"></script>
 </body>
 </html>
