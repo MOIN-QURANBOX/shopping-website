@@ -55,15 +55,15 @@
       <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 overflow-hidden mx-auto text-center truncate font-medium">
           <span class="inline-block px-1.5 py-0.5 bg-[#254234] rounded text-[9px] uppercase tracking-wider font-bold text-amber-300">Live</span>
-          <span id="announcementText" class="truncate text-[11px] sm:text-xs">Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD &amp; Instant UPI Available</span>
+          <span id="announcementText" class="truncate text-[11px] sm:text-xs">Holy Quran Direct Manufacturer • Free Packaging Across Hyderabad • COD &amp; Manual UPI After Confirmation</span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <span id="staffSessionTimerBadge" class="hidden text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-400/30">
             ⏱️ Session: 24:00:00
           </span>
-          <button onclick="openAdminLoginModal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition flex items-center gap-1 border border-amber-400/40">
-            🔐 Staff Login
-          </button>
+          <button id="staffLoginNavBtn" type="button" onclick="openStaffPortal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition border border-amber-400/40">🔐 Staff Login</button>
+          <button id="staffDashboardNavBtn" type="button" onclick="openStaffPortal()" class="hidden text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition border border-amber-400/40">🏪 Staff Dashboard</button>
+          <button id="staffLogoutNavBtn" type="button" onclick="confirmStaffLogout()" class="hidden text-[10px] sm:text-[11px] font-bold text-white bg-red-800 hover:bg-red-700 px-2.5 py-1 rounded transition border border-red-300/30">Log Out</button>
           <button onclick="openInvoiceLookupModal()" class="text-[10px] sm:text-[11px] font-semibold text-neutral-300 hover:text-white transition underline whitespace-nowrap">
             📄 Invoice
           </button>
@@ -306,7 +306,7 @@
           <li><button onclick="openCustomerAuthModal('login')" class="hover:text-brand-gold">Customer Login / Register</button></li>
           <li><button onclick="openInvoiceLookupModal()" class="hover:text-brand-gold">Download Official Invoice</button></li>
           <li><button onclick="openTrackingModal()" class="hover:text-brand-gold">Courier Shipment Track</button></li>
-          <li><button onclick="openAdminLoginModal()" class="text-brand-gold font-bold hover:underline">Staff Portal (Admin / Owners)</button></li>
+          <li><button onclick="openStaffPortal()" class="text-brand-gold font-bold hover:underline">Staff Portal (Admin / Owners)</button></li>
         </ul>
       </div>
     </div>
@@ -348,7 +348,7 @@
         <button onclick="openCustomerAuthModal('login'); toggleDrawer(false);" class="w-full py-2 bg-brand-charcoal text-white text-xs font-bold uppercase rounded">
           Customer Account Login
         </button>
-        <button onclick="openAdminLoginModal(); toggleDrawer(false);" class="w-full py-2 bg-brand-darkgreen text-white text-xs font-bold uppercase rounded">
+        <button onclick="openStaffPortal(); toggleDrawer(false);" class="w-full py-2 bg-brand-darkgreen text-white text-xs font-bold uppercase rounded">
           Staff Portal (Admin / Owners)
         </button>
       </div>
@@ -516,6 +516,36 @@
     </div>
   </div>
 
+
+  <!-- ================= MANUAL PAYMENT VERIFICATION (SUPER ADMIN) ================= -->
+  <div id="orderPaymentModal" class="hidden fixed inset-0 z-[75] modal-backdrop flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-xl w-full max-h-[94vh] overflow-y-auto p-5 sm:p-6 relative text-xs space-y-3">
+      <button type="button" onclick="closeOrderPaymentModal()" class="absolute right-4 top-4 text-neutral-500 text-lg" aria-label="Close payment editor">✕</button>
+      <h3 id="paymentModalTitle" class="serif-title text-lg font-bold text-brand-charcoal pr-8">Verify Manual Payment</h3>
+      <p class="text-amber-900 bg-amber-50 border border-amber-300 rounded-lg p-3">Only Super Admin may confirm receipts. Check stock, actual prices, shipping charges and the receiving bank statement or collected COD cash yourself. Customer claims, screenshots, browser totals and UPI reference numbers alone are NOT payment evidence.</p>
+      <div id="paymentOrderSummary" class="bg-brand-sand rounded-lg p-3 font-mono break-all"></div>
+      <form onsubmit="saveManualPaymentVerification(event)" class="space-y-3">
+        <div><label for="paymentMethodVerified" class="block font-bold mb-1">Actual payment method</label>
+          <select id="paymentMethodVerified" class="w-full border rounded bg-brand-sand p-2.5" required>
+            <option value="Manual UPI">Manual UPI (bank credit verified)</option>
+            <option value="COD">COD (cash actually collected)</option>
+          </select></div>
+        <div><label for="paymentVerifiedAmount" class="block font-bold mb-1">Amount confirmed from actual prices and receipt (INR)</label>
+          <input id="paymentVerifiedAmount" type="number" min="0.01" max="99999999" step="0.01" class="w-full border rounded bg-brand-sand p-2.5" required /></div>
+        <div><label for="paymentUtr" class="block font-bold mb-1">UPI reference / UTR (required for verified UPI)</label>
+          <input id="paymentUtr" type="text" maxlength="64" placeholder="Enter the reference from your bank statement" class="w-full border rounded bg-brand-sand p-2.5" /></div>
+        <div><label for="paymentAdminNote" class="block font-bold mb-1">Internal payment note (optional; customers may see the recorded receipt status)</label>
+          <textarea id="paymentAdminNote" maxlength="240" rows="2" class="w-full border rounded bg-brand-sand p-2.5" placeholder="Verification reference or reason for correction; never enter passwords, OTPs or bank credentials"></textarea></div>
+        <label class="flex items-start gap-2 p-2 border rounded bg-white"><input id="paymentReceivedChecked" type="checkbox" class="mt-0.5" /><span>I personally checked the final amount AND the receiving bank credit (UPI), or physically received the cash (COD). I understand this is a manual confirmation.</span></label>
+        <div id="paymentSaveMessage" role="status" aria-live="polite" class="hidden rounded-lg p-2"></div>
+        <div class="flex flex-wrap gap-2">
+          <button id="paymentVerifyBtn" type="submit" class="flex-1 bg-brand-darkgreen text-white rounded-lg px-4 py-3 font-bold">Save Verified Payment</button>
+          <button type="button" onclick="resetManualPaymentVerification()" class="border border-amber-500 text-amber-900 rounded-lg px-4 py-2 font-semibold">Revert to Unverified</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= OWNER SHIPPING & TRACKING EDITOR ================= -->
   <div id="orderShippingModal" class="hidden fixed inset-0 z-[70] modal-backdrop flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="shippingModalTitle">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-xl w-full max-h-[94vh] overflow-y-auto p-5 sm:p-6 relative text-xs">
@@ -569,8 +599,10 @@
           <p class="text-[10px] text-amber-300" id="portalRoleBadge">Authenticated Session</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="logoutCurrentUser()" class="bg-red-500/20 hover:bg-red-500/40 text-red-200 px-3 py-1 rounded text-xs font-bold uppercase">Exit</button>
-          <button onclick="closeAdminDashboardModal()" class="text-white">✕</button>
+          <button type="button" onclick="openStaffProfile()" class="bg-white/15 hover:bg-white/25 px-3 py-1 rounded text-xs font-bold">👤 Staff Profile</button>
+          <button type="button" onclick="backToStoreWithoutLogout()" class="bg-white/15 hover:bg-white/25 px-3 py-1 rounded text-xs font-bold">Back to Store</button>
+          <button type="button" onclick="confirmStaffLogout()" class="bg-red-500/25 hover:bg-red-500/40 text-red-100 px-3 py-1 rounded text-xs font-bold">Log Out</button>
+          <button type="button" onclick="backToStoreWithoutLogout()" class="text-white" aria-label="Close dashboard">✕</button>
         </div>
       </div>
 
@@ -709,6 +741,16 @@
             <h4 class="serif-title text-base font-bold text-brand-charcoal">Stock &amp; Pricing Inventory</h4>
             <button onclick="openProductEditModal(null)" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase">+ Add Product</button>
           </div>
+          <section class="bg-white rounded-xl border border-brand-border p-4 space-y-3" id="customCategorySection">
+            <h5 class="font-bold text-sm">Add / Edit Product Categories</h5>
+            <p class="text-xs text-neutral-600">Create your own categories. They will sync to the website and product dropdown. Existing categories and products are not removed.</p>
+            <form class="flex flex-wrap gap-2" onsubmit="handleAddProductCategory(event)">
+              <input id="newProductCategory" maxlength="60" placeholder="New category name" class="min-w-44 flex-1 border rounded p-2 text-sm" required>
+              <button type="submit" class="bg-brand-darkgreen text-white rounded px-4 py-2 text-xs font-bold">+ Add Category</button>
+            </form>
+            <div id="customCategoryList" class="space-y-2 text-xs"></div>
+            <p id="customCategoryNotice" role="status" class="text-xs"></p>
+          </section>
           <div class="bg-white rounded-xl border border-brand-border overflow-x-auto shadow-sm">
             <table class="w-full text-left text-xs">
               <thead class="bg-brand-sand uppercase tracking-wider text-brand-charcoal border-b border-brand-border">
@@ -816,7 +858,13 @@
                 <input type="text" id="posCustName" placeholder="Customer Name (optional)" class="w-full border rounded p-1.5 mt-2" />
                 <input type="tel" id="posCustPhone" placeholder="Mobile Number" class="w-full border rounded p-1.5 mt-1" />
                 <input type="text" id="posCustPincode" placeholder="Pincode (e.g. 500053)" class="w-full border rounded p-1.5 mt-1" />
-                <div id="posTicketItems" class="divide-y my-2 max-h-36 overflow-y-auto"></div>
+                <div class="flex flex-wrap justify-between items-center gap-2 mt-2"><span class="font-bold">Items and quantities</span><span id="posItemCount" class="text-[10px] text-neutral-500">0 items in bill</span></div>
+                <p class="text-[11px] text-neutral-600">Select the checkbox beside the incorrect product, then tap Remove Selected Item. You can also tap ✕ Remove Item on its own row.</p>
+                <div class="flex flex-wrap gap-2">
+                  <button id="posRemoveSelectedBtn" type="button" onclick="posRemoveSelectedItem()" disabled class="opacity-50 rounded border border-red-300 bg-red-50 text-red-800 px-3 py-2 font-bold">✕ Remove Selected Item</button>
+                  <button type="button" onclick="posClearTicket()" class="rounded border border-neutral-300 px-3 py-2 text-red-700 font-semibold">Clear Entire Bill</button>
+                </div>
+                <div id="posTicketItems" class="divide-y my-2 max-h-64 overflow-y-auto" aria-live="polite"></div>
               </div>
               <div class="border-t pt-2 space-y-2">
                 <div class="flex justify-between font-bold text-sm">
@@ -828,7 +876,10 @@
                   <option value="UPI">Showroom QR / UPI</option>
                   <option value="Card">Bank / Card</option>
                 </select>
-                <button onclick="completePosSale()" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded">Complete &amp; Print Bill</button>
+                <label class="flex gap-2 items-start text-[11px] text-neutral-700"><input id="posPaymentConfirmed" type="checkbox" class="mt-0.5"><span>I personally verified this cash, UPI bank credit, or card-terminal approval and checked the amount.</span></label>
+                <input id="posPaymentReference" type="text" maxlength="100" placeholder="Optional UPI / Card reference (not PIN)" class="w-full border rounded p-1.5" />
+                <button id="posCompleteBtn" type="button" onclick="completePosSale()" class="w-full py-2.5 bg-brand-darkgreen text-white font-bold uppercase rounded">Complete &amp; Print Bill</button>
+                <p class="text-[11px] text-amber-800">Requires the separately deployed secure Firebase POS backend. Never use customer-supplied totals for paid bills.</p>
               </div>
             </div>
           </div>
@@ -1018,6 +1069,40 @@
     </div>
   </div>
 
+  <!-- POS receipt: visible only after backend confirms stock and sale -->
+  <div id="posReceiptModal" class="hidden fixed inset-0 z-[80] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-xl border shadow-2xl max-w-lg w-full p-5 max-h-[90vh] overflow-auto">
+      <div id="posReceiptContent" class="text-sm space-y-1"></div>
+      <div id="posReceiptActions" class="mt-5 flex gap-2">
+        <button type="button" onclick="window.print()" class="bg-brand-darkgreen text-white px-4 py-2 rounded font-bold">🖨 Print Receipt</button>
+        <button type="button" onclick="closePosReceipt()" class="border px-4 py-2 rounded">Close</button>
+      </div>
+    </div>
+  </div>
+  <style>
+    @media print {
+      body * { visibility:hidden !important; }
+      #posReceiptContent, #posReceiptContent * { visibility:visible !important; }
+      #posReceiptContent { position:fixed; left:12mm; top:12mm; width:calc(100% - 24mm); color:black !important; font-family:Arial,sans-serif; }
+      #posReceiptContent h2{font-size:17pt;margin-bottom:12pt;}
+      #posReceiptModal { background:white !important; }
+    }
+  </style>
+  <!-- ================= STAFF PROFILE (does not log out) ================= -->
+  <div id="staffProfileModal" class="hidden fixed inset-0 z-[70] modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="staffProfileTitle">
+    <div class="bg-white rounded-2xl shadow-2xl border p-5 max-w-md w-full space-y-4">
+      <div class="flex justify-between items-center"><h3 id="staffProfileTitle" class="font-bold text-lg">Staff Profile</h3><button type="button" onclick="closeStaffProfile()" aria-label="Close staff profile">✕</button></div>
+      <dl class="text-sm space-y-2"><div><dt class="text-neutral-500">Full name</dt><dd id="staffProfileName" class="font-bold break-words"></dd></div>
+      <div><dt class="text-neutral-500">Role</dt><dd id="staffProfileRole" class="font-bold"></dd></div>
+      <div><dt class="text-neutral-500">Email</dt><dd id="staffProfileEmail" class="break-words"></dd></div>
+      <div><dt class="text-neutral-500">Firebase account UID</dt><dd id="staffProfileUID" class="break-all font-mono text-xs"></dd></div></dl>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" onclick="closeStaffProfile()" class="bg-brand-darkgreen text-white rounded px-4 py-2 font-bold text-sm">Back to Dashboard</button>
+        <button type="button" onclick="confirmStaffLogout()" class="bg-red-100 text-red-800 rounded px-4 py-2 font-bold text-sm">Log Out</button>
+      </div>
+      <p class="text-xs text-neutral-600">Closing this profile or dashboard will keep you signed in. Only Log Out ends your session.</p>
+    </div>
+  </div>
   <!-- ================= PRODUCT EDIT MODAL ================= -->
   <div id="productEditModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
@@ -1105,8 +1190,8 @@
           <label class="block font-semibold mb-1">Payment Type</label>
           <div class="grid grid-cols-2 gap-2">
             <label class="p-2 border rounded-lg bg-white flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="chkPaymentMethod" value="To be arranged" checked />
-              <span>Payment after confirmation</span>
+              <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked />
+              <span>Manual UPI — pay only after owner confirms amount</span>
             </label>
             <label class="p-2 border rounded-lg bg-white flex items-center gap-2 cursor-pointer">
               <input type="radio" name="chkPaymentMethod" value="COD" />
@@ -1118,15 +1203,18 @@
           <label class="block font-semibold mb-1">Discount Coupon Code (Optional)</label>
           <input type="text" id="chkCouponInput" placeholder="e.g. RAMADAN50" class="w-full bg-brand-sand border rounded-lg p-2 font-mono uppercase" />
         </div>
-        <div class="p-3 bg-brand-sand border rounded-lg">
-          <span class="font-bold text-brand-forest">Payment details (not a payment gateway)</span>
-          <p class="text-[11px] text-brand-muted mt-1">UPI ID: <strong class="select-all text-brand-dark" id="displayCheckoutUpi">7337464501@ybl</strong></p>
+        <div class="p-3 bg-amber-50 border border-amber-300 rounded-lg space-y-1">
+          <strong class="text-amber-900">Payment is NOT collected at checkout</strong>
+          <p class="text-[11px] text-amber-900">For manual UPI: submit an order request, wait for the owner to confirm the final price, stock, shipping and official UPI details, then pay. Send the transaction reference to the owner. A screenshot alone is not payment proof.</p>
+          <p class="text-[11px] text-amber-900">For COD: pay only on delivery. No advance payment is required by this checkout.</p>
+          <p class="text-[11px] text-brand-muted">The store UPI ID is managed by Super Admin; confirm it directly with the store before making a transfer.</p>
+          <strong class="hidden" id="displayCheckoutUpi"></strong>
         </div>
         <div class="flex justify-between items-center text-sm font-bold pt-2 border-t">
           <span>Estimated subtotal:</span>
           <span id="checkoutTotalAmount" class="serif-title text-base text-brand-gold">₹0.00</span>
         </div>
-        <button type="submit" class="w-full py-3 bg-brand-charcoal hover:bg-black text-white font-bold uppercase rounded-lg transition">Confirm Order</button>
+        <button type="submit" class="w-full py-3 bg-brand-charcoal hover:bg-black text-white font-bold uppercase rounded-lg transition">Submit Order Request (No Payment)</button>
       </form>
     </div>
   </div>
@@ -1135,7 +1223,7 @@
   <div id="orderSuccessModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4">
       <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
-      <h3 class="serif-title text-xl font-bold text-brand-charcoal">Alhamdulillah! Order Placed</h3>
+      <h3 class="serif-title text-xl font-bold text-brand-charcoal">Alhamdulillah! Order Request Submitted</h3>
       <div class="bg-brand-sand p-3 rounded-xl border text-xs">
         <span class="text-brand-muted block">Tracking Order ID</span>
         <div id="successOrderIdDisplay" class="font-mono text-base font-bold text-brand-charcoal select-all">MQB-2026-0000</div>
@@ -1308,6 +1396,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
   <!-- Preserve the original storefront and 30+ features; secure Firebase overrides follow -->
   <script defer src="js/app.js"></script>
   <script defer src="js/order-invoice-pdf.js"></script>
