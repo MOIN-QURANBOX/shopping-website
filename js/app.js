@@ -127,7 +127,10 @@ async function loadInitialData() {
     }
   }
 
-  config.branches = [
+  // Display only the Falaknuma head showroom; do not remove historical cloud records.
+  config.branches = Array.isArray(config.branches)
+    ? config.branches.filter(b=>b && b.id==='branch-1') : [];
+  if(!config.branches.length) config.branches=[
     { id: "branch-1", name: "Falaknuma Head Showroom", address: "Madina Colony, Near Engine Bowli, Falaknuma, Hyderabad, Telangana 500053", phone: "7893961313", manager: "Shaik Moin Uddin & Shaik Muneer Uddin", enabled: true }
   ];
 
@@ -531,8 +534,8 @@ function liveSearch(q) {
 
 function renderBranchesOnStorefront() {
   const container = document.getElementById("storefrontBranchesContainer");
-  if (!container || !config.branches || config.branches.length === 0) return;
-  const b = config.branches[0];
+  if (!container || !Array.isArray(config.branches)) return;
+  const b = config.branches.find(b=>b?.id==='branch-1'); if(!b){container.textContent='Showroom information is currently unavailable.';return;}
   container.innerHTML = `
     <div class="bg-brand-sand/70 p-4 rounded-xl border border-brand-border space-y-1.5 text-xs">
       <h5 class="font-bold text-brand-charcoal flex items-center gap-1.5 text-sm"><span>📍</span> ${b.name}</h5>
@@ -1014,8 +1017,8 @@ function updateOrderStatus(){alert("Owner changes require Firebase confirmation.
 
 function renderBranchesInDashboard() {
   const container = document.getElementById("adminBranchesList");
-  if (!container || !config.branches || config.branches.length === 0) return;
-  const b = config.branches[0];
+  if (!container || !Array.isArray(config.branches)) return;
+  const b = config.branches.find(b=>b?.id==='branch-1'); if(!b){container.textContent='Showroom information is currently unavailable.';return;}
   container.innerHTML = `
     <div class="bg-white p-4 rounded-xl border space-y-2 text-xs">
       <h5 class="font-bold text-brand-charcoal text-sm">${b.name}</h5>
