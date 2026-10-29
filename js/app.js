@@ -340,6 +340,15 @@ function filterCategory(cat) {
   renderProducts();
 }
 
+// Escape catalog-provided text before inserting it into storefront HTML.
+function mqbProductEscape(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function mqbProductImage(value) {
+  try { const u = new URL(String(value ?? '')); return u.protocol==='https:' ? mqbProductEscape(u.href) : ''; }
+  catch { return ''; }
+}
+
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
@@ -361,9 +370,9 @@ function renderProducts() {
     const effectivePrice = p.salePrice; // Display the authoritative published price only.
 
     return `
-      <div onclick="trackRecentlyViewed('${p.id}')" class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition cursor-pointer">
+      <div onclick="if(!event.target.closest('button,a'))openProductDetails('${p.id}')" class="bg-white rounded-xl border border-brand-border overflow-hidden flex flex-col justify-between hover:shadow-md transition cursor-pointer" aria-label="View details for ${mqbProductEscape(p.title)}">
         <div class="relative bg-neutral-100 pt-[100%] overflow-hidden group">
-          <img src="${p.image}" alt="${p.title}" class="absolute inset-0 w-full h-full object-cover" />
+          <img src="${mqbProductImage(p.image)}" alt="${mqbProductEscape(p.title)}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
           
           ${canWishlist ? `
             <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full text-xs hover:scale-110 transition shadow z-10">
@@ -389,14 +398,15 @@ function renderProducts() {
         
         <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
           <div>
-            <span class="text-[10px] text-amber-700 font-bold block">${p.category}</span>
-            <h4 class="font-serif font-bold text-xs sm:text-sm text-brand-charcoal line-clamp-2 leading-snug">${p.title}</h4>
+            <span class="text-[10px] text-amber-700 font-bold block">${mqbProductEscape(p.category)}</span>
+            <button type="button" onclick="event.stopPropagation(); openProductDetails('${p.id}')" class="block text-left w-full font-serif font-bold text-xs sm:text-sm text-brand-charcoal line-clamp-2 leading-snug hover:underline focus-visible:underline">${mqbProductEscape(p.title)}</button>
           </div>
           <div>
             <div class="flex items-baseline gap-2 mb-2">
               ${Number(p.oldPrice)>Number(p.salePrice) ? `<span class="text-xs line-through text-neutral-400">${formatPrice(p.oldPrice)}</span>` : ''}
               <span class="text-sm sm:text-base font-bold text-brand-charcoal">${formatPrice(effectivePrice)}</span>
             </div>
+            <button type="button" onclick="event.stopPropagation(); openProductDetails('${p.id}')" class="w-full mb-2 py-1.5 rounded border border-brand-gold/50 text-brand-darkgreen text-[11px] font-bold hover:bg-brand-sand focus-visible:outline-2 focus-visible:outline-brand-gold">View Details &amp; Colors</button>
             <div class="grid grid-cols-2 gap-1.5">
               <button onclick="event.stopPropagation(); addToCart('${p.id}')" ${p.stock <= 0 || !window.mqbLive?.catalogPublished ? 'disabled' : ''} class="w-full py-1.5 bg-brand-charcoal hover:bg-neutral-800 text-white rounded text-[11px] font-bold uppercase transition disabled:opacity-40">
                 Add to Cart
@@ -449,31 +459,76 @@ function renderRecentlyViewed() {
 // ==========================================
 // 4. EASY SHOPPING MODALS
 // ==========================================
-function openQuickView(prodId) {
-  if (!config.featureToggles?.quickViewShopping) return alert("Quick View is currently disabled by Admin.");
+function openProductDetails(prodId) {
   const p = products.find(x => x.id === prodId);
-  if (!p) return;
-  const content = document.getElementById("quickViewContent");
-  if (!content) return;
+  const modal = document.getElementById('productDetailsModal');
+  const content = document.getElementById('productDetailsContent');
+  if (!p || !modal || !content) return;
+  trackRecentlyViewed(prodId);
+  const available = Number(p.stock) > 0 && !!window.mqbLive?.catalogPublished;
+  const description = String(p.desc ?? p.description ?? '').trim();
+  const color = String(p.color ?? p.colour ?? '').trim();
   content.innerHTML = `
-    <div><img src="${p.image}" class="w-full h-64 object-cover rounded-xl border" /></div>
-    <div class="space-y-3 flex flex-col justify-between">
-      <div>
-        <span class="text-[10px] uppercase font-bold text-brand-gold">${p.category}</span>
-        <h3 class="serif-title text-base font-bold text-brand-charcoal mt-1">${p.title}</h3>
-        <p class="text-lg font-mono font-bold text-brand-darkgreen mt-2">${formatPrice(p.salePrice)}</p>
-        <p class="text-neutral-600 mt-2 text-xs leading-relaxed">${p.desc || 'Direct manufacturer quality from Hyderabad. Handcrafted with devotion.'}</p>
-        <p class="text-[11px] font-bold text-emerald-700 mt-2">Stock Availability: ${p.stock} units</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8">
+      <div class="space-y-3">
+        <div class="aspect-square rounded-2xl overflow-hidden border border-brand-border bg-brand-sand">
+          <img src="${mqbProductImage(p.image)}" alt="${mqbProductEscape(p.title)}" class="w-full h-full object-contain" />
+        </div>
+        <span class="text-xs text-brand-muted">Product photos are illustrative of the listed item. Confirm any customization with the store.</span>
       </div>
-      <div class="flex gap-2 pt-3 border-t">
-        <button onclick="addToCart('${p.id}'); closeQuickViewModal();" ${p.stock <= 0 ? 'disabled' : ''} class="flex-1 py-2.5 bg-brand-charcoal text-white rounded text-xs font-bold uppercase disabled:opacity-50">Add to Cart</button>
-        <button onclick="closeQuickViewModal()" class="px-4 py-2 bg-neutral-100 rounded text-xs font-semibold">Close</button>
+      <div class="space-y-3 flex flex-col">
+        <span class="uppercase text-[11px] tracking-wider text-brand-gold font-bold">${mqbProductEscape(p.category)}</span>
+        <h2 class="serif-title text-2xl sm:text-3xl font-bold text-brand-charcoal leading-snug">${mqbProductEscape(p.title)}</h2>
+        <div class="flex flex-wrap gap-2 items-end">
+          <span class="text-2xl font-bold text-brand-darkgreen">${formatPrice(p.salePrice)}</span>
+          ${Number(p.oldPrice)>Number(p.salePrice)?`<span class="line-through text-neutral-400 text-sm">${formatPrice(p.oldPrice)}</span>`:''}
+        </div>
+        ${color?`<p class="text-sm text-brand-charcoal"><strong>Color / Finish:</strong> ${mqbProductEscape(color)}</p>`:''}
+        <p class="text-sm font-semibold ${available?'text-emerald-700':'text-red-700'}">${available?`${Math.floor(Number(p.stock))} in stock`:'Currently unavailable for ordering'}</p>
+        <p class="text-xs text-brand-muted">Final price, availability and delivery charges are confirmed by MOIN QURAN BOX after the order request.</p>
+        <div class="flex flex-col sm:flex-row gap-2 pt-2">
+          <button type="button" onclick="productDetailsAddToCart('${p.id}')" ${!available?'disabled':''} class="flex-1 bg-brand-charcoal text-white px-4 py-3 rounded-lg text-sm font-bold disabled:opacity-40">Add to Cart</button>
+          <button type="button" onclick="productDetailsBuyNow('${p.id}')" ${!available?'disabled':''} class="flex-1 bg-brand-gold text-white px-4 py-3 rounded-lg text-sm font-bold disabled:opacity-40">Buy Now</button>
+        </div>
+        <p class="text-[11px] text-brand-muted">Buy Now adds this item to your bag and opens checkout. Any items already in your bag are included.</p>
+        <a href="#productDescriptionInDetails" onclick="event.preventDefault();document.getElementById('productDescriptionInDetails')?.scrollIntoView({behavior:'smooth',block:'start'})" class="text-sm text-brand-darkgreen font-bold underline underline-offset-4">Read full description ↓</a>
       </div>
     </div>
-  `;
-  document.getElementById("quickViewModal")?.classList.remove("hidden");
+    <section id="productDescriptionInDetails" class="mt-7 pt-5 border-t border-brand-border scroll-mt-8" aria-label="Full product description">
+      <h3 class="serif-title text-xl font-bold text-brand-charcoal mb-3">Product Description</h3>
+      <p class="text-sm text-neutral-700 leading-7 whitespace-pre-wrap break-words">${mqbProductEscape(description || 'Detailed product information will be added by our team. Contact us for material, size, color or customization details.')}</p>
+      ${color?`<p class="mt-4 text-sm"><strong>Color / Finish:</strong> ${mqbProductEscape(color)}</p>`:''}
+      <p class="text-xs text-brand-muted mt-5">Orders are requests only. Availability, final amount and shipping charges are confirmed by our team before payment.</p>
+    </section>`;
+  modal.classList.remove('hidden');
+  document.getElementById('productDetailsScroll')?.scrollTo({top:0,behavior:'instant'});
+  const close = modal.querySelector('button[aria-label="Close product details"]');
+  close?.focus();
 }
-function closeQuickViewModal() { document.getElementById("quickViewModal")?.classList.add("hidden"); }
+function closeProductDetails() { document.getElementById('productDetailsModal')?.classList.add('hidden'); }
+function productDetailsAddToCart(id) {
+  if (!window.mqbLive?.catalogPublished) return alert('Please wait for the live product catalog.');
+  const p=products.find(x=>x.id===id);
+  if (!p || Number(p.stock)<=0) return alert('This product is currently unavailable.');
+  closeProductDetails();
+  addToCart(id);
+}
+function productDetailsBuyNow(id) {
+  if (!window.mqbLive?.catalogPublished) return alert('Please wait for the live product catalog.');
+  const p=products.find(x=>x.id===id);
+  if (!p || Number(p.stock)<=0) return alert('This product is currently unavailable.');
+  const countBefore=cart.reduce((total,item)=>total+Number(item.qty||0),0);
+  addToCart(id);
+  const countAfter=cart.reduce((total,item)=>total+Number(item.qty||0),0);
+  if(countAfter<=countBefore) return;
+  closeProductDetails();
+  toggleCart(false);
+  startCheckout();
+}
+// Existing Quick View buttons and recently viewed cards continue to open the enhanced details panel.
+function openQuickView(prodId) { openProductDetails(prodId); }
+function closeQuickViewModal() { closeProductDetails(); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeProductDetails(); });
 
 function expressBuyNow(prodId) {
   if (!config.featureToggles?.expressCheckout) return alert("Express Checkout is currently disabled by Admin.");
@@ -1070,6 +1125,8 @@ function openProductEditModal(id = null) {
     document.getElementById("editProductStock").value = p.stock;
     document.getElementById("editProductSalePrice").value = p.salePrice;
     document.getElementById("editProductImage").value = p.image;
+    document.getElementById("editProductColor").value = p.color ?? p.colour ?? '';
+    document.getElementById("editProductDescription").value = p.desc ?? p.description ?? '';
     
     const preview = document.getElementById("photoUploadPreview");
     if (preview) { preview.src = p.image; preview.classList.remove("hidden"); }
@@ -1079,6 +1136,8 @@ function openProductEditModal(id = null) {
     document.getElementById("editProductStock").value = "25";
     document.getElementById("editProductSalePrice").value = "";
     document.getElementById("editProductImage").value = "";
+    document.getElementById("editProductColor").value = "";
+    document.getElementById("editProductDescription").value = "";
     document.getElementById("photoUploadPreview")?.classList.add("hidden");
   }
 }
