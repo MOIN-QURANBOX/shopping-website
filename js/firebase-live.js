@@ -26,6 +26,8 @@
     } catch { return ''; }
   };
   const SHIP_STATUSES = ['Requested','Confirmed','Processing','Packed','Shipped','In Transit','Out for Delivery','Delivered','Returned','Cancelled'];
+  const REQUIRES_DISPATCH_PAYMENT = ['Shipped','In Transit','Out for Delivery','Delivered'];
+  const needsUpiVerification = o => ['Manual UPI','To be arranged'].includes(String(o?.paymentMethod||'')) && o?.paymentStatus!=='verified';
   const shipmentFor = o => {
     const s=o?.shipping && typeof o.shipping==='object' ? o.shipping : {};
     return {
@@ -57,6 +59,11 @@
   const ensureAdmin = () => { if (!canManageOrders()) { alert('Sign in as verified Super Admin, Owner or Manager staff.'); return false; } return true; };
   const ensureStoreEditor = () => { if (!canEditStore()) { alert('Only Super Admin and Owner may edit store products or settings.'); return false; } return true; };
   const ensureSuperAdmin = () => { if (!isSuperAdmin()) { alert('Only the verified Super Admin can manage staff roles.'); return false; } return true; };
+  const syncStaffNavigation = signedIn => {
+    $('staffLoginNavBtn')?.classList.toggle('hidden',!!signedIn);
+    $('staffDashboardNavBtn')?.classList.toggle('hidden',!signedIn);
+    $('staffLogoutNavBtn')?.classList.toggle('hidden',!signedIn);
+  };
   const live = {
     uid: null, verifiedAdmin: false, activeRole: null, staffRecords: {}, catalogPublished: false, db: null, auth: null,
     applying: false, settingsReady: false, lastSettings: '', saveTimer: null,
@@ -96,7 +103,9 @@
       }
       try {
         const app=firebase.apps.length ? firebase.app() : firebase.initializeApp(FB);
-        this.db=app.database(); this.auth=app.auth();
+        this.db=app.database();         this.auth=app.auth();
+        // Keep signed-in staff sessions across refreshes until they explicitly log out.
+        this.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.warn('Firebase persistence unavailable:',e?.code||e));
         this.setStatus('Connecting to live Islamic catalog…');
         this.on('catalog', data => {
           const entries=Object.entries(data || {});
@@ -122,6 +131,8 @@
         this.on('publicSettings', data => {
           if(!data || typeof data!=='object') return;
           for(const k of publicKeys) if(Object.prototype.hasOwnProperty.call(data,k)) config[k]=data[k];
+          config.customCategories=Array.isArray(data.customCategories) ? data.customCategories.filter(x=>typeof x==='string').slice(0,75) : [];
+          renderCategoryChips();refreshProductCategoryOptions();renderCustomCategoryList();
           syncLiveCmsUI(); renderProducts();
         });
         this.auth.onAuthStateChanged(u=>{
@@ -145,8 +156,7 @@
       if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';
       if($('adminCustomerSearch'))$('adminCustomerSearch').value='';
       closeAdminDashboardModal(); closeCustomerProfileModal();
-      $('staffLogoutNavBtn')?.classList.add('hidden');
-      $('staffLoginNavBtn')?.classList.remove('hidden');
+      syncStaffNavigation(false);
       $('cloudAdminQuickActions')?.classList.add('hidden');
       document.querySelectorAll('[data-admin-restricted]').forEach(el=>el.classList.add('hidden'));
       if(!u) {
@@ -174,8 +184,7 @@
       if(this.verifiedAdmin) {
         currentUser={id:u.uid,uid:u.uid,username:u.email,email:u.email,
           name:masterAdmin?(u.displayName||'Super Admin'):(staff.name||u.email),role:this.activeRole};
-        $('staffLogoutNavBtn')?.classList.remove('hidden');
-        $('staffLoginNavBtn')?.classList.add('hidden');
+        syncStaffNavigation(true);
         $('cloudAdminQuickActions')?.classList.toggle('hidden', !canEditStore());
         if(!masterAdmin){
           // Revoke or demote access in all live sessions immediately after a role change.
@@ -186,7 +195,11 @@
               this.auth.signOut().catch(()=>{});return;
             }
             if(currentUser && currentUser.role!==record.role){this.applySession(u).catch(()=>{});}
-          },()=>this.auth.signOut().catch(()=>{}));
+          },error=>{
+            // A transient/offline role listener error is NOT an instruction to log out.
+            // Keep existing auth session; Firebase rules still enforce access to data.
+            this.setStatus('Staff permissions could not be refreshed: '+textError(error),'bad');
+          });
         } else {
           this.on('staffRoles', records=>{
             if(this.uid!==u.uid)return;
@@ -224,7 +237,7 @@
         });
         if(canEditStore()) {
           this.on('adminData/posSales', record=>{
-            this.posSales=Object.entries(record||{}).map(([key,v])=>({...v,__key:key,channel:'Showroom POS'}));
+            this.posSales=Object.entries(record||{}).filter(([,v])=>v?.status!=='PendingStock').map(([key,v])=>({...v,__key:key,channel:'Showroom POS'}));
             this.updateAdminOrders();
           });
         }
@@ -233,7 +246,11 @@
           this.on('adminData/settings', data=>{
             if(data && typeof data==='object') {
               this.applying=true;
-              if(data.config) config={...config,...data.config,featureToggles:{...config.featureToggles,...data.config.featureToggles}};
+              if(data.config) {
+                const publicCategories=Array.isArray(config.customCategories)?config.customCategories:[];
+                config={...config,...data.config,featureToggles:{...config.featureToggles,...data.config.featureToggles},customCategories:publicCategories};
+              }
+              // Public category data is canonical. Do not overwrite it with old settings snapshots.
               if(Array.isArray(data.coupons)) coupons=data.coupons;
               this.applying=false;
               syncLiveCmsUI();renderProducts();renderCouponsTable();
@@ -435,6 +452,7 @@
     async sendOrder(form) {
       if(!this.uid || currentUser?.role!=='customer') throw Error('Sign in as a customer to submit an order request.');
       if(!this.catalogPublished) throw Error('No live cloud catalog has been published.');
+      if(!['COD','Manual UPI'].includes(form.paymentMethod)) throw Error('Choose COD or Manual UPI at checkout.');
       const cartItems=cart.map(item=>({id:item.id,qty:Math.max(1,Math.floor(Number(item.qty)||1))}));
       if(!cartItems.length) throw Error('Your bag is empty.');
       if(!/^[0-9]{6}$/.test(form.postalCode)) throw Error('Please enter a valid six-digit postal code.');
@@ -555,8 +573,17 @@
     return ()=>{ if(!ensureAdmin()) return; original(); };
   })();
   window.logoutCurrentUser=async()=>{
-    try { await live.signOut(); closeAdminDashboardModal();closeCustomerProfileModal(); }
-    catch(e) { alert('Logout failed: '+textError(e)); }
+    try {
+      await live.signOut();
+      // Update the UI immediately; don't depend on an asynchronous auth callback.
+      // This is a UI reset only, not a database write.
+      if(!live.auth?.currentUser) await live.applySession(null);
+      closeAdminDashboardModal();closeCustomerProfileModal();closeAdminLoginModal();
+      $('staffProfileModal')?.classList.add('hidden');
+      syncStaffNavigation(false);
+      live.setStatus('✓ Signed out. Your staff session has ended.','ok');
+      return true;
+    } catch(e) { alert('Logout failed: '+textError(e)); return false; }
   };
   window.openFirebaseSyncModal=()=>{
     const el=$('firebaseSyncModalStatus');
@@ -688,7 +715,8 @@
         <div class="flex flex-wrap justify-between gap-2"><strong>${esc(o.orderId||o.__key)}</strong><span>${esc(o.status||'Requested')}</span></div>
         <p><strong>Date:</strong> ${esc(o.date?new Date(o.date).toLocaleString('en-IN'):'Not recorded')} · <strong>Estimate:</strong> INR ${price(o.total).toLocaleString('en-IN')}</p>
         <p><strong>Products:</strong> ${esc(items.map(i=>`${i.title||'Item'} × ${i.qty||0}`).join(', ')||'No item details')}</p>
-        <p><strong>Payment:</strong> ${esc(o.paymentStatus||'unverified')} · <strong>Delivery:</strong> ${esc(o.deliveryChoice||'Standard')}</p>
+        <p><strong>Payment choice:</strong> ${esc(o.paymentMethod||'Not recorded')} · <strong>Status:</strong> ${esc(o.paymentStatus==='verified'?'Received and manually verified':'Unverified / awaiting confirmation')} · <strong>Delivery:</strong> ${esc(o.deliveryChoice||'Standard')}</p>
+        ${o.paymentStatus==='verified'?`<p class="text-emerald-800">Verified payment: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')} — ${esc(o.paymentVerification?.method||'manual')}</p>`:''}
         ${shippingCard(o)}
         <button type="button" class="customer-invoice-download px-3 py-2 bg-brand-darkgreen text-white font-bold rounded-lg">Download Order Invoice (PDF)</button>
       </article>`;
@@ -713,6 +741,7 @@
     if(!ensureAdmin())return;
     const o=orders.find(x=>x.orderId===orderId);
     if(!o?.__uid||!o?.__key) return alert('This order cannot be modified from the cloud dashboard.');
+    if(REQUIRES_DISPATCH_PAYMENT.includes(status)&&needsUpiVerification(o))return alert('Manual UPI receipt is not verified. Do not dispatch this order before bank confirmation.');
     try {await live.db.ref('orderRequests/'+o.__uid+'/'+o.__key+'/status').set(status);live.setStatus('✓ Order status saved to Firebase','ok');}
     catch(err){alert('Order status NOT saved: '+textError(err));}
   };
@@ -769,6 +798,9 @@
     const trackingUrl=safeTrackingUrl(rawUrl);
     if(rawUrl&&!trackingUrl)return statusNotice('Enter a valid HTTPS link from the courier website.',true);
     const newStatus=$('shippingOrderStatus')?.value||'Requested';
+    const existing=orders.find(o=>o.__uid===uid&&o.__key===key);
+    if(REQUIRES_DISPATCH_PAYMENT.includes(newStatus) && needsUpiVerification(existing))
+      return statusNotice('Manual UPI payment is not verified. Confirm bank credit before dispatching.',true);
     if(!SHIP_STATUSES.includes(newStatus) && !orders.some(o=>o.__uid===uid&&o.__key===key&&o.status===newStatus))
       return statusNotice('Select a valid order status.',true);
     const carrier=$('shippingCarrier')?.value.trim().slice(0,100)||'';
@@ -810,6 +842,79 @@
       o.status,o.channel,p.name,p.phone,p.email];
     return fields.some(field=>String(field??'').toLowerCase().includes(q));
   };
+  // Manual payment controls are restricted to the verified Super Admin;
+  // the *published database rules* are the actual security enforcement boundary.
+  let paymentEditingRef=null;
+  const paymentNotice=(message,error=false)=>{
+    const el=$('paymentSaveMessage');if(!el)return;
+    el.textContent=message;el.className='rounded-lg p-2 '+(error?'bg-red-100 text-red-800':'bg-emerald-100 text-emerald-900');
+  };
+  window.openOrderPaymentModal=(uid,key)=>{
+    if(!ensureSuperAdmin())return;
+    const order=orders.find(o=>o.__uid===uid&&o.__key===key);
+    if(!order)return alert('Order not found. Refresh and try again.');
+    paymentEditingRef={uid,key};
+    $('paymentOrderSummary').textContent='Order '+(order.orderId||key)+' · '+(order.customerName||'Customer')+
+      ' · Customer requested '+(order.paymentMethod||'Unspecified')+
+      ' · Browser estimate INR '+price(order.total).toLocaleString('en-IN')+
+      ' (NOT a verified final price)';
+    const verified=order.paymentVerification||{};
+    $('paymentMethodVerified').value=verified.method || (order.paymentMethod==='COD'?'COD':'Manual UPI');
+    $('paymentVerifiedAmount').value=verified.verifiedAmount ?? '';
+    $('paymentUtr').value=verified.utr||'';
+    $('paymentAdminNote').value='';
+    $('paymentReceivedChecked').checked=false;
+    $('paymentSaveMessage')?.classList.add('hidden');
+    $('orderPaymentModal')?.classList.remove('hidden');
+  };
+  window.closeOrderPaymentModal=()=>{paymentEditingRef=null;$('orderPaymentModal')?.classList.add('hidden');};
+  window.saveManualPaymentVerification=async e=>{
+    e.preventDefault();
+    if(!ensureSuperAdmin()||!paymentEditingRef)return;
+    const {uid,key}=paymentEditingRef;
+    const order=orders.find(o=>o.__uid===uid&&o.__key===key);
+    if(!order)return paymentNotice('Order no longer found. Refresh the dashboard.',true);
+    const method=$('paymentMethodVerified')?.value;
+    if(!['COD','Manual UPI'].includes(method))return paymentNotice('Choose a supported payment method.',true);
+    const verifiedAmount=Number($('paymentVerifiedAmount')?.value);
+    if(!Number.isFinite(verifiedAmount)||verifiedAmount<=0||verifiedAmount>99999999||Math.round(verifiedAmount*100)/100!==verifiedAmount)
+      return paymentNotice('Enter a positive amount in INR (up to two decimals).',true);
+    const utr=$('paymentUtr')?.value.trim().slice(0,64)||'';
+    if(method==='Manual UPI'&&!/^[a-zA-Z0-9\/-]{6,64}$/.test(utr))
+      return paymentNotice('For UPI, enter the 6–64-character bank transaction reference/UTR.',true);
+    if(!$('paymentReceivedChecked')?.checked)
+      return paymentNotice('You must independently verify the receipt and confirm the checkbox.',true);
+    const note=$('paymentAdminNote')?.value.trim().slice(0,240)||'';
+    const button=$('paymentVerifyBtn');if(button)button.disabled=true;
+    try {
+      const recordRef=live.db.ref('orderRequests/'+uid+'/'+key);
+      const paymentVerification={
+        method,verifiedAmount,utr:method==='Manual UPI'?utr:'',
+        verifiedAt:firebase.database.ServerValue.TIMESTAMP,
+        verifiedBy:live.uid,
+        note
+      };
+      const auditKey=recordRef.child('paymentAudit').push().key;
+      await recordRef.update({paymentStatus:'verified',paymentVerification,
+        ['paymentAudit/'+auditKey]:{event:'verified',method,amount:verifiedAmount,by:live.uid,
+          at:firebase.database.ServerValue.TIMESTAMP}});
+      paymentNotice('Payment manually verified and saved. Customer account will update.');
+      live.setStatus('✓ Verified payment saved to Firebase','ok');
+    } catch(err) {paymentNotice('Payment verification NOT saved: '+textError(err),true);}
+    finally{if(button)button.disabled=false;}
+  };
+  window.resetManualPaymentVerification=async()=>{
+    if(!ensureSuperAdmin()||!paymentEditingRef)return;
+    const {uid,key}=paymentEditingRef;
+    if(!confirm('Revert this order to UNVERIFIED? This does not issue a refund or reverse a bank transfer. The old verification remains recorded for audit.'))return;
+    try {
+      const recordRef=live.db.ref('orderRequests/'+uid+'/'+key);
+      const auditKey=recordRef.child('paymentAudit').push().key;
+      await recordRef.update({paymentStatus:'unverified',
+        ['paymentAudit/'+auditKey]:{event:'reverted_to_unverified',by:live.uid,at:firebase.database.ServerValue.TIMESTAMP}});
+      paymentNotice('Payment marked unverified. Existing verification record retained for audit; confirm funds separately.');
+    }catch(err){paymentNotice('Could not revert: '+textError(err),true);}
+  };
   window.searchAdminOrderHistory=()=>{if(ensureAdmin()) renderAdminOrders();};
   window.clearAdminOrderHistorySearch=()=>{
     if(!ensureAdmin())return;
@@ -841,7 +946,8 @@
         <p><strong>Customer:</strong> ${esc(o.customerName||profile.name||'')} · ${esc(o.customerPhone||profile.phone||'')}</p>
         <p><strong>Email:</strong> ${esc(o.customerEmail||o.email||profile.email||'Not recorded')}</p>
         <p>${esc(items.map(i=>i.title+' (x'+i.qty+')').join(', '))}</p>
-        <p class="text-amber-700 font-semibold">Estimated total INR ${price(o.total).toLocaleString('en-IN')} · Payment ${esc(o.paymentStatus||'not verified')}</p>
+        <p class="text-amber-700 font-semibold">Estimated total INR ${price(o.total).toLocaleString('en-IN')} · Method ${esc(o.paymentMethod||'Not recorded')} · Payment ${esc(o.paymentStatus||'unverified')}</p>
+        ${o.paymentStatus==='verified'?`<p class="text-emerald-800 font-semibold">Bank/COD receipt manually verified by Super Admin: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')}</p>`:''}
         <p>${esc(o.address||'')} ${esc(o.postalCode||'')} · ${esc(o.deliveryChoice||'')}</p>
         <div class="flex gap-2 items-center flex-wrap"><label for="ship-${esc(o.__key||id)}">Status</label>
         <select id="ship-${esc(o.__key||id)}" class="cloud-order-status border rounded p-2" ${o.__uid?'':'disabled'}>${choices}</select></div>
@@ -852,6 +958,7 @@
           ${s.trackingUrl?`<a href="${esc(s.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="underline font-bold text-emerald-800">Open courier tracking</a>`:''}
         </div>
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
+        ${isSuperAdmin()&&o.__uid&&o.__key?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-edit-shipping bg-brand-darkgreen text-white px-4 py-2 rounded-lg font-bold w-full">Edit Shipping / Courier Tracking</button>`
           :'<p class="text-[10px] text-neutral-500">POS invoices and shipping need separate verified sales records.</p>'}
         <p class="text-[10px] text-neutral-500">Non-tax order invoice, not payment proof. Courier booking and payment verification remain separate.</p>
@@ -860,6 +967,7 @@
     node.querySelectorAll('.cloud-order-status').forEach((el,index)=>{
       const record=visible[index];el.addEventListener('change',async()=>{
         if(!ensureAdmin()||!record.__uid||!record.__key)return;
+        if(REQUIRES_DISPATCH_PAYMENT.includes(el.value) && needsUpiVerification(record)){alert('Manual UPI receipt is not verified. Confirm bank credit first.');renderAdminOrders();return;}
         try {await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);} 
         catch(err){alert('Order status not saved: '+textError(err));renderAdminOrders();}
       });
@@ -868,6 +976,10 @@
       // Use data attribute/index from matching cards, not filtered positions: prevents wrong-order edits.
       const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
       el.addEventListener('click',()=>openOrderShippingModal(record.__uid,record.__key));
+    });
+    node.querySelectorAll('.cloud-verify-payment').forEach(el=>{
+      const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
+      el.addEventListener('click',()=>openOrderPaymentModal(record.__uid,record.__key));
     });
     node.querySelectorAll('.cloud-download-invoice').forEach(el=>{
       const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
@@ -1036,6 +1148,138 @@
   // Re-rendering inventory must not restore manager edit buttons.
   const originalInventory=window.renderAdminInventory;
   window.renderAdminInventory=()=>{originalInventory();applyStaffTabs();};
+  // V25: Store categories live at /publicSettings/customCategories under existing admin rules.
+  // This never removes or rewrites any existing product records.
+  window.renderCustomCategoryList=()=>{
+    const list=$('customCategoryList');if(!list)return;
+    list.replaceChildren();
+    const custom=Array.isArray(config.customCategories)?config.customCategories:[];
+    for(const name of custom){
+      const row=document.createElement('div');row.className='flex items-center justify-between gap-2 p-2 border rounded';
+      const text=document.createElement('span');text.textContent=name;text.className='break-all';
+      const controls=document.createElement('div');controls.className='flex gap-2 shrink-0';
+      const button=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.className='border rounded px-2 py-1';b.addEventListener('click',fn);return b;};
+      controls.append(button('Rename',()=>window.renameProductCategory(name)),button('Delete',()=>window.deleteProductCategory(name)));
+      row.append(text,controls);list.appendChild(row);
+    }
+    if(!custom.length){const t=document.createElement('p');t.className='text-neutral-500';t.textContent='No custom categories added yet.';list.appendChild(t);}
+  };
+  const categoryStatus=(msg,bad=false)=>{const el=$('customCategoryNotice');if(el){el.textContent=msg;el.className='text-xs '+(bad?'text-red-700':'text-emerald-800');}};
+  const categoryValid=name=>{
+    if(name.length<2||name.length>60||/[<>\\]/.test(name)||/[\x00-\x1f]/.test(name))throw Error('Use 2–60 characters without <, > or backslash.');
+    if(storeCategories().some(c=>c.toLowerCase()===name.toLowerCase()))throw Error('That category already exists.');
+  };
+  const saveCustomCategories=async next=>{
+    if(!canEditStore())throw Error('Only Super Admin or Owner may manage categories.');
+    // Public settings have their own admin-only Firebase write rules.
+    await live.db.ref('publicSettings/customCategories').set(next);
+    config.customCategories=next;renderCategoryChips();refreshProductCategoryOptions();renderCustomCategoryList();
+  };
+  window.handleAddProductCategory=async e=>{
+    e.preventDefault();
+    try{const name=String($('newProductCategory')?.value||'').trim().replace(/\s+/g,' ');
+      categoryValid(name);await saveCustomCategories([...(config.customCategories||[]),name]);$('newProductCategory').value='';categoryStatus('Category added and saved to Firebase.');
+    }catch(e){categoryStatus(textError(e),true);}
+  };
+  window.renameProductCategory=async old=>{
+    if(!canEditStore())return;
+    const nextName=prompt('Rename category. Products already assigned to the old name will NOT be changed automatically:',old);
+    if(nextName===null)return;
+    const name=String(nextName).trim().replace(/\s+/g,' ');if(name===old)return;
+    try{categoryValid(name);
+      if(products.some(p=>p.category===old))throw Error('Category is currently assigned to products. Edit those products first, then rename the empty category.');
+      await saveCustomCategories((config.customCategories||[]).map(c=>c===old?name:c));categoryStatus('Category renamed and synchronized.');
+    }catch(e){categoryStatus(textError(e),true);}
+  };
+  window.deleteProductCategory=async name=>{
+    if(!canEditStore())return;
+    if(products.some(p=>p.category===name)){categoryStatus('Category has products. Reassign those products before deleting.',true);return;}
+    if(!confirm('Remove custom category "'+name+'" from category choices? No products will be deleted.'))return;
+    try{await saveCustomCategories((config.customCategories||[]).filter(c=>c!==name));categoryStatus('Category removed from choices; existing products untouched.');}
+    catch(e){categoryStatus(textError(e),true);}
+  };
+
+  // V25.1: Opening the staff portal while signed in must reopen the dashboard,
+  // not display another password form (which looked like an automatic logout).
+  window.openStaffPortal=()=>{
+    if(isAdmin()){
+      closeAdminLoginModal();
+      window.openAdminDashboardModal();
+    }else openAdminLoginModal();
+  };
+  window.backToStoreWithoutLogout=()=>{
+    window.closeStaffProfile?.();
+    closeAdminDashboardModal();
+    syncStaffNavigation(isAdmin());
+  };
+  // V25: a staff session does not end when the dashboard or profile is closed.
+  window.openStaffProfile=()=>{
+    if(!isAdmin())return alert('Sign in as staff first.');
+    $('staffProfileName').textContent=currentUser.name||'Staff';
+    $('staffProfileEmail').textContent=currentUser.email||'';
+    $('staffProfileUID').textContent=live.uid||'';
+    $('staffProfileRole').textContent=({admin:'Super Admin',owner:'Owner',manager:'Manager'})[currentUser.role]||currentUser.role;
+    $('staffProfileModal').classList.remove('hidden');
+  };
+  window.closeStaffProfile=()=>{$('staffProfileModal')?.classList.add('hidden');};
+  window.confirmStaffLogout=async()=>{
+    if(!confirm('Log out of your staff account? Closing the dashboard does not log you out.'))return;
+    const success=await window.logoutCurrentUser();
+    if(success) alert('Staff account signed out successfully.');
+  };
+  // Reopening the dashboard after returning to the storefront uses the active login.
+
+  // V25: POS finalization runs ONLY through a trusted, deployed Cloud Function.
+  // Client cannot write POS sale records or reduce stock directly.
+  let posPendingId=null,posPendingSignature='';
+  window.completePosSale=async()=>{
+    if(!canEditStore())return alert('Only Super Admin or authorized Owner may finish POS sales.');
+    if(window.mqbPosBusy)return;
+    if(!Array.isArray(posTicket)||!posTicket.length)return alert('Add at least one item to the POS bill.');
+    const paymentMethod=$('posPaymentMethod')?.value;
+    if(!['Cash','UPI','Card'].includes(paymentMethod))return alert('Select a payment method.');
+    if(!$('posPaymentConfirmed')?.checked)return alert('Confirm that you personally verified payment before completing the bill.');
+    if(!window.firebase?.functions)return alert('Secure POS backend SDK unavailable. Check network. Sale was NOT completed.');
+    const name=String($('posCustName')?.value||'').trim().slice(0,120);
+    const phone=String($('posCustPhone')?.value||'').trim().slice(0,25);
+    const postalCode=String($('posCustPincode')?.value||'').trim().slice(0,10);
+    const reference=String($('posPaymentReference')?.value||'').trim().slice(0,100);
+    const items=posTicket.map(i=>({id:i.id,qty:i.qty}));
+    const expectedTotalPaise=posTicket.reduce((n,i)=>n+Math.round(Number(i.salePrice)*100)*i.qty,0);
+    const signature=JSON.stringify({items,paymentMethod,name,phone,postalCode,reference,expectedTotalPaise});
+    if(signature!==posPendingSignature){posPendingId='POS-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);posPendingSignature=signature;}
+    if(!confirm('You verified the payment in person or in your receiving bank/terminal, and the sale amount is correct? Complete this POS sale and reduce cloud stock?'))return;
+    const btn=$('posCompleteBtn');window.mqbPosBusy=true;if(btn)btn.disabled=true;
+    try{
+      const callable=firebase.app().functions('asia-south1').httpsCallable('completeShowroomPos');
+      const response=await callable({saleId:posPendingId,items,expectedTotalPaise,paymentMethod,customerName:name,customerPhone:phone,postalCode,reference,paymentAttested:true});
+      const sale=response.data;
+      if(!sale||sale.status!=='Completed')throw Error('Server did not confirm sale completion. Do not collect a duplicate payment.');
+      posTicket=[];renderPosTicketUI();
+      for(const id of ['posCustName','posCustPhone','posCustPincode','posPaymentReference'])if($(id))$(id).value='';
+      if($('posPaymentConfirmed'))$('posPaymentConfirmed').checked=false;
+      posPendingId=null;posPendingSignature='';
+      window.showPosReceipt(sale);
+    }catch(error){
+      alert('POS sale NOT confirmed: '+textError(error)+'\nIf the server timed out, retry this same bill. The request ID prevents duplicate stock deductions.');
+    }finally{window.mqbPosBusy=false;if(btn)btn.disabled=false;}
+  };
+  window.showPosReceipt=sale=>{
+    const box=$('posReceiptContent');if(!box)return;
+    box.replaceChildren();
+    const line=(key,value)=>{const p=document.createElement('p');const b=document.createElement('strong');b.textContent=key+': ';p.append(b,document.createTextNode(String(value||'')));box.appendChild(p);};
+    const rupees=n=>'INR '+Number(n||0).toFixed(2);
+    const h=document.createElement('h2');h.textContent='MOIN QURAN BOX — POS RECEIPT';h.className='text-lg font-bold';box.appendChild(h);
+    line('Sale number',sale.orderId);line('Date',sale.date);line('Payment method',sale.paymentMethod);
+    line('Payment', 'Manually verified by staff');line('Customer',sale.customerName||'Walk-in customer');
+    if(sale.customerPhone)line('Phone',sale.customerPhone);
+    const list=document.createElement('div');list.className='my-4 border-y py-2';
+    for(const item of sale.items||[]){const p=document.createElement('p');p.textContent=item.title+' — '+item.qty+' × '+rupees(item.salePrice)+' = '+rupees(item.qty*item.salePrice);list.appendChild(p);}
+    box.appendChild(list);line('TOTAL RECEIVED',rupees(sale.total));
+    const foot=document.createElement('p');foot.className='text-xs mt-3';foot.textContent='POS receipt only; not a GST tax invoice. Payment confirmation is based on staff attestation. Return/refund per store policy.';box.appendChild(foot);
+    $('posReceiptModal')?.classList.remove('hidden');
+  };
+  window.closePosReceipt=()=>{$('posReceiptModal')?.classList.add('hidden');};
   // Profile icon opens the correct dashboard for all verified staff roles.
   window.handleUserIconClick=()=>{
     if(currentUser && ['admin','owner','manager'].includes(currentUser.role)) openAdminDashboardModal();
