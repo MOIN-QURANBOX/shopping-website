@@ -1177,10 +1177,18 @@
       <p class="text-xs text-neutral-600">Closing this profile or dashboard will keep you signed in. Only Log Out ends your session.</p>
     </div>
   </div>
+  <!-- ================= CUSTOMER PRODUCT DETAILS ================= -->
+  <div id="productDetailsModal" class="hidden fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-2 sm:p-5" role="dialog" aria-modal="true" aria-label="Product details" onclick="if(event.target===this)closeProductDetails()">
+    <div class="relative bg-white w-full max-w-3xl max-h-[95vh] overflow-y-auto overscroll-contain rounded-2xl shadow-2xl border border-brand-border" id="productDetailsScroll">
+      <button type="button" onclick="closeProductDetails()" aria-label="Close product details" class="sticky top-3 float-right mr-3 z-20 bg-white border border-brand-border rounded-full w-9 h-9 shadow flex items-center justify-center font-bold text-neutral-600 hover:text-black">✕</button>
+      <div id="productDetailsContent" class="clear-both p-4 sm:p-7" aria-live="polite"></div>
+    </div>
+  </div>
+
   <!-- ================= PRODUCT EDIT MODAL ================= -->
   <div id="productEditModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-5 relative text-xs">
-      <button onclick="closeProductEditModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
+    <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-lg w-full p-5 relative text-xs max-h-[94vh] overflow-y-auto">
+      <button type="button" onclick="closeProductEditModal()" aria-label="Close product editor" class="absolute right-4 top-4 text-neutral-500">✕</button>
       <h3 class="serif-title text-base font-bold text-brand-charcoal mb-3" id="productEditModalTitle">Add / Edit Product</h3>
       <form onsubmit="handleProductFormSubmit(event)" class="space-y-3">
         <input type="hidden" id="editProductId" />
@@ -1209,6 +1217,17 @@
           <input type="number" id="editProductSalePrice" required class="w-full bg-brand-sand border rounded p-2 font-bold" />
         </div>
         
+        <div>
+          <label class="block font-bold mb-1" for="editProductColor">Color / Finish (optional)</label>
+          <input type="text" id="editProductColor" maxlength="120" placeholder="e.g. Maroon velvet, Walnut brown, Gold" class="w-full bg-brand-sand border rounded p-2" />
+          <p class="text-[10px] text-neutral-500 mt-1">Describes the item's color or finish; stock is still tracked for the product as a whole.</p>
+        </div>
+        <div>
+          <label class="block font-bold mb-1" for="editProductDescription">Full Product Description (optional)</label>
+          <textarea id="editProductDescription" rows="6" maxlength="3000" placeholder="Describe material, size, contents, design, care instructions and what makes the product special." class="w-full bg-brand-sand border rounded p-2 leading-relaxed"></textarea>
+          <p class="text-[10px] text-neutral-500 mt-1">Customers can scroll through this description when they open the product. Maximum 3,000 characters.</p>
+        </div>
+
         <!-- Photo Upload & URL -->
         <div class="p-3 bg-brand-sand border rounded-lg space-y-2">
           <label class="block font-bold">Product Photo</label>
