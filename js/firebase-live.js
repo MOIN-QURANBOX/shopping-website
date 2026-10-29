@@ -115,7 +115,7 @@
               id, title:v.title, category:v.category||'Islamic Products',
               salePrice:price(v.salePrice ?? v.price), oldPrice:price(v.oldPrice),
               wholesalePrice:price(v.wholesalePrice), stock:Math.max(0,Number(v.stock)||0),
-              image:safeImage(v.image), desc:String(v.desc ?? v.description ?? '').slice(0,600),
+              image:safeImage(v.image), desc:String(v.desc ?? v.description ?? '').slice(0,3000),color:String(v.color ?? v.colour ?? '').slice(0,120),
               sku:v.sku || id
             }));
           } else {
@@ -460,9 +460,11 @@
       const clean={title:product.title.slice(0,120),category:String(product.category).slice(0,90),
         salePrice:price(product.salePrice),oldPrice:price(product.oldPrice),
         stock:Number(product.stock),sku:String(product.sku||id).slice(0,100),
-        image:photo,desc:String(product.desc||'').slice(0,600),
+        image:photo,desc:String(product.desc ?? product.description ?? '').slice(0,3000),
+        color:String(product.color ?? product.colour ?? '').slice(0,120),
         updatedAt:firebase.database.ServerValue.TIMESTAMP};
-      await this.db.ref('catalog/'+id).set(clean);
+      // Patch only these edited fields, preserving any other existing product metadata.
+      await this.db.ref('catalog/'+id).update(clean);
       this.setStatus('✓ Product saved to Firebase. Devices updating…','ok');
     },
     async publishBrowserCatalog() {
@@ -814,7 +816,8 @@
     const before=products.find(p=>p.id===id);
     const input={...before,id,title:$('editProductTitle')?.value.trim(),
       category:$('editProductCategory')?.value,stock:Number($('editProductStock')?.value),
-      salePrice:Number($('editProductSalePrice')?.value),image:$('editProductImage')?.value.trim()||''};
+      salePrice:Number($('editProductSalePrice')?.value),image:$('editProductImage')?.value.trim()||'',
+      color:$('editProductColor')?.value.trim()||'',desc:$('editProductDescription')?.value.trim()||''};
     try { await live.saveProduct(input);closeProductEditModal();alert('Product saved and synchronized across devices.'); }
     catch(err) {alert('Product NOT saved: '+textError(err));}
   };
