@@ -67,7 +67,7 @@
   const live = {
     uid: null, verifiedAdmin: false, activeRole: null, staffRecords: {}, catalogPublished: false, db: null, auth: null,
     applying: false, settingsReady: false, lastSettings: '', saveTimer: null,
-    unsubs: [], started: false, profiles: {}, cartActivity: {}, salesResetAt: 0,
+    unsubs: [], started: false, profiles: {}, cartActivity: {}, salesResetAt: 0, staffEvents: {}, adminControls: {},
     guestMessage: 'No confirmed cloud catalog yet. Sample collection shown for preview only.',
     setStatus(message, state='waiting') {
       const el=$('liveSyncBanner'); if (!el) return;
@@ -150,9 +150,9 @@
       this.settingsReady=false; this.lastSettings='';
       // NEVER show the previous account's cart or order data in a new session.
       cart=[]; wishlist=[]; orders=[]; currentUser=null; users=[];
-      this.profiles={};this.cartActivity={}; posTicket=[]; selectedAdminCustomerUID='';
+      this.profiles={};this.cartActivity={};this.staffEvents={};this.adminControls={};posTicket=[]; selectedAdminCustomerUID='';
       // Clear prior admin-only DOM when switching accounts (prevents stale private records).
-      for(const id of ['adminOrdersContainer','adminCustomersTableBody','adminOrderHistoryCount','adminCustomerSearchCount','custOrderList','custOrderCount','custProfContact','custProfName','trackingResultBox','shippingOrderSummary','staffRoleTable','staffRoleStatus','adminCustomerDetailContent','customerActivityRuleStatus']) {
+      for(const id of ['adminOrdersContainer','adminCustomersTableBody','adminOrderHistoryCount','adminCustomerSearchCount','custOrderList','custOrderCount','custProfContact','custProfName','trackingResultBox','shippingOrderSummary','staffRoleTable','staffRoleStatus','adminCustomerDetailContent','customerActivityRuleStatus','staffActivityList','staffActivityCount','staffActivityStatus','adminControlNotice']) {
         const node=$(id);if(node)node.textContent='';
       }
       if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';
@@ -227,6 +227,22 @@
                 : 'Staff Roles could not be loaded: '+textError(error);
             }
           }, {optionalRead:true});
+        }
+        this.on('adminControls',record=>{
+          this.adminControls=record||{};
+          this.salesResetAt=Number(record?.salesResetAt)||this.salesResetAt||0;
+          updateAnalytics();renderAdminOrders();renderAdminCustomers();renderStaffHistoryControls();
+        },()=>{
+          const n=$('adminControlNotice');if(n)n.textContent='History controls need the V25.5 Firebase rules review before synchronization.';
+        },{optionalRead:true});
+        if(isSuperAdmin())this.on('staffActivity',record=>{
+          this.staffEvents=record||{};renderStaffActivity();
+        },()=>{
+          const n=$('staffActivityStatus');if(n)n.textContent='Staff activity needs the reviewed Firebase permissions before logs can be displayed.';
+        },{optionalRead:true});
+        if(this.activeRole==='owner'||this.activeRole==='manager'){
+          // Best-effort record of login; individual actions are also logged below.
+          Promise.resolve().then(()=>logStaffActivity('staff_login','Signed in to staff dashboard'));
         }
         this.posSales=[];this.customerOrdersForAdmin=[];
         this.on('orderRequests', record=>{
@@ -516,6 +532,7 @@
           await this.db.ref('publicSettings').update(publicConfig());
           this.lastSettings=JSON.stringify(snapshot);
           this.setStatus('✓ Store settings saved in Firebase','ok');
+          logStaffActivity('store_settings','Store settings saved');
         } catch(error) { this.setStatus('⚠ Changes are local; Firebase rejected save: '+textError(error),'bad'); }
       },700);
     }
@@ -806,14 +823,16 @@
     const o=orders.find(x=>x.orderId===orderId);
     if(!o?.__uid||!o?.__key) return alert('This order cannot be modified from the cloud dashboard.');
     if(REQUIRES_DISPATCH_PAYMENT.includes(status)&&needsUpiVerification(o))return alert('Manual UPI receipt is not verified. Do not dispatch this order before bank confirmation.');
-    try {await live.db.ref('orderRequests/'+o.__uid+'/'+o.__key+'/status').set(status);live.setStatus('✓ Order status saved to Firebase','ok');}
+    try {await live.db.ref('orderRequests/'+o.__uid+'/'+o.__key+'/status').set(status);live.setStatus('✓ Order status saved to Firebase','ok');logStaffActivity('order_status','Order '+String(orderId).slice(0,70)+' to '+String(status).slice(0,35));}
     catch(err){alert('Order status NOT saved: '+textError(err));}
   };
   window.resetAllSalesToZero=async()=>{
-    if(!ensureStoreEditor())return;
-    if(!confirm('Reset dashboard sales starting today? Historic orders are retained for audit and records.'))return;
-    try {await live.db.ref('adminData/salesResetAt').set(Date.now());alert('Sales dashboard baseline reset. Historic orders preserved.');}
-    catch(err){alert('Sales reset failed: '+textError(err));}
+    if(!ensureSuperAdmin())return;
+    if(!confirm('Reset the displayed sales baseline? This NEVER deletes orders, payments or records.'))return;
+    try {await live.db.ref('adminControls/salesResetAt').set(firebase.database.ServerValue.TIMESTAMP);
+      live.salesResetAt=Date.now();updateAnalytics();await logStaffActivity('sales_summary_reset','Sales dashboard baseline moved; records preserved');
+      alert('Sales display baseline reset. All historic sales and orders remain saved.');}
+    catch(err){alert('Sales display reset failed: '+textError(err));}
   };
   window.updateAnalytics=()=>{
     // Order requests do not count as revenue; only entered POS sales are reported.
@@ -886,6 +905,7 @@
       });
       statusNotice('Shipping and tracking details saved to Firebase. Customer devices will refresh automatically.');
       live.setStatus('✓ Order shipping details saved in Firebase','ok');
+      logStaffActivity('shipping_save','Order '+(existing.orderId||key)+' · '+newStatus+' · '+carrier);
     }catch(err){statusNotice('Shipping details NOT saved: '+textError(err),true);}
     finally{if(button)button.disabled=false;}
   };
@@ -964,6 +984,7 @@
           at:firebase.database.ServerValue.TIMESTAMP}});
       paymentNotice('Payment manually verified and saved. Customer account will update.');
       live.setStatus('✓ Verified payment saved to Firebase','ok');
+      logStaffActivity('payment_verification','Order '+(order.orderId||key)+' · '+method+' · bank checked');
     } catch(err) {paymentNotice('Payment verification NOT saved: '+textError(err),true);}
     finally{if(button)button.disabled=false;}
   };
@@ -977,6 +998,7 @@
       await recordRef.update({paymentStatus:'unverified',
         ['paymentAudit/'+auditKey]:{event:'reverted_to_unverified',by:live.uid,at:firebase.database.ServerValue.TIMESTAMP}});
       paymentNotice('Payment marked unverified. Existing verification record retained for audit; confirm funds separately.');
+      logStaffActivity('payment_reset','Order key '+String(key).slice(0,70)+' returned to unverified');
     }catch(err){paymentNotice('Could not revert: '+textError(err),true);}
   };
   window.searchAdminOrderHistory=()=>{if(ensureAdmin()) renderAdminOrders();};
@@ -993,10 +1015,12 @@
   window.renderAdminOrders=()=>{
     const node=$('adminOrdersContainer');if(!node)return;
     if(!isAdmin()){node.textContent='Verified Super Admin sign-in required.';return;}
-    const visible=orders.filter(o=>adminOrderMatches(o,adminQuery()));
-    const counter=$('adminOrderHistoryCount');if(counter)counter.textContent=visible.length+' matching order(s) of '+orders.length+' total';
+    let visible=orders.filter(o=>adminOrderMatches(o,adminQuery()));
     const selectedName=live.profiles?.[selectedAdminCustomerUID]?.name||selectedAdminCustomerUID;
     const selected=$('adminHistoryFilterStatus');if(selected) selected.textContent=selectedAdminCustomerUID?'Customer filter: '+selectedName:'';
+    const cutoff=isSuperAdmin()?0:Number(live.adminControls?.orderVisibleAfter)||0;
+    visible=visible.filter(o=>!cutoff||((new Date(o.date).getTime()||0)>=cutoff));
+    const counter=$('adminOrderHistoryCount');if(counter)counter.textContent=visible.length+' displayed order(s) of '+orders.length+' total';
     node.innerHTML=visible.length?visible.map(o=>{
       const id=esc(o.orderId||o.__key||'');
       const choices=Array.from(new Set([...SHIP_STATUSES,String(o.status||'Requested')]))
@@ -1022,6 +1046,7 @@
           ${s.trackingUrl?`<a href="${esc(s.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="underline font-bold text-emerald-800">Open courier tracking</a>`:''}
         </div>
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
+        ${o.__uid&&o.__key?`<button type="button" class="cloud-download-shipping-label border border-teal-800 text-teal-900 px-4 py-2 rounded-lg font-bold w-full">Download Shipping Label (PDF · 4×6)</button>`:''}
         ${isSuperAdmin()&&o.__uid&&o.__key?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-edit-shipping bg-brand-darkgreen text-white px-4 py-2 rounded-lg font-bold w-full">Edit Shipping / Courier Tracking</button>`
           :'<p class="text-[10px] text-neutral-500">POS invoices and shipping need separate verified sales records.</p>'}
@@ -1032,7 +1057,7 @@
       const record=visible[index];el.addEventListener('change',async()=>{
         if(!ensureAdmin()||!record.__uid||!record.__key)return;
         if(REQUIRES_DISPATCH_PAYMENT.includes(el.value) && needsUpiVerification(record)){alert('Manual UPI receipt is not verified. Confirm bank credit first.');renderAdminOrders();return;}
-        try {await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);} 
+        try {await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);logStaffActivity('order_status','Order '+(record.orderId||record.__key)+' to '+el.value);} 
         catch(err){alert('Order status not saved: '+textError(err));renderAdminOrders();}
       });
     });
@@ -1045,6 +1070,19 @@
       const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
       el.addEventListener('click',()=>openOrderPaymentModal(record.__uid,record.__key));
     });
+    node.querySelectorAll('.cloud-download-shipping-label').forEach(el=>{
+      const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
+      el.addEventListener('click',()=>{
+        if(!ensureAdmin()||!record?.__uid||!record?.__key)return;
+        if(!window.MQBShippingLabelPDF)return alert('Shipping label PDF script did not load. Refresh the website.');
+        const profile=live.profiles?.[record.__uid]||{};
+        const fields=window.MQBShippingLabelPDF.fields({order:record,shop:config,profile});
+        if(!fields.name||!fields.phone||!fields.address||!/^[0-9]{6}$/.test(fields.pin))
+          return alert('Recipient name, phone, address and a valid 6-digit destination PIN are required. Correct the customer delivery details before generating a label.');
+        try{window.MQBShippingLabelPDF.download({order:record,shop:config,profile});logStaffActivity('shipping_label_download','Order '+(record.orderId||record.__key));}
+        catch(e){alert('Could not create label: '+textError(e));}
+      });
+    });
     node.querySelectorAll('.cloud-download-invoice').forEach(el=>{
       const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
       el.addEventListener('click',()=>window.downloadOrderInvoice(record.__uid||'POS',record.__key));
@@ -1055,9 +1093,10 @@
     const n=Number(v);if(!Number.isFinite(n)||n<=0)return 'Not available';
     const d=new Date(n);return Number.isNaN(d.getTime())?'Not available':d.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
   };
-  const customerOrders=uid=>orders.filter(o=>o.__uid===uid).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const customerOrders=uid=>orders.filter(o=>o.__uid===uid && (isSuperAdmin() || !live.adminControls?.orderVisibleAfter || (new Date(o.date).getTime()||0)>=Number(live.adminControls.orderVisibleAfter))).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   const cartEvents=uid=>Object.values(live.cartActivity?.[uid]||{})
-    .filter(e=>e && typeof e==='object').sort((a,b)=>(Number(b.at)||0)-(Number(a.at)||0));
+    .filter(e=>e && typeof e==='object' && (isSuperAdmin() || !live.adminControls?.customerActivityVisibleAfter || Number(e.at)>=Number(live.adminControls.customerActivityVisibleAfter)))
+    .sort((a,b)=>(Number(b.at)||0)-(Number(a.at)||0));
   const formatAddress=addr=>{
     if(typeof addr==='string')return addr;
     if(addr&&typeof addr==='object')return [addr.line1,addr.line2,addr.street,addr.city,addr.state,addr.postalCode].filter(Boolean).join(', ');
@@ -1182,7 +1221,7 @@
         if(!ensureSuperAdmin())return;
         const role=row.querySelector('.staff-role-select').value;
         if(!confirm('Change '+staff.name+' to '+role+'? Access permissions will change immediately.'))return;
-        try{await live.editStaffRole(uid,{role,active:staff.active===true});alert('Staff role updated in Firebase.');}
+        try{await live.editStaffRole(uid,{role,active:staff.active===true});logStaffActivity('staff_role_change','Changed staff '+uid.slice(0,20)+' role to '+role);alert('Staff role updated in Firebase.');}
         catch(e){alert('Role change failed: '+textError(e));}
       });
       row.querySelector('.staff-toggle-active')?.addEventListener('click',async()=>{
@@ -1233,6 +1272,7 @@
     // Managers may inspect inventory but cannot use edit controls.
     if(role==='manager') $('adminInventoryTableBody')?.querySelectorAll('button').forEach(btn=>btn.classList.add('hidden'));
     $('staffRoleTabHint')?.classList.toggle('hidden',role!=='admin');
+    $('adminTabBtn-staffactivity')?.classList.toggle('hidden',role!=='admin');
   };
   const originalDashboard=window.openAdminDashboardModal;
   window.openAdminDashboardModal=()=>{
@@ -1292,6 +1332,7 @@
     // Public settings have their own admin-only Firebase write rules.
     await live.db.ref('publicSettings/customCategories').set(next);
     config.customCategories=next;renderCategoryChips();refreshProductCategoryOptions();renderCustomCategoryList();
+    logStaffActivity('category_change','Saved '+next.length+' custom categories');
   };
   window.handleAddProductCategory=async e=>{
     e.preventDefault();
@@ -1403,6 +1444,103 @@
     if(currentUser && ['admin','owner','manager'].includes(currentUser.role)) openAdminDashboardModal();
     else if(currentUser) openCustomerProfileModal();
     else openCustomerAuthModal('login');
+  };
+  // V25.5: Best-effort per-staff client activity log. These events are NOT server-authoritative.
+  const staffEventActions=new Set(['staff_login','staff_logout','product_save','order_status','shipping_save',
+    'payment_verification','payment_reset','category_change','store_settings','customer_record_view',
+    'shipping_label_download','order_history_filter','staff_role_change','history_control','sales_summary_reset']);
+  async function logStaffActivity(action,detail=''){
+    if(!isAdmin()||!staffEventActions.has(action)||!live.db||!live.uid)return false;
+    const event={actorUid:live.uid,actorEmail:String(live.auth?.currentUser?.email||'').slice(0,254),
+      actorRole:currentUser.role,action,detail:String(detail||'').slice(0,160),at:firebase.database.ServerValue.TIMESTAMP};
+    try{await live.db.ref('staffActivity/'+live.uid).push(event);return true;}
+    catch(error){console.warn('Staff activity was not saved:',error?.code||error?.message);return false;}
+  }
+  window.mqbLogStaffAction=logStaffActivity;
+  const activityDate=n=>new Date(Number(n)||0).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  const actionLabel={staff_login:'Staff login',staff_logout:'Staff logout',product_save:'Product saved',
+    order_status:'Order status changed',shipping_save:'Shipping updated',payment_verification:'Payment verification',
+    payment_reset:'Payment verification reset',category_change:'Category changed',store_settings:'Store settings changed',
+    customer_record_view:'Customer details accessed',shipping_label_download:'Shipping label downloaded',
+    order_history_filter:'Order history searched',staff_role_change:'Staff role changed',
+    history_control:'History visibility adjusted',sales_summary_reset:'Sales summary reset'};
+  window.renderStaffActivity=()=>{
+    const root=$('staffActivityList');if(!root)return;
+    if(!isSuperAdmin()){root.textContent='Only Super Admin can view the staff activity dashboard.';return;}
+    const period=$('staffActivityPeriod')?.value||'day';const filter=String($('staffActivityStaff')?.value||'');
+    const cutoff=Date.now()-(period==='month'?30:period==='week'?7:1)*86400000;
+    const all=Object.entries(live.staffEvents||{}).flatMap(([uid,events])=>
+      Object.values(events||{}).filter(e=>e&&typeof e==='object').map(e=>({...e,actorUid:uid})));
+    const staffSelect=$('staffActivityStaff');if(staffSelect){
+      const prev=staffSelect.value;const ids=[...new Set(all.map(e=>e.actorUid))];
+      staffSelect.replaceChildren(new Option('All staff',''));
+      for(const uid of ids){const u=(live.staffRecords||{})[uid];staffSelect.add(new Option((u?.name||u?.email||uid)+' ('+uid.slice(0,7)+')',uid));}
+      if([...staffSelect.options].some(o=>o.value===prev))staffSelect.value=prev;
+    }
+    const visible=all.filter(e=>Number(e.at)>=cutoff&&(!filter||e.actorUid===filter)).sort((a,b)=>Number(b.at)-Number(a.at)).slice(0,300);
+    $('staffActivityCount').textContent=visible.length+' events (up to 300 most recent displayed).';
+    root.replaceChildren();
+    if(!visible.length){root.textContent='No recorded staff actions for the selected period, or logging rules have not been activated.';return;}
+    for(const e of visible){const row=document.createElement('div');row.className='border-b p-3 text-xs';
+      const header=document.createElement('div');header.className='font-bold';header.textContent=(actionLabel[e.action]||e.action)+' · '+(e.actorEmail||e.actorUid);
+      const detail=document.createElement('div');detail.className='text-neutral-600 break-words';detail.textContent=(e.detail||'')+' · '+activityDate(e.at);
+      row.append(header,detail);root.appendChild(row);
+    }
+  };
+  window.renderStaffHistoryControls=()=>{
+    const n=$('adminControlNotice');if(n&&isSuperAdmin()){
+      const c=live.adminControls||{};
+      n.textContent='Order view reset: '+(c.orderVisibleAfter?activityDate(c.orderVisibleAfter):'Never')+
+        ' · Cart activity view reset: '+(c.customerActivityVisibleAfter?activityDate(c.customerActivityVisibleAfter):'Never')+
+        ' · Sales baseline: '+(c.salesResetAt?activityDate(c.salesResetAt):'Never')+'. Underlying records retained.';
+    }
+  };
+  window.resetStaffVisibleHistory=async kind=>{
+    if(!ensureSuperAdmin())return;
+    const path={orders:'orderVisibleAfter',activity:'customerActivityVisibleAfter'}[kind];if(!path)return;
+    const phrase=kind==='orders'?'order history in Owner/Manager operational views':'customer cart activity in Owner/Manager operational views';
+    if(!confirm('Archive older '+phrase+'? Super Admin and customer history stay unchanged; no Firebase records are deleted.'))return;
+    try{await live.db.ref('adminControls/'+path).set(firebase.database.ServerValue.TIMESTAMP);
+      await logStaffActivity('history_control','Archived staff-visible '+kind+' history');
+      renderStaffHistoryControls();alert('Older '+phrase+' archived from staff views. Records are preserved.');
+    }catch(e){alert('Could not update history visibility: '+textError(e));}
+  };
+  window.restoreStaffVisibleHistory=async kind=>{
+    if(!ensureSuperAdmin())return;
+    const path={orders:'orderVisibleAfter',activity:'customerActivityVisibleAfter',sales:'salesResetAt'}[kind];if(!path)return;
+    if(!confirm('Restore all prior '+kind+' records to operational views? No database data will be changed.'))return;
+    try{await live.db.ref('adminControls/'+path).set(0);await logStaffActivity('history_control','Restored staff-visible '+kind+' history');
+      if(kind==='sales'){live.salesResetAt=0;updateAnalytics();}
+      renderStaffHistoryControls();alert('Historical view restored.');
+    }catch(e){alert('Restore failed: '+textError(e));}
+  };
+  // Log important actions AFTER the corresponding Firebase operation succeeds.
+  const originalProductSave=live.saveProduct.bind(live);
+  live.saveProduct=async product=>{const result=await originalProductSave(product);
+    await logStaffActivity('product_save','Product '+String(product.id||product.title||'').slice(0,110));return result;};
+  const _viewCustomer=window.showAdminCustomerDetails;
+  window.showAdminCustomerDetails=uid=>{_viewCustomer(uid);
+    if(isAdmin())logStaffActivity('customer_record_view','Customer UID '+String(uid).slice(0,80));};
+
+  const _signOut=live.signOut.bind(live);
+  live.signOut=async()=>{
+    if(isAdmin())await logStaffActivity('staff_logout','Signed out');
+    return _signOut();
+  };
+
+  // Expand dashboard navigation with Super Admin-only Staff Activity.
+  const _switchTab=window.switchAdminTab;
+  window.switchAdminTab=tab=>{
+    if(tab==='staffactivity'){
+      if(!isSuperAdmin())return;
+      _switchTab('staff');
+      $('adminTab-staff')?.classList.add('hidden');
+      $('adminTab-staffactivity')?.classList.remove('hidden');
+      renderStaffActivity();renderStaffHistoryControls();
+      return;
+    }
+    $('adminTab-staffactivity')?.classList.add('hidden');
+    return _switchTab(tab);
   };
   // All changes to the catalog, settings, roles and order records must also be
   // enforced by the Firebase Realtime Database Security Rules shipped for review.
