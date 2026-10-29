@@ -774,8 +774,36 @@
       if(live.uid!==result.user.uid || currentUser?.role!=='guest') await live.applySession(result.user);
     } else if(live.uid!==authUser.uid || currentUser?.role!=='guest')await live.applySession(authUser);
   };
+  // V26.1: Show a customer-friendly, non-success checkout error. Firebase Auth
+  // Anonymous provider must be enabled in the console separately; this JS
+  // deliberately does NOT bypass database security or store an unsaved order.
+  function showCheckoutSaveProblem(error){
+    const rawCode=String(error?.code||'').toLowerCase();
+    const rawMessage=String(error?.message||'').toLowerCase();
+    const authDisabled=['auth/admin-restricted-operation','auth/operation-not-allowed'].includes(rawCode)
+      || /admin-restricted-operation|anonymous (sign.?in|authentication).*not enabled/.test(rawMessage);
+    const dbDenied=rawCode==='permission_denied'||/permission[_-]?denied/.test(rawMessage);
+    const message=authDisabled
+      ? 'Guest orders are temporarily unavailable. No order was saved or payment taken. Please contact our store through WhatsApp or sign in with an existing customer account. Our team needs to activate guest checkout.'
+      : dbDenied
+      ? 'Guest order could not be saved because its private database permission is not yet active. No order was saved or payment taken. Please contact our store through WhatsApp or sign in with an existing account.'
+      : 'Your order request was not saved. No payment was taken. Please check your connection or contact our store. '+textError(error);
+    const form=$('checkoutModal')?.querySelector('form');
+    if(!form){alert(message);return;}
+    let box=$('mqbCheckoutError');
+    if(!box){
+      box=document.createElement('div');box.id='mqbCheckoutError';
+      box.setAttribute('role','alert');box.setAttribute('aria-live','assertive');
+      box.style.cssText='border:1px solid #e9a9a0;border-radius:12px;padding:14px;background:#fff2f1;color:#8b2723;font-size:13px;line-height:1.55;';
+      const submit=form.querySelector('button[type="submit"]');
+      if(submit)form.insertBefore(box,submit);else form.appendChild(box);
+    }
+    box.textContent=message;box.hidden=false;box.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+  function clearCheckoutSaveProblem(){const error=$('mqbCheckoutError');if(error){error.hidden=true;error.textContent='';}}
   window.handlePlaceOrder=async e=>{
     e.preventDefault();
+    clearCheckoutSaveProblem();
     const contactEmail=String($('chkEmail')?.value||'').trim();
     const gpsLink=String($('mqbLocationLink')?.value||'');
     const manualNote=String($('chkDeliveryNote')?.value||'').trim();
@@ -797,7 +825,7 @@
       if(link) link.href='https://wa.me/91'+(config.whatsappPhone||'')+'?text='+encodeURIComponent('Assalamu Alaikum, I submitted order request '+result.orderId+'. Please confirm availability and shipping.');
       $('orderSuccessModal')?.classList.remove('hidden');
       live.setStatus('✓ Order request saved to Firebase. Await owner confirmation.','ok');
-    }catch(err){alert('Order request not saved: '+textError(err));}
+    }catch(err){showCheckoutSaveProblem(err);}
     finally{if(btn)btn.disabled=false;}
   };
   window.cancelCustomerOrder=()=>alert('Please contact the owner using WhatsApp to request cancellation. Changes require owner review.');
