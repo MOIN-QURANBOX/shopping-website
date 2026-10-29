@@ -982,6 +982,7 @@ function switchAdminTab(tab) {
     const btn = document.getElementById(`adminTabBtn-${t}`);
     if (btn) btn.className = "px-4 py-3 border-b-2 font-bold whitespace-nowrap " + (t === tab ? "border-brand-charcoal text-brand-charcoal bg-white" : "border-transparent text-neutral-500 hover:text-black");
   });
+  if(tab==='cms') window.populateSocialContactForm?.();
 }
 
 function updateOrderStatus(){alert("Owner changes require Firebase confirmation.");}
@@ -1156,7 +1157,24 @@ function syncLiveCmsUI() {
   if (elFooterBrand) elFooterBrand.textContent = config.brandName;
   if (elFooterProp) elFooterProp.textContent = config.proprietor;
   if (elTicker) elTicker.textContent = config.announcement;
-  if (waLink) waLink.href = `https://wa.me/91${config.whatsappPhone}`;
+  // V25.2: Render public social links from Firebase-backed store settings.
+  // Accept India numbers only; never render untrusted URL strings from the database.
+  const digits=String(config.whatsappPhone||'').replace(/\D/g,'');
+  const mobile=digits.length===10 ? '91'+digits : (digits.length===12 && digits.startsWith('91') ? digits : '');
+  const greeting=String(config.whatsappGreeting||'').slice(0,220);
+  const whatsAppHref=mobile ? 'https://wa.me/'+mobile+(greeting?'?text='+encodeURIComponent(greeting):'') : '';
+  for(const id of ['floatingWhatsAppLink','storeContactWhatsApp','footerSocialWhatsApp','modalSocialWhatsApp']) {
+    const el=document.getElementById(id);
+    if(el){el.classList.toggle('hidden',!whatsAppHref);if(whatsAppHref)el.href=whatsAppHref;else el.removeAttribute('href');}
+  }
+  const waLabel=document.getElementById('messageWhatsAppChannelLabel');
+  if(waLabel && mobile) waLabel.textContent='💬 Send via WhatsApp (+'+mobile.slice(0,2)+' '+mobile.slice(2)+')';
+  const instagram=String(config.instagramHandle||'').trim().replace(/^@/,'');
+  const validInstagram=/^[A-Za-z0-9._]{1,30}$/.test(instagram);
+  for(const id of ['storeContactInstagram','footerSocialInstagram','modalSocialInstagram']) {
+    const el=document.getElementById(id);
+    if(el){el.classList.toggle('hidden',!validInstagram);if(validInstagram)el.href='https://www.instagram.com/'+instagram+'/';else el.removeAttribute('href');}
+  }
   if (elPhones) elPhones.textContent = `+91 ${config.phone1} / +91 ${config.phone2}`;
   if (elEmail) elEmail.textContent = config.ownerEmail;
 }
