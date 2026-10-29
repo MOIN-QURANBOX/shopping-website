@@ -170,6 +170,22 @@
         return;
       }
       this.uid=u.uid;
+      // V25.8: anonymous Firebase identities allow checkout without public database writes.
+      // Do not create a customer profile or expose registered-customer functions to guests.
+      if(u.isAnonymous) {
+        currentUser={id:u.uid,uid:u.uid,role:'guest',name:'Guest customer',email:''};
+        try {cart=JSON.parse(localStorage.getItem('mqb_v20_guest_cart')||'[]');} catch {cart=[];}
+        try {wishlist=JSON.parse(localStorage.getItem('mqb_v20_guest_wishlist')||'[]');} catch {wishlist=[];}
+        updateCartUI(); syncCustomerHeaderUI();
+        this.on('orderRequests/'+u.uid,record=>{
+          if(this.uid!==u.uid)return;
+          orders=Object.entries(record||{}).filter(([,v])=>v&&typeof v==='object')
+            .map(([key,v])=>({...v,__uid:u.uid,__key:key,orderId:v.orderId||key}));
+        });
+        this.appliedUserUID=u.uid;
+        this.setStatus('✓ Guest checkout ready · No registration required','ok');
+        return;
+      }
       // The admin record was manually created in Firebase; the client cannot create it.
       const adminSnap=await this.db.ref('admins/'+u.uid).once('value');
       if(this.uid!==u.uid || epoch!==this.sessionEpoch) return;
@@ -429,6 +445,10 @@
       if(!this.auth){currentUser=null;cart=[];wishlist=[];updateCartUI();}
     },
     saveCart(change=null) {
+      if(this.auth?.currentUser?.isAnonymous || currentUser?.role==='guest') {
+        localStorage.setItem('mqb_v20_guest_cart',JSON.stringify(cart));
+        return;
+      }
       if(this.uid) {
         const uid=this.uid;
         this.db.ref('customerCarts/'+uid).set(cart).then(async()=>{
@@ -447,6 +467,10 @@
       } else localStorage.setItem('mqb_v20_guest_cart',JSON.stringify(cart));
     },
     saveWishlist() {
+      if(this.auth?.currentUser?.isAnonymous || currentUser?.role==='guest') {
+        localStorage.setItem('mqb_v20_guest_wishlist',JSON.stringify(wishlist));
+        return;
+      }
       if(this.uid) this.db.ref('customerWishlists/'+this.uid).set(wishlist).catch(e=>this.setStatus('Wishlist not saved: '+textError(e),'bad'));
       else localStorage.setItem('mqb_v20_guest_wishlist',JSON.stringify(wishlist));
     },
@@ -496,7 +520,7 @@
       }catch(e){alert('Catalog import failed: '+textError(e));}
     },
     async sendOrder(form) {
-      if(!this.uid || currentUser?.role!=='customer') throw Error('Sign in as a customer to submit an order request.');
+      if(!this.uid || !['customer','guest'].includes(currentUser?.role)) throw Error('Please use customer login or guest checkout to send an order request.');
       if(!this.catalogPublished) throw Error('No live cloud catalog has been published.');
       if(!['COD','Manual UPI'].includes(form.paymentMethod)) throw Error('Choose COD or Manual UPI at checkout.');
       const cartItems=cart.map(item=>({id:item.id,qty:Math.max(1,Math.floor(Number(item.qty)||1))}));
@@ -518,7 +542,9 @@
         channel:'Website request',courierName:'Not assigned',awb:'',
         note:'Estimate only. Owner confirms stock, delivery, price and payment.'};
       await this.db.ref('orderRequests/'+this.uid).push(request);
-      cart=[];await this.db.ref('customerCarts/'+this.uid).set([]);
+      cart=[];
+      if(this.auth?.currentUser?.isAnonymous) localStorage.removeItem('mqb_v20_guest_cart');
+      else await this.db.ref('customerCarts/'+this.uid).set([]);
       return request;
     },
     maybePersistSettings() {
@@ -706,21 +732,64 @@
     if(existing.qty<=0)cart=cart.filter(x=>x.id!==id);
     updateCartUI();live.saveCart({productId:id,title,action:qtyAfter===0?'removed':delta>0?'quantity_increased':'quantity_decreased',qtyAfter});
   };
-  window.startCheckout=(()=>{const original=window.startCheckout;return ()=>{
+  // Registered accounts stay optional; guests receive a temporary Firebase identity at order submission.
+  const checkoutOriginal=window.startCheckout;
+  window.startCheckout=()=>{
     if(!live.catalogPublished) return alert('Store cloud catalog is not yet published.');
-    if(!live.uid||currentUser?.role!=='customer'){toggleCart(false);openCustomerAuthModal('login');return alert('Please sign in to your customer account to send an order request.');}
-    original();
-  };})();
+    if(currentUser && ['admin','owner','manager'].includes(currentUser.role))
+      return alert('Please log out of the staff account or use a private window for customer checkout.');
+    checkoutOriginal();
+  };
+  window.mqbClearLocation=()=>{
+    if($('mqbLocationLink'))$('mqbLocationLink').value='';
+    if($('mqbLocationStatus'))$('mqbLocationStatus').textContent='Location pin removed. You can still type your delivery address manually.';
+  };
+  window.mqbUseCurrentLocation=()=>{
+    const label=$('mqbLocationStatus');const button=$('mqbLocationButton');
+    if(!navigator.geolocation){if(label)label.textContent='Location is unavailable. Please enter your address manually.';return;}
+    if(label)label.textContent='Requesting your permission to share this location…';
+    if(button)button.disabled=true;
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude,longitude,accuracy}=pos.coords;
+      if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
+      const link='https://www.google.com/maps?q='+latitude.toFixed(6)+','+longitude.toFixed(6);
+      if($('mqbLocationLink'))$('mqbLocationLink').value=link;
+      if(label)label.textContent='✓ Location pin attached (accuracy about '+Math.round(accuracy)+' metres). Please also type your complete house/area/landmark and PIN code; GPS alone is not a delivery address.';
+      if(button)button.disabled=false;
+    },()=>{
+      if(label)label.textContent='Location permission denied or unavailable. Enter your address manually instead.';
+      if(button)button.disabled=false;
+    },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+  };
+  const ensureGuestIdentity=async()=>{
+    if(!live.auth)throw Error('Firebase is unavailable; try again when online.');
+    const authUser=live.auth.currentUser;
+    if(authUser && !authUser.isAnonymous) {
+      if(currentUser?.role!=='customer')throw Error('Log out of the staff session before ordering as a guest.');
+      return;
+    }
+    if(!authUser){
+      const result=await live.auth.signInAnonymously();
+      // Wait for auth state before writing, so the request is stored under the correct UID.
+      if(live.uid!==result.user.uid || currentUser?.role!=='guest') await live.applySession(result.user);
+    } else if(live.uid!==authUser.uid || currentUser?.role!=='guest')await live.applySession(authUser);
+  };
   window.handlePlaceOrder=async e=>{
     e.preventDefault();
+    const contactEmail=String($('chkEmail')?.value||'').trim();
+    const gpsLink=String($('mqbLocationLink')?.value||'');
+    const manualNote=String($('chkDeliveryNote')?.value||'').trim();
     const form={customerName:$('chkName')?.value.trim()||'',customerPhone:$('chkPhone')?.value.trim()||'',
-      customerEmail:live.auth?.currentUser?.email||'',address:$('chkAddress')?.value.trim()||'',postalCode:$('chkPostalCode')?.value.trim()||'',
+      customerEmail:live.auth?.currentUser?.email || contactEmail,
+      address:$('chkAddress')?.value.trim()||'',postalCode:$('chkPostalCode')?.value.trim()||'',
       paymentMethod:document.querySelector('input[name="chkPaymentMethod"]:checked')?.value||'To be arranged',
       deliveryChoice:$('chkDeliveryChoice')?.value||'Standard delivery',
-      deliveryNote:$('chkDeliveryNote')?.value.trim().slice(0,240)||''};
+      deliveryNote:[manualNote,gpsLink?'Location pin: '+gpsLink:''].filter(Boolean).join(' | ').slice(0,240)};
     if(!form.customerName||!form.customerPhone||!form.address||!form.postalCode) return alert('Please complete your shipping address.');
+    if(contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail))return alert('Please enter a valid email, or leave it blank for guest checkout.');
     const btn=e.target.querySelector('button[type=submit]');if(btn)btn.disabled=true;
     try {
+      await ensureGuestIdentity();
       const result=await live.sendOrder(form);
       updateCartUI();closeCheckoutModal();
       if($('successOrderIdDisplay'))$('successOrderIdDisplay').textContent=result.orderId+' · Pending owner confirmation';
@@ -739,7 +808,7 @@
     const admin=isAdmin();
     const item=orders.find(o=>(o.__uid===uid || (admin && uid==='POS' && o.channel==='Showroom POS'))&&o.__key===key);
     if(!item) return null;
-    if(!admin && !(currentUser.role==='customer' && uid===live.uid))return null;
+    if(!admin && !(['customer','guest'].includes(currentUser.role) && uid===live.uid))return null;
     return item;
   };
   window.downloadOrderInvoice=(uid,key)=>{
@@ -752,7 +821,7 @@
   };
   window.handlePublicInvoiceLookup=event=>{
     event.preventDefault();
-    if(!live.uid)return alert('Please sign in to your customer account to download your own order invoice.');
+    if(!live.uid)return alert('Sign in, or use the same device and browser as your guest order, to access its invoice.');
     const id=String($('lookupOrderId')?.value||'').trim().toUpperCase();
     const phone=String($('lookupPhone')?.value||'').replace(/\D/g,'');
     const matches=orders.filter(o=>String(o.orderId||'').toUpperCase()===id
