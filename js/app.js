@@ -233,6 +233,31 @@ function autoScrollTo(elementId) {
 function scrollToProducts() { autoScrollTo("catalogTopAnchor"); }
 function scrollToContact() { autoScrollTo("contactSectionAnchor"); }
 
+// V25.3: Turn the old Showrooms shortcut into a useful, no-payment bulk/custom enquiry.
+// Reuse the existing owner contact form and the live WhatsApp / email settings.
+function openBulkCustomInquiry() {
+  const subject = document.getElementById("msgCustSubject");
+  const details = document.getElementById("msgCustMessage");
+  if (!subject || !details) return scrollToContact();
+
+  subject.value = "Bulk & Custom Quran Gift Order — Quote Request";
+  if (!details.value.trim()) {
+    details.value = "Assalamu Alaikum, I would like a quotation for a bulk or customized order.\n\n" +
+      "Product / gift-box style: \n" +
+      "Approximate quantity: \n" +
+      "Personalization / engraving: \n" +
+      "Delivery city and PIN code: \n" +
+      "Preferred date (optional): ";
+  }
+  scrollToContact();
+  const name = document.getElementById("msgCustName");
+  if (name && !name.value.trim()) {
+    try { name.focus({preventScroll:true}); } catch (_) { name.focus(); }
+  } else {
+    try { subject.focus({preventScroll:true}); } catch (_) { subject.focus(); }
+  }
+}
+
 function checkWelcomeGreetingBanner() {
   const dismissed = sessionStorage.getItem("mqb_greeting_dismissed");
   const el = document.getElementById("welcomeGreetingBanner");
