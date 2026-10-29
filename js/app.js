@@ -797,7 +797,7 @@ function syncCustomerHeaderUI() {
 }
 
 function handleUserIconClick() {
-  if (currentUser) {
+  if (currentUser && currentUser.role!=='guest') {
     if (["admin", "owner", "manager"].includes(currentUser.role)) openAdminDashboardModal();
     else openCustomerProfileModal();
   } else openCustomerAuthModal('login');
