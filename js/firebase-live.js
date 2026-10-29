@@ -67,7 +67,7 @@
   const live = {
     uid: null, verifiedAdmin: false, activeRole: null, staffRecords: {}, catalogPublished: false, db: null, auth: null,
     applying: false, settingsReady: false, lastSettings: '', saveTimer: null,
-    unsubs: [], started: false, profiles: {}, salesResetAt: 0,
+    unsubs: [], started: false, profiles: {}, cartActivity: {}, salesResetAt: 0,
     guestMessage: 'No confirmed cloud catalog yet. Sample collection shown for preview only.',
     setStatus(message, state='waiting') {
       const el=$('liveSyncBanner'); if (!el) return;
@@ -150,12 +150,13 @@
       this.settingsReady=false; this.lastSettings='';
       // NEVER show the previous account's cart or order data in a new session.
       cart=[]; wishlist=[]; orders=[]; currentUser=null; users=[];
-      this.profiles={}; posTicket=[]; selectedAdminCustomerUID='';
+      this.profiles={};this.cartActivity={}; posTicket=[]; selectedAdminCustomerUID='';
       // Clear prior admin-only DOM when switching accounts (prevents stale private records).
-      for(const id of ['adminOrdersContainer','adminCustomersTableBody','adminOrderHistoryCount','adminCustomerSearchCount','custOrderList','custOrderCount','custProfContact','custProfName','trackingResultBox','shippingOrderSummary','staffRoleTable','staffRoleStatus']) {
+      for(const id of ['adminOrdersContainer','adminCustomersTableBody','adminOrderHistoryCount','adminCustomerSearchCount','custOrderList','custOrderCount','custProfContact','custProfName','trackingResultBox','shippingOrderSummary','staffRoleTable','staffRoleStatus','adminCustomerDetailContent','customerActivityRuleStatus']) {
         const node=$(id);if(node)node.textContent='';
       }
       if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';
+      $('adminCustomerDetail')?.classList.add('hidden');
       if($('adminCustomerSearch'))$('adminCustomerSearch').value='';
       closeAdminDashboardModal(); closeCustomerProfileModal();
       syncStaffNavigation(false);
@@ -244,6 +245,15 @@
           });
         }
         this.on('customerProfiles', record=>{this.profiles=record||{};renderAdminCustomers();renderAdminOrders();});
+        // Signed-in cart event history is private. If rules aren't published yet, leave prior features working.
+        this.on('customerCartActivity', record=>{
+          this.cartActivity=record||{};
+          renderAdminCustomers();
+          if(selectedAdminDetailUID) renderAdminCustomerDetails(selectedAdminDetailUID);
+        }, error=>{
+          const el=$('customerActivityRuleStatus');
+          if(el){el.classList.remove('hidden');el.textContent='Cart activity needs the accompanying Firebase rules update before it can sync. Existing customer and order information remains available.';}
+        }, {optionalRead:true});
         if(canEditStore()){
           this.on('adminData/settings', data=>{
             if(data && typeof data==='object') {
@@ -251,6 +261,8 @@
               if(data.config) {
                 const publicCategories=Array.isArray(config.customCategories)?config.customCategories:[];
                 config={...config,...data.config,...(this.publicSocial||{}),featureToggles:{...config.featureToggles,...data.config.featureToggles},customCategories:publicCategories};
+                // The historic second branch stays in prior Firebase records, but is not shown in the website.
+                config.branches=Array.isArray(config.branches)?config.branches.filter(b=>b && b.id==='branch-1'):[];
               }
               // Public category data is canonical. Do not overwrite it with old settings snapshots.
               if(Array.isArray(data.coupons)) coupons=data.coupons;
@@ -400,9 +412,23 @@
       await this.auth?.signOut();
       if(!this.auth){currentUser=null;cart=[];wishlist=[];updateCartUI();}
     },
-    saveCart() {
-      if(this.uid) this.db.ref('customerCarts/'+this.uid).set(cart).catch(e=>this.setStatus('Cart not saved: '+textError(e),'bad'));
-      else localStorage.setItem('mqb_v20_guest_cart',JSON.stringify(cart));
+    saveCart(change=null) {
+      if(this.uid) {
+        const uid=this.uid;
+        this.db.ref('customerCarts/'+uid).set(cart).then(async()=>{
+          // Record only authenticated customer events. These client-reported events are not a tamper-proof audit.
+          if(!change || this.uid!==uid || currentUser?.role!=='customer')return;
+          const event={productId:String(change.productId).slice(0,100),
+            title:String(change.title||'Product').slice(0,120),
+            action:change.action,qtyAfter:Math.max(0,Math.floor(Number(change.qtyAfter)||0)),
+            at:firebase.database.ServerValue.TIMESTAMP};
+          try{await this.db.ref('customerCartActivity/'+uid).push(event);}
+          catch(error){
+            // Old rules won't contain the path; never break an otherwise successful cart save.
+            if(!/permission[-_ ]denied/i.test(textError(error))) console.warn('Cart activity not saved:',textError(error));
+          }
+        }).catch(e=>this.setStatus('Cart not saved: '+textError(e),'bad'));
+      } else localStorage.setItem('mqb_v20_guest_cart',JSON.stringify(cart));
     },
     saveWishlist() {
       if(this.uid) this.db.ref('customerWishlists/'+this.uid).set(wishlist).catch(e=>this.setStatus('Wishlist not saved: '+textError(e),'bad'));
@@ -649,14 +675,17 @@
     const existing=cart.find(x=>x.id===id);
     if(existing){if(existing.qty>=p.stock)return alert('Only '+p.stock+' available.');existing.qty++;}
     else cart.push({id:p.id,title:p.title,salePrice:p.salePrice,image:p.image,qty:1});
-    updateCartUI(); live.saveCart();toggleCart(true);
+    updateCartUI(); live.saveCart({productId:id,title:p.title,action:existing?'quantity_increased':'added',qtyAfter:existing?.qty||1});toggleCart(true);
   };
   window.updateCartQty=(id,delta)=>{
     const existing=cart.find(x=>x.id===id);if(!existing)return;
     const stock=products.find(p=>p.id===id)?.stock||0;
     if(delta>0 && existing.qty>=stock) return alert('Maximum available stock reached.');
-    existing.qty+=delta;if(existing.qty<=0) cart=cart.filter(x=>x.id!==id);
-    updateCartUI();live.saveCart();
+    const title=existing.title;
+    existing.qty+=delta;
+    const qtyAfter=Math.max(0,existing.qty);
+    if(existing.qty<=0)cart=cart.filter(x=>x.id!==id);
+    updateCartUI();live.saveCart({productId:id,title,action:qtyAfter===0?'removed':delta>0?'quantity_increased':'quantity_decreased',qtyAfter});
   };
   window.startCheckout=(()=>{const original=window.startCheckout;return ()=>{
     if(!live.catalogPublished) return alert('Store cloud catalog is not yet published.');
@@ -1021,26 +1050,80 @@
       el.addEventListener('click',()=>window.downloadOrderInvoice(record.__uid||'POS',record.__key));
     });
   };
+  let selectedAdminDetailUID='';
+  const formatActivityDate=v=>{
+    const n=Number(v);if(!Number.isFinite(n)||n<=0)return 'Not available';
+    const d=new Date(n);return Number.isNaN(d.getTime())?'Not available':d.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  };
+  const customerOrders=uid=>orders.filter(o=>o.__uid===uid).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const cartEvents=uid=>Object.values(live.cartActivity?.[uid]||{})
+    .filter(e=>e && typeof e==='object').sort((a,b)=>(Number(b.at)||0)-(Number(a.at)||0));
+  const formatAddress=addr=>{
+    if(typeof addr==='string')return addr;
+    if(addr&&typeof addr==='object')return [addr.line1,addr.line2,addr.street,addr.city,addr.state,addr.postalCode].filter(Boolean).join(', ');
+    return '';
+  };
+  window.closeAdminCustomerDetails=()=>{$('adminCustomerDetail')?.classList.add('hidden');selectedAdminDetailUID='';};
+  window.renderAdminCustomerDetails=uid=>{
+    const node=$('adminCustomerDetailContent');if(!node||!isAdmin())return;
+    const profile=live.profiles?.[uid]||{};
+    const history=customerOrders(uid);
+    const activity=cartEvents(uid).slice(0,50);
+    const latest=history[0]||{};
+    const addresses=[...new Set([
+      formatAddress(profile.address),...(Array.isArray(profile.addresses)?profile.addresses.map(formatAddress):[]),
+      ...history.map(o=>[o.address,o.postalCode].filter(Boolean).join(' — '))
+    ].filter(Boolean))].slice(0,12);
+    const contactName=profile.name||latest.customerName||'Customer';
+    const contactEmail=profile.email||latest.customerEmail||'Not available';
+    const contactPhone=profile.phone||latest.customerPhone||'Not available';
+    const desc={added:'Added to cart',quantity_increased:'Increased quantity',quantity_decreased:'Reduced quantity',removed:'Removed from cart'};
+    node.innerHTML=`<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="bg-stone-50 border rounded-lg p-3 space-y-1"><div><strong>Name:</strong> ${esc(contactName)}</div>
+      <div><strong>Email:</strong> ${esc(contactEmail)}</div><div><strong>Phone:</strong> ${esc(contactPhone)}</div>
+      <div class="break-all"><strong>Customer UID:</strong> ${esc(uid)}</div><div><strong>Registered:</strong> ${esc(formatActivityDate(profile.createdAt))}</div></div>
+      <div class="bg-stone-50 border rounded-lg p-3 space-y-1"><strong>Saved / order delivery addresses:</strong>
+      ${addresses.length?addresses.map(a=>`<p class="border-b py-1">${esc(a)}</p>`).join(''):'<p>No address recorded yet.</p>'}</div></div>
+      <div class="border-t pt-3"><h6 class="font-bold text-sm mb-1">Cart activity — last 50 changes</h6>
+      <p class="text-[11px] text-neutral-500 mb-2">Customer-device-reported actions; not proof of payment or a verified audit. Older cart actions were not tracked.</p>
+      ${activity.length?`<div class="max-h-64 overflow-y-auto space-y-1">${activity.map(a=>`<div class="border rounded-lg p-2"><strong>${esc(desc[a.action]||'Cart action')}</strong>: ${esc(a.title||a.productId||'Product')} · Qty after: ${esc(a.qtyAfter)} <span class="text-neutral-500">· ${esc(formatActivityDate(a.at))}</span></div>`).join('')}</div>`:'<p class="text-neutral-500">No recorded cart activity yet (or activity permissions not activated).</p>'}</div>
+      <div class="border-t pt-3"><h6 class="font-bold text-sm mb-1">Order history (${history.length})</h6>
+      ${history.length?history.slice(0,25).map(o=>`<p class="border-b py-1">${esc(o.orderId||o.__key)} · ${esc(o.status||'Requested')} · ${esc(o.date||'')}</p>`).join(''):'<p>No orders submitted yet.</p>'}</div>`;
+    $('adminCustomerDetail')?.classList.remove('hidden');
+  };
+  window.showAdminCustomerDetails=uid=>{
+    if(!ensureAdmin()||!Object.prototype.hasOwnProperty.call(live.profiles||{},uid))return;
+    selectedAdminDetailUID=uid;renderAdminCustomerDetails(uid);
+    $('adminCustomerDetail')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
   window.searchAdminCustomers=()=>{if(ensureAdmin())renderAdminCustomers();};
   window.renderAdminCustomers=()=>{
     const node=$('adminCustomersTableBody');if(!node)return;
     if(!isAdmin()){node.textContent='Admin access required.';return;}
     const search=String($('adminCustomerSearch')?.value||'').trim().toLowerCase();
     const profiles=Object.entries(live.profiles||{}).filter(([uid,p])=>
-      [uid,p.name,p.email,p.phone].some(v=>String(v??'').toLowerCase().includes(search)) ||
-      orders.some(o=>o.__uid===uid && [o.orderId,o.customerName,o.customerPhone].some(v=>String(v??'').toLowerCase().includes(search))));
+      [uid,p.name,p.email,p.phone,p.address,...(Array.isArray(p.addresses)?p.addresses.map(formatAddress):[])].some(v=>String(v??'').toLowerCase().includes(search)) ||
+      orders.some(o=>o.__uid===uid && [o.orderId,o.customerName,o.customerPhone,o.customerEmail,o.address,o.postalCode].some(v=>String(v??'').toLowerCase().includes(search))) ||
+      cartEvents(uid).some(e=>String(e.title||e.productId||'').toLowerCase().includes(search)));
     const count=$('adminCustomerSearchCount');if(count)count.textContent=profiles.length+' matching customer(s)';
     node.innerHTML=profiles.length?profiles.map(([uid,p])=>{
-      const history=orders.filter(o=>o.__uid===uid);
+      const history=customerOrders(uid);
+      const activity=cartEvents(uid);
+      const latest=history[0]||{};
+      const recent=activity[0];
       return `<tr class="border-b">
       <td class="p-3"><strong>${esc(p.name||'Customer')}</strong><div class="text-[10px] text-neutral-500 break-all">ID: ${esc(uid)}</div></td>
-      <td class="p-3">Customer</td><td class="p-3">${esc(p.phone||'')}</td><td class="p-3">${esc(p.email||'')}</td>
-      <td class="p-3">${history.length} order(s)</td>
+      <td class="p-3">Customer</td><td class="p-3">${esc(p.phone||latest.customerPhone||'')}</td><td class="p-3">${esc(p.email||latest.customerEmail||'')}</td>
+      <td class="p-3">${history.length} order(s)<br><span class="text-[10px] text-neutral-500">${recent?esc(recent.action.replace(/_/g,' '))+' · '+esc(formatActivityDate(recent.at)):'No cart events yet'}</span></td>
       <td class="p-3 text-right space-y-1">
-        <button type="button" class="view-customer-orders bg-brand-darkgreen text-white px-2 py-1.5 rounded font-bold">View order history</button>
+        <button type="button" class="view-customer-details bg-brand-darkgreen text-white px-2 py-1.5 rounded font-bold">Account &amp; activity</button>
+        <button type="button" class="view-customer-orders border px-2 py-1.5 rounded font-bold">Order history</button>
         <button type="button" class="send-customer-reset border border-emerald-700 text-emerald-800 px-2 py-1.5 rounded font-bold" ${p.email?'':'disabled'}>Send reset email</button>
       </td></tr>`;
     }).join(''):'<tr><td class="p-4" colspan="6">No customer profiles match this search.</td></tr>';
+    node.querySelectorAll('.view-customer-details').forEach((el,index)=>{
+      el.addEventListener('click',()=>window.showAdminCustomerDetails(profiles[index][0]));
+    });
     node.querySelectorAll('.view-customer-orders').forEach((el,index)=>{
       el.addEventListener('click',()=>window.showAdminCustomerOrders(profiles[index][0]));
     });
