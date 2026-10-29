@@ -625,6 +625,7 @@
         <button onclick="switchAdminTab('pos')" id="adminTabBtn-pos" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏪 Showroom POS</button>
         <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📊 Analytics</button>
         <button onclick="switchAdminTab('coupons')" id="adminTabBtn-coupons" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Discounts</button>
+        <button onclick="switchAdminTab('staffactivity')" id="adminTabBtn-staffactivity" class="hidden px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📋 Staff Activity</button>
         <button onclick="switchAdminTab('staff')" id="adminTabBtn-staff" class="hidden px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🔐 Staff Roles</button>
         <button onclick="switchAdminTab('customers')" id="adminTabBtn-customers" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">👥 Passwords &amp; Users</button>
         <button onclick="switchAdminTab('salesmodifier')" id="adminTabBtn-salesmodifier" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⚙️ Sales Override</button>
@@ -999,16 +1000,42 @@
           </section>
         </div>
 
+        <!-- V25.5: Private Super Admin staff activity dashboard -->
+        <section id="adminTab-staffactivity" class="hidden space-y-4">
+          <h4 class="serif-title text-base font-bold">Staff Actions &amp; Operations</h4>
+          <p class="text-xs text-neutral-600">View available client-reported Owner/Manager actions. Daily / weekly / monthly activity. Not a tamper-proof audit; a trusted server is needed to guarantee full coverage.</p>
+          <div class="bg-white border rounded-xl p-4 space-y-3">
+            <div class="flex flex-wrap gap-3">
+              <label class="text-xs font-bold">Period<select id="staffActivityPeriod" onchange="renderStaffActivity()" class="block border rounded p-2 mt-1"><option value="day">Today / last 24 hours</option><option value="week">Last 7 days</option><option value="month">Last 30 days</option></select></label>
+              <label class="text-xs font-bold">Staff member<select id="staffActivityStaff" onchange="renderStaffActivity()" class="block border rounded p-2 mt-1"><option value="">All staff</option></select></label>
+            </div>
+            <p id="staffActivityCount" class="text-xs text-neutral-500"></p>
+            <p id="staffActivityStatus" class="text-xs text-amber-900"></p>
+            <div id="staffActivityList" class="max-h-[420px] overflow-y-auto divide-y border rounded p-1 text-xs">Activity will appear after permissions are activated.</div>
+          </div>
+        </section>
         <!-- TAB 7: SALES OVERRIDE (ADMIN ONLY) -->
         <div id="adminTab-salesmodifier" class="hidden space-y-4">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Developer Admin Sales Override</h4>
           <div class="bg-red-50 border border-red-200 p-4 rounded-xl space-y-3">
             <h5 class="text-xs font-bold text-red-900 uppercase">Reset All Recorded Sales To Zero</h5>
-            <p class="text-xs text-red-700">Wipe test orders and revenue metrics back to ₹0 with one click.</p>
+            <p class="text-xs text-red-700">Reset the dashboard sales counter only. All orders, payments, invoices and records remain saved.</p>
             <button onclick="resetAllSalesToZero()" class="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold uppercase shadow">
               🧹 Reset All Sales To Zero (₹0)
             </button>
           </div>
+          <section class="bg-white border border-amber-300 p-4 rounded-xl space-y-3">
+            <h5 class="text-sm font-bold">Super Admin — Archive history from staff operational views</h5>
+            <p class="text-xs text-amber-950">These controls archive older rows from Owner/Manager operational screens. They DO NOT delete customer accounts, orders, invoice records or audit events. Super Admin keeps the complete history.</p>
+            <p id="adminControlNotice" class="text-xs text-amber-950"></p>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="resetStaffVisibleHistory('orders')" class="border rounded px-3 py-2 text-xs font-bold">Archive old staff-visible orders</button>
+              <button onclick="resetStaffVisibleHistory('activity')" class="border rounded px-3 py-2 text-xs font-bold">Archive old cart activity</button>
+              <button onclick="restoreStaffVisibleHistory('orders')" class="border rounded px-3 py-2 text-xs">Restore order view</button>
+              <button onclick="restoreStaffVisibleHistory('activity')" class="border rounded px-3 py-2 text-xs">Restore activity view</button>
+              <button onclick="restoreStaffVisibleHistory('sales')" class="border rounded px-3 py-2 text-xs">Restore sales baseline</button>
+            </div>
+          </section>
         </div>
 
         <!-- TAB 8: FULL TEXT CMS (ADMIN ONLY) -->
@@ -1437,6 +1464,7 @@
   <!-- Preserve the original storefront and 30+ features; secure Firebase overrides follow -->
   <script defer src="js/app.js"></script>
   <script defer src="js/order-invoice-pdf.js"></script>
+  <script defer src="js/shipping-label-pdf.js"></script>
   <script defer src="js/firebase-live.js"></script>
 </body>
 </html>
