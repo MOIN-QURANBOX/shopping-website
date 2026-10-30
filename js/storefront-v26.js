@@ -35,7 +35,7 @@
     if(!main||!showroom)return;
     if(!byId('mqbV26Highlights')){
       const block=str('div','',undefined);block.id='mqbV26Highlights';
-      block.innerHTML='<section id="mqbV28ShopBar" class="mqb28-shopbar" aria-label="Quick shopping tools"><div class="mqb28-searcharea"><label id="mqbV28SearchLabel" for="mqbV28Search" class="mqb28-label"></label><div class="mqb28-inputrow"><span aria-hidden="true">⌕</span><input type="search" id="mqbV28Search" autocomplete="off" enterkeyhint="search" aria-describedby="mqbV28Results"><button type="button" id="mqbV28Clear" class="mqb28-clear" hidden></button></div><p id="mqbV28Results" class="mqb28-searchresults" aria-live="polite"></p></div><div class="mqb28-shopactions"><button type="button" id="mqbV28Bag" class="mqb28-bagbtn"></button><button type="button" id="mqbV28Checkout" class="mqb28-checkoutbtn" disabled></button></div></section><section aria-label="Shop by category"><div class="mqb26-intro"><div><div class="mqb26-eyebrow">MOIN QURAN BOX</div><h2 class="mqb26-title" id="mqbV26CatTitle"></h2><p class="mqb26-subtitle" id="mqbV26CatSub"></p></div><button type="button" id="mqbV26ShopAll" class="mqb26-textlink"></button></div><div id="mqbV26Categories" class="mqb26-collections"></div></section><section class="mqb26-featured" aria-label="Featured products"><div class="mqb26-intro"><div><div class="mqb26-eyebrow">OUR COLLECTION</div><h2 id="mqbV26FeaturedTitle" class="mqb26-title"></h2><p class="mqb26-subtitle" id="mqbV26FeaturedSub"></p></div><button type="button" id="mqbV26Explore" class="mqb26-textlink"></button></div><div id="mqbV26Products" class="mqb26-featuredgrid"></div></section><div id="mqbV26PaymentNotice" class="mqb26-notice"></div>';
+      block.innerHTML='<section id="mqbV28ShopBar" class="mqb28-shopbar" aria-label="Quick shopping tools"><div class="mqb28-searcharea"><label id="mqbV28SearchLabel" for="mqbV28Search" class="mqb28-label"></label><div class="mqb28-inputrow"><span aria-hidden="true">⌕</span><input type="search" id="mqbV28Search" autocomplete="off" enterkeyhint="search" aria-describedby="mqbV28Results"><button type="button" id="mqbV28Clear" class="mqb28-clear" hidden></button></div><p id="mqbV28Results" class="mqb28-searchresults" aria-live="polite"></p></div><div class="mqb28-shopactions"><button type="button" id="mqbV28Bag" class="mqb28-bagbtn"></button><button type="button" id="mqbV28Checkout" class="mqb28-checkoutbtn" disabled></button></div></section><section class="mqb26-featured" aria-label="Featured products"><div class="mqb26-intro"><div><div class="mqb26-eyebrow">OUR COLLECTION</div><h2 id="mqbV26FeaturedTitle" class="mqb26-title"></h2><p class="mqb26-subtitle" id="mqbV26FeaturedSub"></p></div><button type="button" id="mqbV26Explore" class="mqb26-textlink"></button></div><div id="mqbV26Products" class="mqb26-featuredgrid"></div></section><div id="mqbV26PaymentNotice" class="mqb26-notice"></div>';
       main.insertBefore(block,showroom);
       byId('mqbV28Search')?.addEventListener('input',applySearch);
       byId('mqbV28Search')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();byId('catalogTopAnchor')?.scrollIntoView({behavior:'smooth',block:'start'});}});
@@ -69,20 +69,11 @@
     buildLayout();
     const t=labels();
     const entries=productsList();
-    const categories=[...new Set(entries.map(p=>p.category).filter(Boolean))].slice(0,6);
-    const counts=Object.fromEntries(categories.map(c=>[c,entries.filter(p=>p.category===c).length]));
     const set=(id,value)=>{const e=byId(id);if(e)e.textContent=value;};
-    set('mqbV26CatTitle',t.collections);set('mqbV26CatSub',t.goods);set('mqbV26ShopAll',t.all+' ↗');
     set('mqbV26FeaturedTitle',t.picks);set('mqbV26FeaturedSub',t.pickSub);set('mqbV26Explore',t.browse+' ↗');
     set('mqbV28SearchLabel',t.find);
     const input=byId('mqbV28Search');if(input)input.placeholder=t.search;
     set('mqbV28Clear',t.clear);updateBag();
-    const catWrap=byId('mqbV26Categories');
-    if(catWrap){catWrap.replaceChildren();categories.forEach(cat=>{
-      const b=str('button','mqb26-category');b.type='button';b.setAttribute('aria-pressed',String((typeof currentCategory==='string'?currentCategory:'All')===cat));
-      const main=str('div','mqb26-category-main');main.append(str('span','mqb26-symbol',icon(cat)),str('span','mqb26-count',counts[cat]+' '+(counts[cat]===1?'item':'items')));
-      b.append(main,str('span','mqb26-catname',cat));b.addEventListener('click',()=>openCategory(cat));catWrap.append(b);
-    });}
     const featured=byId('mqbV26Products');
     if(featured){featured.replaceChildren();entries.filter(p=>Number(p.stock)>0).slice(0,4).forEach(p=>{
       const card=str('article','mqb26-product');const photo=str('button','mqb26-prodimage');photo.type='button';photo.setAttribute('aria-label','View '+p.title);
