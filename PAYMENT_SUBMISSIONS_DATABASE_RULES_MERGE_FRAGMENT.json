@@ -1,0 +1,27 @@
+{
+  "paymentSubmissions": {
+    ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('staffRoles').child(auth.uid).child('active').val() === true && root.child('staffRoles').child(auth.uid).child('role').val() === 'owner'))",
+    "$uid": {
+      ".read": "auth != null && auth.uid === $uid",
+      "$orderKey": {
+        ".write": "auth != null && auth.uid === $uid && !data.exists() && root.child('orderRequests').child($uid).child($orderKey).child('uid').val() === auth.uid && root.child('orderRequests').child($uid).child($orderKey).child('paymentMethod').val() === 'Manual UPI' && root.child('orderRequests').child($uid).child($orderKey).child('paymentStatus').val() !== 'verified' && root.child('orderRequests').child($uid).child($orderKey).child('status').val() !== 'Cancelled' && root.child('orderRequests').child($uid).child($orderKey).child('paymentRequest').child('amount').isNumber() && root.child('orderRequests').child($uid).child($orderKey).child('paymentRequest').child('amount').val() > 0",
+        ".validate": "newData.hasChildren(['utr', 'reportedAmount', 'screenshotData', 'submittedAt'])",
+        "utr": {
+          ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 64 && newData.val().matches(/^[A-Za-z0-9\\/-]+$/)"
+        },
+        "reportedAmount": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9999999"
+        },
+        "screenshotData": {
+          ".validate": "newData.isString() && newData.val().length <= 175000 && (newData.val() === '' || newData.val().beginsWith('data:image/jpeg;base64,') || newData.val().beginsWith('data:image/png;base64,') || newData.val().beginsWith('data:image/webp;base64,'))"
+        },
+        "submittedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
