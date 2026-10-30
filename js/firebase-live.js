@@ -111,8 +111,9 @@
         this.on('catalog', data => {
           const entries=Object.entries(data || {});
           this.catalogPublished=entries.length>0;
+          this.catalogArchived=entries.filter(([,v])=>v&&typeof v.title==='string'&&v.active===false).map(([id,v])=>({id,...v}));
           if(entries.length) {
-            products=entries.filter(([,v])=>v&&typeof v.title==='string').map(([id,v]) => ({
+            products=entries.filter(([,v])=>v&&typeof v.title==='string'&&v.active!==false).map(([id,v]) => ({
               id, title:v.title, category:v.category||'Islamic Products',
               salePrice:price(v.salePrice ?? v.price), oldPrice:price(v.oldPrice),
               wholesalePrice:price(v.wholesalePrice), stock:Math.max(0,Number(v.stock)||0),
@@ -125,6 +126,7 @@
           }
           renderCategoryChips(); renderProducts();
           renderAdminInventory(); renderPosCatalog();
+          window.mqb33RefreshArchived?.();
           const counter=$('cloudAdminCatalogInfo');
           if(counter) counter.textContent=entries.length+' cloud products. Import missing items from data/products.json only after checking existing inventory.';
           if(entries.length) this.setStatus('✓ Live product catalog connected · Updates appear automatically','ok');
@@ -1464,9 +1466,9 @@
   window.completePosSale=()=>alert('POS sale finalization needs a server-side stock and payment transaction. Do not mark unverified sales as paid.');
   // --- V23: Staff roles, provisioning and staff dashboard access ---
   const staffTabAllow={
-    admin:['hub','expert','features','orders','inventory','branches','shipping','pos','analytics','coupons','customers','salesmodifier','cms','payments','staff'],
-    owner:['hub','expert','orders','inventory','branches','shipping','pos','analytics','coupons','customers','cms','payments'],
-    manager:['hub','orders','inventory','shipping','analytics','customers']
+    admin:['hub','expert','features','orders','inventory','reviews','branches','shipping','pos','analytics','coupons','customers','salesmodifier','cms','payments','staff'],
+    owner:['hub','expert','orders','inventory','reviews','branches','shipping','pos','analytics','coupons','customers','cms','payments'],
+    manager:['hub','orders','inventory','reviews','shipping','analytics','customers']
   };
   window.renderStaffRoleTable=()=>{
     const el=$('staffRoleTable');if(!el)return;
@@ -1534,13 +1536,13 @@
   const applyStaffTabs=()=>{
     const role=currentUser?.role||'';
     const allowed=staffTabAllow[role]||[];
-    const tabs=['hub','expert','features','orders','inventory','branches','shipping','pos','analytics','coupons','customers','salesmodifier','cms','payments','staff'];
+    const tabs=['hub','expert','features','orders','inventory','reviews','branches','shipping','pos','analytics','coupons','customers','salesmodifier','cms','payments','staff'];
     tabs.forEach(tab=>{
       const btn=$('adminTabBtn-'+tab);
       if(btn)btn.classList.toggle('hidden',!allowed.includes(tab));
     });
     // Managers may inspect inventory but cannot use edit controls.
-    if(role==='manager') $('adminInventoryTableBody')?.querySelectorAll('button').forEach(btn=>btn.classList.add('hidden'));
+    if(role==='manager') $('adminInventoryTableBody')?.querySelectorAll('button:not(.mqb33-review-action)').forEach(btn=>btn.classList.add('hidden'));
     $('staffRoleTabHint')?.classList.toggle('hidden',role!=='admin');
     $('adminTabBtn-staffactivity')?.classList.toggle('hidden',role!=='admin');
   };
@@ -1561,6 +1563,7 @@
     // new V23 panel without modifying js/app.js or the legacy dashboard tabs.
     const staffPanel=$('adminTab-staff');
     const staffButton=$('adminTabBtn-staff');
+    const reviewPanel=$('adminTab-reviews');
     originalTab(tab);
     // The original switcher resets button CSS classes. Restore role-aware
     // visibility after every switch so Managers cannot see privileged tabs.
@@ -1571,6 +1574,8 @@
     }
     if(staffButton && isSuperAdmin()) staffButton.className='px-4 py-3 border-b-2 font-bold whitespace-nowrap '+
       (tab==='staff'?'border-brand-charcoal text-brand-charcoal bg-white':'border-transparent text-neutral-500 hover:text-black');
+    if(reviewPanel)reviewPanel.classList.toggle('hidden',tab!=='reviews');
+    if(tab==='reviews')window.mqb33RenderAdminReviews?.();
     if(tab==='staff') renderStaffRoleTable();
   };
   // Re-rendering inventory must not restore manager edit buttons.
