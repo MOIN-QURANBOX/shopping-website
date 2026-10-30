@@ -202,3 +202,18 @@ body { background:#faf9f5; }
 @media(min-width:720px){.mqb31-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:1050px){.mqb31-filters{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:360px){.mqb31-filters{grid-template-columns:1fr}}
+
+/* V32 — official contact actions (mobile-first and accessible) */
+.mqb32-contact-action{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:.65rem .95rem;border-radius:.65rem;font-size:.79rem;font-weight:800;text-decoration:none;transition:filter .15s ease;white-space:nowrap}
+.mqb32-contact-action:hover,.mqb32-contact-action:focus-visible{filter:brightness(.94)}
+.mqb32-contact-action:focus-visible,.mqb32-floating-call:focus-visible{outline:3px solid #c5a059;outline-offset:3px}
+.mqb32-call-action{background:#203d31;color:#fff}
+.mqb32-wa-action{background:#167d49;color:#fff}
+.mqb32-email-action{background:#fff;color:#203d31;border:1px solid #b6b8af}
+.mqb32-modal-actions{display:flex;flex-wrap:wrap;gap:.55rem}
+.mqb32-modal-actions .mqb32-contact-action{flex:1 1 auto}
+.mqb32-floating-call{position:fixed;right:1.5rem;bottom:6.3rem;z-index:40;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#203d31;color:white;box-shadow:0 9px 20px #0003;font-size:22px}
+.mqb32-admin-contact-box{max-width:42rem;border:1px solid #ddcfb2;background:#fffaf2;border-radius:12px;padding:16px;display:grid;gap:10px}
+.mqb32-publish-btn{width:max-content;max-width:100%;min-height:44px;border-radius:8px;background:#1c3026;color:#fff;font-size:13px;font-weight:800;padding:10px 15px}
+.mqb32-publish-btn:disabled{opacity:.65;cursor:wait}
+@media(max-width:480px){.mqb32-contact-action{font-size:.75rem;flex:1 1 44%}.mqb32-floating-call{right:1.4rem;bottom:6rem;width:44px;height:44px;font-size:20px}}
