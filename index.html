@@ -167,6 +167,8 @@
           <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Shop Collection</button>
           <button onclick="openTrackingModal()" class="bg-transparent border border-white/60 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition">Track Courier</button>
           <button onclick="openInvoiceLookupModal()" class="bg-amber-400/20 border border-amber-400/40 text-amber-300 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-amber-400/30 transition">Download Invoice</button>
+          <a id="heroCallLink" href="tel:+917337464501" class="bg-white/10 border border-white/30 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/20 transition">📞 Call Us</a>
+          <a id="heroWhatsAppLink" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="bg-emerald-700 border border-emerald-600 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-emerald-600 transition">💬 WhatsApp</a>
         </div>
       </div>
     </div>
@@ -203,11 +205,7 @@
       </button>
     </div>
 
-    <!-- Head showroom only: archived branch is not displayed -->
-    <div class="mb-8">
-      <h3 class="serif-title text-sm font-bold text-brand-charcoal uppercase tracking-wider mb-2">Our Hyderabad Showroom</h3>
-      <div id="storefrontBranchesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-    </div>
+    <!-- V32: redundant showroom card removed; showroom contact details remain in the footer. -->
 
     <!-- Product Grid Header -->
     <div id="catalogTopAnchor" class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pb-4 border-b border-brand-border gap-3">
@@ -235,11 +233,13 @@
     <section id="contactSectionAnchor" class="mt-14 mb-8 bg-white p-6 sm:p-8 rounded-2xl border border-brand-border shadow-sm">
       <div class="max-w-2xl mx-auto text-xs">
         <div class="text-center mb-6">
-          <span class="text-xs uppercase tracking-widest text-brand-gold font-bold">Showroom Direct Desk</span>
-          <h3 class="serif-title text-xl font-bold text-brand-charcoal mt-1">Send a Message to the Owners</h3>
-          <p class="text-neutral-500 mt-1">Need customized Quran box engraving, bulk wedding gifts, or wholesale pricing? Contact Shaik Moin Uddin &amp; Shaik Muneer Uddin directly.</p>
+          <span class="text-xs uppercase tracking-widest text-brand-gold font-bold">MOIN QURAN BOX · Customer Care</span>
+          <h3 class="serif-title text-xl font-bold text-brand-charcoal mt-1">Contact the Owner</h3>
+          <p class="text-neutral-500 mt-1">Need customized Quran box engraving, bulk wedding gifts, or wholesale pricing? Contact Shaik Muneer Uddin directly.</p>
           <div class="flex flex-wrap justify-center gap-2 mt-4">
-            <a id="storeContactWhatsApp" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="bg-green-700 text-white rounded-lg px-4 py-2 font-bold">💬 WhatsApp Us</a>
+            <a id="storeContactCall" href="tel:+917337464501" aria-label="Call MOIN QURAN BOX at +91 7337464501" class="mqb32-contact-action mqb32-call-action">📞 Call Us</a>
+            <a id="storeContactWhatsApp" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp MOIN QURAN BOX at +91 7337464501" class="mqb32-contact-action mqb32-wa-action">💬 WhatsApp Us</a>
+            <a id="storeContactEmail" href="mailto:mquranbox@gmail.com" class="mqb32-contact-action mqb32-email-action">✉️ Email Us</a>
             <a id="storeContactInstagram" href="#" target="_blank" rel="noopener noreferrer" class="hidden border border-pink-300 text-pink-800 rounded-lg px-4 py-2 font-bold">📷 Follow on Instagram</a>
           </div>
         </div>
@@ -252,7 +252,7 @@
             </div>
             <div>
               <label class="block font-semibold mb-1">Your Mobile Number *</label>
-              <input type="tel" id="msgCustPhone" required placeholder="e.g. 7893961313" class="w-full bg-brand-sand border rounded-lg p-2.5 font-mono outline-none focus:border-brand-gold" />
+              <input type="tel" id="msgCustPhone" required placeholder="Your 10-digit mobile number" class="w-full bg-brand-sand border rounded-lg p-2.5 font-mono outline-none focus:border-brand-gold" />
             </div>
           </div>
           <div>
@@ -274,7 +274,7 @@
             </label>
           </div>
           <button type="submit" class="w-full py-3 bg-brand-darkgreen hover:bg-black text-white font-bold uppercase rounded-lg shadow transition">
-            Dispatch Direct Message to Owners
+            Send Message to Owner
           </button>
         </form>
       </div>
@@ -291,11 +291,12 @@
           Dedicated manufacturer and wholesale distributor of Holy Quran, wooden velvet boxes, authentic transliterations, Janamaz prayer carpets, and Islamic gifts.
         </p>
         <div class="mt-3 text-xs space-y-1 text-brand-muted">
-          <p><strong class="text-brand-charcoal">Proprietors:</strong> <span id="footerProprietor">Shaik Moin Uddin &amp; Shaik Muneer Uddin</span></p>
-          <p><strong class="text-brand-charcoal">Showroom 1:</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
-                    <p><strong class="text-brand-charcoal">Helpline:</strong> <span id="footerPhonesText">+91 7893961313 / +91 7337464501</span></p>
-          <p><strong class="text-brand-charcoal">Official Email:</strong> <span id="footerEmailText">moinquranbox@gmail.com</span></p>
+          <p><strong class="text-brand-charcoal">Owner:</strong> <span id="footerProprietor">Shaik Muneer Uddin</span></p>
+          <p><strong class="text-brand-charcoal">Showroom:</strong> <span id="footerShowroomAddress">Madina Colony, Opposite Hafez Ustad Haleem, Falaknuma, Hyderabad 500053</span></p>
+          <p><strong class="text-brand-charcoal">Call / WhatsApp:</strong> <a id="footerPhonesText" href="tel:+917337464501" class="font-bold text-brand-darkgreen hover:underline">+91 7337464501</a></p>
+          <p><strong class="text-brand-charcoal">Official Email:</strong> <a id="footerEmailText" href="mailto:mquranbox@gmail.com" class="font-bold text-brand-darkgreen hover:underline">mquranbox@gmail.com</a></p>
           <p class="flex flex-wrap gap-3 mt-2">
+            <a id="footerSocialCall" href="tel:+917337464501" class="font-bold text-brand-darkgreen hover:underline">📞 Call</a>
             <a id="footerSocialWhatsApp" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="font-bold text-green-800 hover:underline">💬 WhatsApp</a>
             <a id="footerSocialInstagram" href="#" target="_blank" rel="noopener noreferrer" class="hidden font-bold text-pink-800 hover:underline">📷 Instagram</a>
           </p>
@@ -330,6 +331,8 @@
     </div>
   </footer>
 
+  <!-- V32: customer call shortcut (WhatsApp shortcut retained below) -->
+  <a id="floatingCallLink" href="tel:+917337464501" class="mqb32-floating-call" aria-label="Call MOIN QURAN BOX at +91 7337464501" title="Call MOIN QURAN BOX">📞</a>
   <!-- ================= FLOATING WHATSAPP BUTTON ================= -->
   <a id="floatingWhatsAppLink" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-40 bg-brand-whatsapp text-white p-3.5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all">
     <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="currentColor" viewBox="0 0 24 24">
@@ -354,7 +357,9 @@
           <button onclick="navigateDrawer('Hajj & Umrah')" class="w-full py-3.5 text-left hover:text-brand-gold">Hajj &amp; Umrah</button>
           <button onclick="navigateDrawer('Namaz Caps & Tasbih')" class="w-full py-3.5 text-left hover:text-brand-gold">Namaz Caps &amp; Tasbih</button>
           <button onclick="openInvoiceLookupModal(); toggleDrawer(false);" class="w-full py-3.5 text-left text-amber-700 font-bold">📄 Download Invoice PDF</button>
-          <button onclick="scrollToContact(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Message Owners Directly</button>
+          <a id="drawerCallLink" href="tel:+917337464501" class="block w-full py-3.5 text-left hover:text-brand-gold">📞 Call +91 7337464501</a>
+          <a id="drawerWhatsAppLink" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="block w-full py-3.5 text-left hover:text-brand-gold">💬 WhatsApp</a>
+          <button onclick="scrollToContact(); toggleDrawer(false);" class="w-full py-3.5 text-left hover:text-brand-gold">Message the Owner</button>
         </nav>
       </div>
       <div class="pt-6 border-t border-brand-border space-y-2">
@@ -669,7 +674,7 @@
           <!-- Universal Search Bar -->
           <div class="bg-white p-4 rounded-xl border border-brand-border shadow-sm">
             <h4 class="font-bold text-xs uppercase text-brand-charcoal mb-2">🔍 Universal Search (Customer Phone, Email or Order ID)</h4>
-            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by phone, email, or order ID (e.g. 7893961313, 7337464501, or MQB-2026-1082)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
+            <input type="text" oninput="handleUniversalSearch(this.value)" placeholder="Search by customer phone, email or order ID (e.g. MQB-REQ-...)..." class="w-full bg-brand-sand border rounded-lg p-2.5 text-xs outline-none" />
             <div id="universalSearchResults"></div>
           </div>
 
@@ -1093,26 +1098,22 @@
               <input type="text" id="cmsBrandName" required class="w-full bg-brand-sand border rounded p-2" />
             </div>
             <div>
-              <label class="block font-bold mb-1">Proprietor Names (Both Owners)</label>
+              <label class="block font-bold mb-1">Owner Name</label>
               <input type="text" id="cmsProprietor" required class="w-full bg-brand-sand border rounded p-2" />
             </div>
             <div>
               <label class="block font-bold mb-1">Showroom Address</label>
               <textarea id="cmsAddress" rows="2" required class="w-full bg-brand-sand border rounded p-2"></textarea>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block font-bold mb-1">Primary Phone</label>
-                <input type="tel" id="cmsPhone1" class="w-full bg-brand-sand border rounded p-2" />
-              </div>
-              <div>
-                <label class="block font-bold mb-1">Secondary Phone</label>
-                <input type="tel" id="cmsPhone2" class="w-full bg-brand-sand border rounded p-2" />
-              </div>
+            <div>
+              <label for="cmsPhone1" class="block font-bold mb-1">Customer Phone · Call &amp; WhatsApp (only number)</label>
+              <input type="tel" id="cmsPhone1" class="w-full bg-brand-sand border rounded p-2" value="7337464501" readonly aria-describedby="mqb32PhoneHelp" />
+              <input type="hidden" id="cmsPhone2" value="" />
+              <p id="mqb32PhoneHelp" class="text-neutral-500 mt-1">Only +91 7337464501 is displayed to customers in V32.</p>
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block font-bold mb-1">Official Owner Email</label>
+                <label class="block font-bold mb-1">Official Email</label>
                 <input type="email" id="cmsOwnerEmail" class="w-full bg-brand-sand border rounded p-2" />
               </div>
             </div>
@@ -1122,6 +1123,13 @@
             </div>
             <button type="submit" class="bg-brand-charcoal text-white px-5 py-2 rounded font-bold uppercase">Save Live Text</button>
           </form>
+          <section class="mqb32-admin-contact-box" aria-label="V32 official customer contact details">
+            <h5 class="font-bold text-sm">Official customer contact — V32</h5>
+            <p class="text-xs text-neutral-600">Customer-facing owner: Shaik Muneer Uddin. One call / WhatsApp number: +91 7337464501. Email: mquranbox@gmail.com. Address: Madina Colony, Opposite Hafez Ustad Haleem, Falaknuma, Hyderabad 500053.</p>
+            <p class="text-xs text-amber-900">Apply the official contacts to Firebase once as a signed-in Super Admin or Owner. This updates store contact fields only, without touching products, orders or payment QR settings.</p>
+            <button type="button" id="mqb32PublishContactBtn" onclick="mqbV32PublishOfficialContact()" class="mqb32-publish-btn">Save Official Contact Details to Firebase</button>
+            <p id="mqb32PublishContactStatus" class="text-xs" role="status" aria-live="polite"></p>
+          </section>
 
           <!-- V25.2: Editable public social links; saved independently without rewriting store data -->
           <form id="socialContactForm" onsubmit="saveSocialContacts(event)" class="bg-white p-5 rounded-xl border space-y-3 max-w-2xl text-xs">
@@ -1134,8 +1142,8 @@
             </div>
             <div>
               <label for="socialWhatsAppNumber" class="block font-bold mb-1">WhatsApp Business number (India)</label>
-              <input id="socialWhatsAppNumber" type="tel" inputmode="tel" autocomplete="tel" maxlength="18" placeholder="10-digit number or +91 number" class="w-full bg-brand-sand border rounded p-2 font-mono" required />
-              <p class="text-neutral-500 mt-1">This number is public. For WhatsApp, use an active number; never enter an OTP or PIN here.</p>
+              <input id="socialWhatsAppNumber" type="tel" inputmode="tel" autocomplete="tel" maxlength="18" readonly placeholder="10-digit number or +91 number" class="w-full bg-brand-sand border rounded p-2 font-mono" required />
+              <p class="text-neutral-500 mt-1">V32 official contact: +91 7337464501 for both Call and WhatsApp. Never enter an OTP or PIN here.</p>
             </div>
             <div>
               <label for="socialWhatsAppGreeting" class="block font-bold mb-1">Optional WhatsApp opening message</label>
@@ -1420,11 +1428,17 @@
       <button onclick="closeContactModal()" class="absolute right-4 top-4 text-neutral-500">✕</button>
       <h3 class="serif-title text-base font-bold text-brand-charcoal">Contact MOIN QURAN BOX</h3>
       <div class="bg-brand-sand p-3.5 rounded-xl space-y-2 border border-brand-border">
-        <p><strong>📍 Branch 1 (Head Showroom):</strong> Madina Colony, Falaknuma, Hyderabad 500053</p>
-                <p><strong>📞 Helpline:</strong> +91 7893961313 / +91 7337464501</p>
+        <p><strong>📍 Showroom:</strong> Madina Colony, Opposite Hafez Ustad Haleem, Falaknuma, Hyderabad 500053</p>
+        <p><strong>👤 Owner:</strong> Shaik Muneer Uddin</p>
+        <p><strong>📞 Call / WhatsApp:</strong> +91 7337464501</p>
+        <p><strong>✉️ Email:</strong> mquranbox@gmail.com</p>
         <p><strong>⏰ Hours:</strong> 10:00 AM – 11:00 PM (All 7 Days)</p>
       </div>
-      <a id="modalSocialWhatsApp" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="block text-center py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold">Chat on WhatsApp</a>
+      <div class="mqb32-modal-actions">
+        <a id="modalSocialCall" href="tel:+917337464501" class="mqb32-contact-action mqb32-call-action">📞 Call Now</a>
+        <a id="modalSocialWhatsApp" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="mqb32-contact-action mqb32-wa-action">💬 WhatsApp</a>
+        <a id="modalSocialEmail" href="mailto:mquranbox@gmail.com" class="mqb32-contact-action mqb32-email-action">✉️ Email</a>
+      </div>
       <a id="modalSocialInstagram" href="#" target="_blank" rel="noopener noreferrer" class="hidden block text-center py-2.5 border border-pink-300 text-pink-800 rounded-lg font-bold">Follow on Instagram</a>
     </div>
   </div>
@@ -1601,5 +1615,6 @@
   <script defer src="js/languages.js"></script>
   <script defer src="js/checkout-experience.js"></script>
   <script defer src="js/storefront-v26.js"></script>
+  <script defer src="js/contact-v32.js"></script>
 </body>
 </html>
