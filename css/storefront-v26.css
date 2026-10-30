@@ -144,3 +144,8 @@ body { background:#faf9f5; }
 .dark #mqbV26Highlights .mqb28-searchresults{color:#c7e4d0}
 @media(max-width:639px){.mqb28-shopbar{gap:9px;padding:11px;border-radius:12px;margin-bottom:17px}.mqb28-searcharea{flex-basis:100%}.mqb28-shopactions{width:100%;display:grid;grid-template-columns:1fr 1fr}.mqb28-shopactions button{min-height:39px;font-size:12px}.mqb28-feature-actions{grid-template-columns:1fr}.mqb28-feature-actions>button{min-height:34px;font-size:11px}}
 @media(max-width:380px){.mqb28-feature-actions>button{font-size:10px}}
+
+/* V29 payment and address refinement: scoped only */
+.mqb29-qr-image{width:min(100%,230px);max-height:240px;object-fit:contain;aspect-ratio:1;display:block;background:#fff;border:1px solid #dedbd1;border-radius:12px;padding:8px}
+.mqb29-panel input:focus,.mqb29-panel textarea:focus,#mqb29PayModal input:focus{outline:2px solid #23836c;outline-offset:2px}
+@media(max-width:420px){.mqb29-qr-image{width:min(100%,190px)}}
