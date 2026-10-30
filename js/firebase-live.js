@@ -68,6 +68,7 @@
     uid: null, verifiedAdmin: false, activeRole: null, staffRecords: {}, catalogPublished: false, db: null, auth: null,
     applying: false, settingsReady: false, lastSettings: '', saveTimer: null,
     unsubs: [], started: false, profiles: {}, cartActivity: {}, salesResetAt: 0, staffEvents: {}, adminControls: {},
+    orderNotes:{}, orderArchive:{},
     guestMessage: 'No confirmed cloud catalog yet. Sample collection shown for preview only.',
     setStatus(message, state='waiting') {
       const el=$('liveSyncBanner'); if (!el) return;
@@ -153,7 +154,7 @@
       this.settingsReady=false; this.lastSettings='';
       // NEVER show the previous account's cart or order data in a new session.
       cart=[]; wishlist=[]; orders=[]; currentUser=null; users=[];
-      this.profiles={};this.cartActivity={};this.staffEvents={};this.adminControls={};posTicket=[]; selectedAdminCustomerUID='';
+      this.profiles={};this.cartActivity={};this.staffEvents={};this.adminControls={};this.orderNotes={};this.orderArchive={};posTicket=[]; selectedAdminCustomerUID='';
       // Clear prior admin-only DOM when switching accounts (prevents stale private records).
       for(const id of ['adminOrdersContainer','adminCustomersTableBody','adminOrderHistoryCount','adminCustomerSearchCount','custOrderList','custOrderCount','custProfContact','custProfName','trackingResultBox','shippingOrderSummary','staffRoleTable','staffRoleStatus','adminCustomerDetailContent','customerActivityRuleStatus','staffActivityList','staffActivityCount','staffActivityStatus','adminControlNotice']) {
         const node=$(id);if(node)node.textContent='';
@@ -274,6 +275,14 @@
           this.updateAdminOrders();
         });
         if(canEditStore()) {
+          // Private staff notes / archive flags: existing /adminData rules already restrict access
+          // to Super Admin and active Owner. No customer order fields are changed.
+          this.on('adminData/orderNotes',record=>{this.orderNotes=record||{};renderAdminOrders();},error=>{
+            this.setStatus('Staff notes could not be loaded: '+textError(error),'bad');
+          },{optionalRead:true});
+          this.on('adminData/orderArchive',record=>{this.orderArchive=record||{};renderAdminOrders();},error=>{
+            this.setStatus('Order archive flags could not be loaded: '+textError(error),'bad');
+          },{optionalRead:true});
           this.on('adminData/posSales', record=>{
             this.posSales=Object.entries(record||{}).filter(([,v])=>v?.status!=='PendingStock').map(([key,v])=>({...v,__key:key,channel:'Showroom POS'}));
             this.updateAdminOrders();
@@ -1078,6 +1087,7 @@
       });
       statusNotice('Shipping and tracking details saved to Firebase. Customer devices will refresh automatically.');
       live.setStatus('✓ Order shipping details saved in Firebase','ok');
+      mqb31BestEffortNote(uid,key,'Shipping','Saved shipping / courier details: '+(carrier||'Unassigned')+', status '+newStatus+'.');
       logStaffActivity('shipping_save','Order '+(existing.orderId||key)+' · '+newStatus+' · '+carrier);
     }catch(err){statusNotice('Shipping details NOT saved: '+textError(err),true);}
     finally{if(button)button.disabled=false;}
@@ -1157,6 +1167,7 @@
           at:firebase.database.ServerValue.TIMESTAMP}});
       paymentNotice('Payment manually verified and saved. Customer account will update.');
       live.setStatus('✓ Verified payment saved to Firebase','ok');
+      mqb31BestEffortNote(uid,key,'Payment follow-up','Super Admin recorded manually verified '+method+' receipt, ₹'+verifiedAmount.toFixed(2)+'. Actual bank/cash verification was attested.');
       logStaffActivity('payment_verification','Order '+(order.orderId||key)+' · '+method+' · bank checked');
     } catch(err) {paymentNotice('Payment verification NOT saved: '+textError(err),true);}
     finally{if(button)button.disabled=false;}
@@ -1171,13 +1182,68 @@
       await recordRef.update({paymentStatus:'unverified',
         ['paymentAudit/'+auditKey]:{event:'reverted_to_unverified',by:live.uid,at:firebase.database.ServerValue.TIMESTAMP}});
       paymentNotice('Payment marked unverified. Existing verification record retained for audit; confirm funds separately.');
+      mqb31BestEffortNote(uid,key,'Payment follow-up','Super Admin reverted payment to unverified; previous audit preserved.');
       logStaffActivity('payment_reset','Order key '+String(key).slice(0,70)+' returned to unverified');
     }catch(err){paymentNotice('Could not revert: '+textError(err),true);}
+  };
+  // V31: Private notes and reversible staff-only archive markers.
+  // Rules enforce write access to /adminData: existing customers and managers cannot read it.
+  const mqb31IsTest=o=>o?.testOrder===true || /(?:^|[^a-z])test\s+order(?:[^a-z]|$)|do\s+not\s+(?:ship|dispatch|collect\s+payment)/i.test(
+    [o?.deliveryNote,o?.paymentRequest?.note,o?.internalTestNote].filter(Boolean).join(' '));
+  const mqb31Archived=o=>!!(o?.__uid&&o?.__key&&live.orderArchive?.[o.__uid]?.[o.__key]?.archived===true);
+  const mqb31Eligible=o=>!!(o?.__uid&&o?.__key&&o.channel!=='Showroom POS' &&
+    (String(o.status||'')==='Cancelled'||mqb31IsTest(o)) && o.paymentStatus!=='verified' &&
+    !['Shipped','In Transit','Out for Delivery','Delivered'].includes(String(o.status||'')));
+  const mqb31Notes=o=>Object.values(live.orderNotes?.[o.__uid]?.[o.__key]||{})
+    .filter(v=>v&&typeof v==='object'&&typeof v.text==='string')
+    .sort((a,b)=>Number(a.at||0)-Number(b.at||0)).slice(-40);
+  const mqb31Valid= (uid,key)=>typeof uid==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(uid) &&
+    typeof key==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(key);
+  async function mqb31WriteNote(uid,key,type,text){
+    if(!canEditStore()||!mqb31Valid(uid,key))throw Error('Authorized owner/admin and valid order are required.');
+    if(!orders.some(o=>o.__uid===uid&&o.__key===key))throw Error('Order is not available.');
+    const body=String(text||'').trim().slice(0,600);if(!body)throw Error('Enter a note before saving.');
+    const allowed=['General update','Customer contact','Payment follow-up','Packing','Shipping','Status change','Amount approval','Archive','Restore'];
+    if(!allowed.includes(type))throw Error('Invalid note category.');
+    await live.db.ref('adminData/orderNotes/'+uid+'/'+key).push({type,text:body,
+      byUid:live.uid,byName:String(currentUser?.name||'Store staff').slice(0,90),at:firebase.database.ServerValue.TIMESTAMP});
+  }
+  const mqb31BestEffortNote=(uid,key,type,text)=>{if(canEditStore())mqb31WriteNote(uid,key,type,text).catch(e=>console.warn('Action saved, but staff note failed:',e?.code||e?.message));};
+  window.mqb31SaveNote=async(button,uid,key)=>{
+    if(!ensureStoreEditor()||!mqb31Valid(uid,key))return;
+    const panel=button?.closest('.mqb31-notes');if(!panel)return;
+    const field=panel.querySelector('textarea'),type=panel.querySelector('select'),notice=panel.querySelector('.mqb31-note-message');
+    const value=String(field?.value||'').trim();if(value.length<3||value.length>600){if(notice)notice.textContent='Enter 3–600 characters.';return;}
+    button.disabled=true;
+    try{await mqb31WriteNote(uid,key,type?.value||'General update',value);
+      if(notice)notice.textContent='✓ Note saved privately.';if(field)field.value='';
+      logStaffActivity('order_note','Order '+String(orderRef(uid,key)?.orderId||key).slice(0,80));
+    }catch(e){if(notice)notice.textContent='Not saved: '+textError(e);}
+    finally{button.disabled=false;}
+  };
+  window.mqb31ArchiveOrder=async(uid,key,restore=false)=>{
+    if(!ensureStoreEditor()||!mqb31Valid(uid,key))return;
+    const o=orders.find(x=>x.__uid===uid&&x.__key===key);
+    if(!o)return alert('Order not found. Refresh the dashboard.');
+    if(restore){if(!mqb31Archived(o))return;}
+    else if(!mqb31Eligible(o))return alert('Only unpaid test orders or cancelled orders with no dispatch can be archived. Financial and customer records are never deleted.');
+    const action=restore?'RESTORE':'ARCHIVE';
+    if(!confirm(action+' '+(o.orderId||key)+' from the staff order list?\n\nThis does not delete the order, invoice, customer record, or payment audit.'))return;
+    const path='adminData/orderArchive/'+uid+'/'+key;
+    try{
+      if(restore)await live.db.ref(path).remove();
+      else await live.db.ref(path).set({archived:true,byUid:live.uid,
+        reason:o.status==='Cancelled'?'Cancelled order':'Marked test order',at:firebase.database.ServerValue.TIMESTAMP});
+      mqb31BestEffortNote(uid,key,restore?'Restore':'Archive',action+' from operational staff view. Customer and financial history retained.');
+      logStaffActivity('history_control',action+' order '+String(o.orderId||key).slice(0,100));
+    }catch(e){alert('Could not update order archive: '+textError(e));}
   };
   window.searchAdminOrderHistory=()=>{if(ensureAdmin()) renderAdminOrders();};
   window.clearAdminOrderHistorySearch=()=>{
     if(!ensureAdmin())return;
-    selectedAdminCustomerUID='';if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';renderAdminOrders();
+    selectedAdminCustomerUID='';if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';
+    for(const id of ['mqb31StatusFilter','mqb31PaymentFilter','mqb31TypeFilter'])if($(id))$(id).value='';
+    if($('mqb31ArchiveFilter'))$('mqb31ArchiveFilter').value='active';if($('mqb31SortFilter'))$('mqb31SortFilter').value='latest';renderAdminOrders();
   };
   window.showAdminCustomerOrders=uid=>{
     if(!ensureAdmin())return;
@@ -1189,11 +1255,20 @@
     const node=$('adminOrdersContainer');if(!node)return;
     if(!isAdmin()){node.textContent='Verified Super Admin sign-in required.';return;}
     let visible=orders.filter(o=>adminOrderMatches(o,adminQuery()));
+    const statusFilter=$('mqb31StatusFilter')?.value||'';
+    const paymentFilter=$('mqb31PaymentFilter')?.value||'';
+    const typeFilter=$('mqb31TypeFilter')?.value||'';
+    const archiveFilter=$('mqb31ArchiveFilter')?.value||'active';
+    visible=visible.filter(o=>(!statusFilter||String(o.status||'')===statusFilter) &&
+      (!paymentFilter||String(o.paymentStatus||'unverified')===paymentFilter) &&
+      (!typeFilter||(typeFilter==='test'?mqb31IsTest(o):typeFilter==='cancelled'?o.status==='Cancelled':!mqb31IsTest(o)&&o.status!=='Cancelled')) &&
+      (archiveFilter==='all'||(archiveFilter==='archived'?mqb31Archived(o):!mqb31Archived(o))));
+    visible.sort((a,b)=>($('mqb31SortFilter')?.value==='oldest'?1:-1)*String(a.date||'').localeCompare(String(b.date||'')));
     const selectedName=live.profiles?.[selectedAdminCustomerUID]?.name||selectedAdminCustomerUID;
     const selected=$('adminHistoryFilterStatus');if(selected) selected.textContent=selectedAdminCustomerUID?'Customer filter: '+selectedName:'';
     const cutoff=isSuperAdmin()?0:Number(live.adminControls?.orderVisibleAfter)||0;
     visible=visible.filter(o=>!cutoff||((new Date(o.date).getTime()||0)>=cutoff));
-    const counter=$('adminOrderHistoryCount');if(counter)counter.textContent=visible.length+' displayed order(s) of '+orders.length+' total';
+    const counter=$('adminOrderHistoryCount');if(counter)counter.textContent=visible.length+' shown · '+orders.length+' total · '+orders.filter(mqb31Archived).length+' archived from staff view';
     node.innerHTML=visible.length?visible.map(o=>{
       const id=esc(o.orderId||o.__key||'');
       const choices=Array.from(new Set([...SHIP_STATUSES,String(o.status||'Requested')]))
@@ -1225,14 +1300,32 @@
         ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-view-proof border border-indigo-700 text-indigo-900 px-4 py-2 rounded-lg font-bold w-full">View customer payment submission</button>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-edit-shipping bg-brand-darkgreen text-white px-4 py-2 rounded-lg font-bold w-full">Edit Shipping / Courier Tracking</button>`
           :'<p class="text-[10px] text-neutral-500">POS invoices and shipping need separate verified sales records.</p>'}
+        ${o.__uid&&o.__key&&canEditStore()?`<details class="mqb31-notes" data-notes-order="${esc(o.__key)}"><summary>📝 Staff annotations &amp; action updates (${mqb31Notes(o).length})</summary>
+          <div class="mqb31-note-list">${mqb31Notes(o).length?mqb31Notes(o).map(n=>`<div class="mqb31-note-row"><strong>${esc(n.type||'General update')} · ${esc(n.byName||'Staff')}</strong><small>${esc(n.at?new Date(Number(n.at)).toLocaleString('en-IN'):'Just now')}</small><p>${esc(n.text)}</p></div>`).join(''):'<p class="text-neutral-500">No staff notes yet.</p>'}</div>
+          <label class="mqb31-note-label">Action type<select aria-label="Order note type"><option>General update</option><option>Customer contact</option><option>Payment follow-up</option><option>Packing</option><option>Shipping</option></select></label>
+          <label class="mqb31-note-label">Add a private update<textarea maxlength="600" rows="2" placeholder="Example: Called customer; delivery preference confirmed. No payment collected."></textarea></label>
+          <button type="button" class="mqb31-save-note">Save staff note</button><p class="mqb31-note-message" role="status" aria-live="polite"></p>
+        </details>`:o.__uid&&o.__key?'<p class="text-[11px] text-neutral-500">Private staff notes: available to Super Admin and Owner.</p>':''}
+        ${o.__uid&&o.__key&&canEditStore()?(mqb31Archived(o)?`<button type="button" class="mqb31-archive-toggle mqb31-restore">Restore to active staff orders</button>`:mqb31Eligible(o)?`<button type="button" class="mqb31-archive-toggle mqb31-archive">Archive test / cancelled order from staff list</button>`:''):''}
+        ${mqb31Archived(o)?'<p class="mqb31-archived-label">Archived from staff active orders — customer order and audit retained</p>':''}
         <p class="text-[10px] text-neutral-500">Non-tax order invoice, not payment proof. Courier booking and payment verification remain separate.</p>
       </article>`;
     }).join(''):'<p class="text-neutral-500 text-sm">No orders match this search.</p>';
+    node.querySelectorAll('.mqb31-save-note').forEach(button=>{
+      const record=visible[Array.prototype.indexOf.call(node.children,button.closest('article'))];
+      button.addEventListener('click',()=>window.mqb31SaveNote(button,record.__uid,record.__key));
+    });
+    node.querySelectorAll('.mqb31-archive-toggle').forEach(button=>{
+      const record=visible[Array.prototype.indexOf.call(node.children,button.closest('article'))];
+      button.addEventListener('click',()=>window.mqb31ArchiveOrder(record.__uid,record.__key,button.classList.contains('mqb31-restore')));
+    });
     node.querySelectorAll('.cloud-order-status').forEach((el,index)=>{
       const record=visible[index];el.addEventListener('change',async()=>{
         if(!ensureAdmin()||!record.__uid||!record.__key)return;
         if(REQUIRES_DISPATCH_PAYMENT.includes(el.value) && needsUpiVerification(record)){alert('Manual UPI receipt is not verified. Confirm bank credit first.');renderAdminOrders();return;}
-        try {await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);logStaffActivity('order_status','Order '+(record.orderId||record.__key)+' to '+el.value);} 
+        try {const before=record.status;await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);
+          mqb31BestEffortNote(record.__uid,record.__key,'Status change',String(before||'Requested')+' → '+el.value);
+          logStaffActivity('order_status','Order '+(record.orderId||record.__key)+' to '+el.value);} 
         catch(err){alert('Order status not saved: '+textError(err));renderAdminOrders();}
       });
     });
@@ -1625,7 +1718,7 @@
   // V25.5: Best-effort per-staff client activity log. These events are NOT server-authoritative.
   const staffEventActions=new Set(['staff_login','staff_logout','product_save','order_status','shipping_save',
     'payment_verification','payment_reset','category_change','store_settings','customer_record_view',
-    'shipping_label_download','order_history_filter','staff_role_change','history_control','sales_summary_reset']);
+    'shipping_label_download','order_note','order_history_filter','staff_role_change','history_control','sales_summary_reset']);
   async function logStaffActivity(action,detail=''){
     if(!isAdmin()||!staffEventActions.has(action)||!live.db||!live.uid)return false;
     const event={actorUid:live.uid,actorEmail:String(live.auth?.currentUser?.email||'').slice(0,254),
@@ -1638,7 +1731,7 @@
   const actionLabel={staff_login:'Staff login',staff_logout:'Staff logout',product_save:'Product saved',
     order_status:'Order status changed',shipping_save:'Shipping updated',payment_verification:'Payment verification',
     payment_reset:'Payment verification reset',category_change:'Category changed',store_settings:'Store settings changed',
-    customer_record_view:'Customer details accessed',shipping_label_download:'Shipping label downloaded',
+    order_note:'Private order note added',customer_record_view:'Customer details accessed',shipping_label_download:'Shipping label downloaded',
     order_history_filter:'Order history searched',staff_role_change:'Staff role changed',
     history_control:'History visibility adjusted',sales_summary_reset:'Sales summary reset'};
   window.renderStaffActivity=()=>{
@@ -1805,6 +1898,7 @@
       if(prior)throw Error('Customer already submitted payment details. Review the receipt before changing the amount.');
       await live.db.ref('orderRequests/'+uid+'/'+key+'/paymentRequest').set({amount,note:String($('mqb29AmountNote')?.value||'').trim().slice(0,240),confirmedBy:live.uid,confirmedAt:firebase.database.ServerValue.TIMESTAMP});
       setMessage('mqb29AmountStatus','✓ Final amount approved. Customer can now view the payment QR.');
+      mqb31BestEffortNote(uid,key,'Amount approval','Owner approved UPI payable amount ₹'+amount.toFixed(2)+'. This does not confirm receipt of money.');
       logStaffActivity('store_settings','Approved UPI amount for '+o.orderId);
       setTimeout(()=>window.mqb29CloseAmount(),700);
     }catch(error){setMessage('mqb29AmountStatus','Not saved: '+textError(error),true);}
