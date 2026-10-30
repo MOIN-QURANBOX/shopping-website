@@ -1165,6 +1165,19 @@
             </div>
             <button type="submit" class="bg-brand-darkgreen text-white px-5 py-2 rounded font-bold uppercase">Save Payment Info</button>
           </form>
+          <section class="mqb29-panel bg-white border border-brand-border rounded-xl p-4 space-y-3 max-w-xl" id="mqb29PaymentQrPanel">
+            <h5 class="font-bold text-base">Store payment QR · Owner / Admin</h5>
+            <p class="text-xs text-amber-800">Only verified Super Admin and Owner may publish or replace the QR. Use your OWN receiving UPI QR, then test it in your UPI app before accepting any money. QR and UPI details are public to customers after order amount approval.</p>
+            <form onsubmit="mqb29SaveQr(event)" class="space-y-3">
+              <div><label for="mqb29StoreUpiId" class="block font-semibold text-xs mb-1">Receiving UPI ID</label><input id="mqb29StoreUpiId" required maxlength="120" autocomplete="off" class="w-full border rounded-lg p-2.5" placeholder="yourstore@upi" /></div>
+              <div><label for="mqb29StorePayee" class="block font-semibold text-xs mb-1">Receiving account name</label><input id="mqb29StorePayee" required maxlength="120" class="w-full border rounded-lg p-2.5" placeholder="Account holder name" /></div>
+              <div><label for="mqb29QrUpload" class="block font-semibold text-xs mb-1">Upload / replace your UPI QR image</label><input id="mqb29QrUpload" type="file" accept="image/png,image/jpeg,image/webp" class="w-full border rounded-lg p-2.5" /><p class="text-[11px] text-brand-muted">PNG, JPG or WebP, under 4 MB before optimization. QR is stored in Firebase public settings, not in a customer order.</p></div>
+              <img id="mqb29AdminQrPreview" alt="Current QR preview" class="hidden mqb29-qr-image" />
+              <button class="bg-brand-darkgreen text-white rounded-lg px-4 py-3 font-bold" type="submit">Save payment QR &amp; UPI details</button>
+              <button class="border border-red-200 text-red-800 rounded-lg px-3 py-2 font-semibold" type="button" onclick="mqb29DisableQr()">Disable QR payments</button>
+              <p id="mqb29QrAdminStatus" class="text-xs" role="status" aria-live="polite"></p>
+            </form>
+          </section>
         </div>
       </div>
     </div>
@@ -1303,19 +1316,18 @@
           </div>
           <div class="mqb28-location rounded-xl bg-brand-sand p-3 space-y-2 text-xs">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <strong class="text-sm text-brand-charcoal">📍 Delivery location (optional)</strong>
+              <strong class="text-sm text-brand-charcoal">📍 Autofill delivery address</strong>
               <span class="text-[10px] text-brand-muted">Your permission is required</span>
             </div>
             <div class="flex flex-wrap gap-2">
-              <button type="button" onclick="mqbUseCurrentLocation()" id="mqbLocationButton" class="px-3 py-2.5 rounded-lg bg-brand-darkgreen text-white font-semibold disabled:opacity-60">Use my current location</button>
+              <button type="button" onclick="mqbUseCurrentLocation()" id="mqbLocationButton" class="px-3 py-2.5 rounded-lg bg-brand-darkgreen text-white font-semibold disabled:opacity-60">Detect &amp; fill address</button>
               <a id="mqbLocationMapLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-3 py-2.5 rounded-lg border border-brand-border bg-white font-semibold">View map pin ↗</a>
-              <button type="button" onclick="mqbClearLocation()" class="px-2 py-2.5 underline text-brand-muted">Clear pin</button>
+              <button type="button" onclick="mqbClearLocation()" class="px-2 py-2.5 underline text-brand-muted">Clear location</button>
             </div>
-            <p id="mqbLocationStatus" class="text-brand-muted" role="status" aria-live="polite">Tap to attach a GPS map pin. You can always enter your address manually.</p>
-            <label class="block" for="mqbManualMapLink">Or paste a Google Maps location link (optional)</label>
-            <input id="mqbManualMapLink" type="url" inputmode="url" autocomplete="off" maxlength="300" placeholder="https://maps.app.goo.gl/..." class="w-full rounded-lg border border-brand-border bg-white p-2.5 text-sm" />
+            <p id="mqbLocationStatus" class="text-brand-muted" role="status" aria-live="polite">Tap to detect your location and fill your address and PIN code when available. Check all details before ordering.</p>
+            <input id="mqbManualMapLink" type="hidden" value="" />
             <input id="mqbLocationLink" type="hidden" value="" />
-            <p class="text-[11px] text-brand-muted">No automatic tracking. GPS accuracy varies, especially on computers. Please verify your house/flat, street and 6-digit PIN before placing an order.</p>
+            <p class="text-[11px] text-brand-muted">One-time location lookup only with your permission. Your coordinates are shared with the address lookup provider. Enter your house/flat and confirm your 6-digit PIN. Address data © OpenStreetMap contributors.</p>
           </div>
           <div><label for="chkDeliveryNote" class="block text-xs font-semibold mb-1">Delivery note (optional)</label><input id="chkDeliveryNote" maxlength="240" class="w-full border rounded-lg p-3 bg-white" placeholder="Landmark or delivery instructions" /></div>
           <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery charges confirmed separately</strong><p>From dispatch PIN 500012 to your location, our team will confirm courier charges and availability before payment or dispatch.</p></div>
@@ -1325,7 +1337,7 @@
           <p class="text-xs text-brand-muted">Select your preferred way to pay. This website submits a request only; it cannot collect money at this step.</p>
           <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border-2 border-brand-darkgreen bg-emerald-50 cursor-pointer">
             <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked onchange="mqbUpdatePaymentDescription()" class="mt-1" />
-            <span class="flex-1"><strong>UPI payment</strong><small class="block text-brand-muted mt-1">Google Pay, PhonePe, Paytm or any UPI app — after order confirmation</small></span><span class="text-xs font-semibold text-emerald-700">Manual</span>
+            <span class="flex-1"><strong>UPI payment / QR after confirmation</strong><small class="block text-brand-muted mt-1">Google Pay, PhonePe, Paytm or any UPI app — after order confirmation</small></span><span class="text-xs font-semibold text-emerald-700">Manual</span>
           </label>
           <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
             <input type="radio" name="chkPaymentMethod" value="COD" onchange="mqbUpdatePaymentDescription()" class="mt-1" />
@@ -1365,7 +1377,7 @@
         <span class="text-brand-muted block">Tracking Order ID</span>
         <div id="successOrderIdDisplay" class="font-mono text-base font-bold text-brand-charcoal select-all">MQB-2026-0000</div>
       </div>
-      <p class="text-xs text-brand-muted" id="guestReceiptNote">Keep your order ID or send it to the store on WhatsApp. Guest orders may not be accessible if you change devices or clear browser storage.</p>
+      <p class="text-xs text-brand-muted" id="guestReceiptNote">Keep your order ID or send it to the store on WhatsApp. After the owner confirms the final payable amount, open Order Tracking on this same device to pay using QR and submit payment details. Guest orders may not be accessible if you change devices or clear browser storage.</p>
       <div class="space-y-2 pt-2 text-xs">
         <a id="successWhatsAppOrderBtn" href="#" target="_blank" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold flex items-center justify-center gap-2">
           💬 Send Order Receipt to Owner on WhatsApp
@@ -1517,6 +1529,45 @@
           <button type="button" onclick="deleteUserAccount()" class="px-4 py-2.5 bg-red-100 text-red-700 font-bold uppercase rounded">Delete</button>
         </div>
       </form>
+    </div>
+  </div>
+
+
+  <!-- V29: approved amount confirmation (admin/owner) -->
+  <div id="mqb29AmountModal" class="hidden fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="mqb29AmountTitle">
+    <form onsubmit="mqb29SavePayable(event)" class="bg-white rounded-2xl p-5 w-full max-w-md space-y-3 max-h-[94vh] overflow-y-auto">
+      <div class="flex justify-between gap-3"><h3 id="mqb29AmountTitle" class="font-extrabold text-lg">Confirm amount for UPI QR</h3><button type="button" onclick="mqb29CloseAmount()" aria-label="Close">✕</button></div>
+      <p id="mqb29AmountOrderInfo" class="text-sm text-brand-muted"></p>
+      <label class="block text-sm font-bold" for="mqb29FinalAmount">Final payable amount in ₹, including shipping</label>
+      <input id="mqb29FinalAmount" type="number" min="1" max="9999999" step="0.01" required class="w-full border rounded-lg px-3 py-3 text-lg" />
+      <label class="block text-sm font-bold" for="mqb29AmountNote">Confirmed delivery / amount note</label>
+      <textarea id="mqb29AmountNote" maxlength="240" rows="2" class="w-full border rounded-lg p-3" placeholder="Includes item total and delivery charges"></textarea>
+      <p class="text-xs text-amber-800">The QR becomes visible to this customer only when this exact final amount is approved. This does NOT confirm payment.</p>
+      <p id="mqb29AmountStatus" class="text-sm" role="status"></p>
+      <button type="submit" class="w-full bg-brand-darkgreen text-white font-bold rounded-lg py-3">Approve final amount</button>
+    </form>
+  </div>
+  <!-- V29: customer's QR payment + receipt submission -->
+  <div id="mqb29PayModal" class="hidden fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="mqb29PayTitle">
+    <form onsubmit="mqb29SubmitProof(event)" class="bg-white rounded-2xl p-5 w-full max-w-md space-y-3 max-h-[94vh] overflow-y-auto">
+      <div class="flex justify-between gap-3"><h3 id="mqb29PayTitle" class="font-extrabold text-lg">Pay with store QR</h3><button type="button" onclick="mqb29ClosePay()" aria-label="Close">✕</button></div>
+      <p id="mqb29PayOrderInfo" class="text-sm text-brand-muted"></p>
+      <p class="text-xs text-amber-900 bg-amber-50 p-3 rounded-lg">Pay only the owner-confirmed amount shown here. Check the recipient name in your UPI app. Submitting a receipt does not verify payment.</p>
+      <div class="text-center space-y-2"><img id="mqb29CustomerQr" class="mqb29-qr-image mx-auto" alt="Store's payment QR code" /><p id="mqb29PayeeDisplay" class="font-semibold text-sm"></p><p id="mqb29PayableDisplay" class="text-xl font-black"></p></div>
+      <div class="flex flex-wrap justify-center gap-2"><button type="button" onclick="mqb29CopyUpi()" class="border rounded-lg px-3 py-2 text-sm font-semibold">Copy UPI ID</button><a id="mqb29UpiDeepLink" href="#" class="bg-brand-darkgreen text-white rounded-lg px-3 py-2 text-sm font-semibold">Open UPI app ↗</a></div>
+      <label for="mqb29ProofUtr" class="block text-sm font-semibold">UTR / transaction reference *</label><input id="mqb29ProofUtr" required maxlength="64" pattern="[A-Za-z0-9/-]{6,64}" autocomplete="off" class="border p-3 rounded-lg w-full" placeholder="Enter UPI transaction reference" />
+      <label for="mqb29ProofAmount" class="block text-sm font-semibold">Amount you actually sent (₹) *</label><input id="mqb29ProofAmount" type="number" min="1" max="9999999" step="0.01" required class="border p-3 rounded-lg w-full" />
+      <label for="mqb29ProofImage" class="block text-sm font-semibold">Payment screenshot (recommended)</label><input id="mqb29ProofImage" type="file" accept="image/png,image/jpeg,image/webp" class="border p-2 rounded-lg w-full" /><p class="text-[11px] text-brand-muted">Image is compressed and stored privately with your order details. Do not include UPI PIN, card numbers, passwords, or other sensitive information.</p>
+      <p id="mqb29ProofStatus" class="text-sm" role="status" aria-live="polite"></p>
+      <button type="submit" id="mqb29ProofSubmit" class="bg-brand-darkgreen text-white w-full py-3 rounded-lg font-bold">Send payment details for verification</button>
+    </form>
+  </div>
+  <!-- V29: staff payment receipt review -->
+  <div id="mqb29ReviewModal" class="hidden fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="mqb29ReviewTitle">
+    <div class="bg-white rounded-2xl p-5 w-full max-w-lg max-h-[94vh] overflow-y-auto space-y-3">
+      <div class="flex justify-between"><h3 id="mqb29ReviewTitle" class="font-extrabold text-lg">Customer payment submission</h3><button type="button" onclick="document.getElementById('mqb29ReviewModal').classList.add('hidden')" aria-label="Close">✕</button></div>
+      <div id="mqb29ReviewContent" class="text-sm space-y-3"></div>
+      <p class="text-xs bg-amber-50 border p-3 rounded-lg">A screenshot and UTR alone are NOT proof of receipt. Super Admin must confirm the bank statement using the existing Verify / Edit Manual Payment function.</p>
     </div>
   </div>
 
