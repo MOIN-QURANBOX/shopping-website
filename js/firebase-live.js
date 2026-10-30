@@ -740,26 +740,80 @@
       return alert('Please log out of the staff account or use a private window for customer checkout.');
     checkoutOriginal();
   };
+  // V28: request location only on customer action, never in the background.
+  // Browser geolocation gives a GPS pin, NOT a verified postal address.
+  let locationAttempt=0;
+  const setLocationStatus=(msg)=>{const el=$('mqbLocationStatus');if(el)el.textContent=msg;};
+  const updateMapPreview=(url)=>{
+    const a=$('mqbLocationMapLink');if(!a)return;
+    if(url){a.href=url;a.classList.remove('hidden');}else{a.href='#';a.classList.add('hidden');}
+  };
   window.mqbClearLocation=()=>{
+    locationAttempt++; // Invalidate any pending device callback.
     if($('mqbLocationLink'))$('mqbLocationLink').value='';
-    if($('mqbLocationStatus'))$('mqbLocationStatus').textContent='Location pin removed. You can still type your delivery address manually.';
+    if($('mqbManualMapLink'))$('mqbManualMapLink').value='';
+    updateMapPreview('');
+    if($('mqbLocationButton'))$('mqbLocationButton').disabled=false;
+    setLocationStatus('Location pin removed. Please type your full delivery address and PIN code.');
   };
   window.mqbUseCurrentLocation=()=>{
-    const label=$('mqbLocationStatus');const button=$('mqbLocationButton');
-    if(!navigator.geolocation){if(label)label.textContent='Location is unavailable. Please enter your address manually.';return;}
-    if(label)label.textContent='Requesting your permission to share this location…';
+    const button=$('mqbLocationButton');
+    const token=++locationAttempt;
+    if(!window.isSecureContext){
+      setLocationStatus('Location needs a secure HTTPS website. Open the published https:// website, not a downloaded HTML file.');return;
+    }
+    if(!navigator.geolocation){
+      setLocationStatus('Your browser cannot access device location. You can paste a Google Maps location link or enter your delivery address manually.');return;
+    }
     if(button)button.disabled=true;
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const {latitude,longitude,accuracy}=pos.coords;
-      if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
+    setLocationStatus('Finding your current location… Please allow Location in your browser and turn on device Location services.');
+    const finish=(message)=>{
+      if(token!==locationAttempt)return;
+      if(button)button.disabled=false;
+      setLocationStatus(message);
+    };
+    const success=pos=>{
+      if(token!==locationAttempt)return;
+      const {latitude,longitude,accuracy}=pos.coords||{};
+      if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180){
+        finish('Your device returned an invalid position. Paste a Google Maps link or enter the delivery address manually.');return;
+      }
       const link='https://www.google.com/maps?q='+latitude.toFixed(6)+','+longitude.toFixed(6);
       if($('mqbLocationLink'))$('mqbLocationLink').value=link;
-      if(label)label.textContent='✓ Location pin attached (accuracy about '+Math.round(accuracy)+' metres). Please also type your complete house/area/landmark and PIN code; GPS alone is not a delivery address.';
-      if(button)button.disabled=false;
-    },()=>{
-      if(label)label.textContent='Location permission denied or unavailable. Enter your address manually instead.';
-      if(button)button.disabled=false;
-    },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+      if($('mqbManualMapLink'))$('mqbManualMapLink').value='';
+      updateMapPreview(link);
+      const metres=Number.isFinite(accuracy)?Math.round(accuracy):null;
+      finish('✓ Current location pin attached'+(metres!==null?' (estimated accuracy '+metres+' m)':'')+'. Confirm the location using “View map pin”. Add your exact house/flat, street, landmark and six-digit PIN; device GPS may be approximate.');
+    };
+    const fail=(err,canRetry)=>{
+      if(token!==locationAttempt)return;
+      const code=Number(err?.code)||0;
+      if(canRetry && (code===2 || code===3)){
+        setLocationStatus('High-accuracy location is unavailable. Trying a faster network-based location…');
+        navigator.geolocation.getCurrentPosition(success,e=>fail(e,false),{enableHighAccuracy:false,timeout:12000,maximumAge:30000});return;
+      }
+      const msg=code===1 ? 'Location permission is blocked. Tap the lock/location icon beside the browser address, allow Location, and try again. You can also paste a Maps link.'
+        :code===3 ? 'Location timed out. Enable device Location services and Wi-Fi, then try again, or paste a Maps link.'
+        : 'Could not determine your location on this device. Enable device Location services or enter the full delivery address manually.';
+      finish(msg);
+    };
+    try {
+      navigator.geolocation.getCurrentPosition(success,e=>fail(e,true),{enableHighAccuracy:true,timeout:18000,maximumAge:0});
+    } catch {
+      finish('Location access failed. You can paste a Google Maps location link or enter your address manually.');
+    }
+  };
+  const safeMapsLink=value=>{
+    const raw=String(value||'').trim();if(!raw)return '';
+    try{
+      const u=new URL(raw);
+      if(u.protocol!=='https:'||u.username||u.password||u.href.length>202)return '';
+      const domain=u.hostname.toLowerCase();
+      if(domain==='maps.app.goo.gl'||domain==='goo.gl'&&u.pathname.startsWith('/maps/')||
+         (domain==='google.com'||domain==='www.google.com'||domain==='maps.google.com')&&
+            (u.pathname.startsWith('/maps')||u.pathname==='/maps'||domain==='maps.google.com'))return u.href;
+    }catch{}
+    return '';
   };
   const ensureGuestIdentity=async()=>{
     if(!live.auth)throw Error('Firebase is unavailable; try again when online.');
@@ -805,14 +859,18 @@
     e.preventDefault();
     clearCheckoutSaveProblem();
     const contactEmail=String($('chkEmail')?.value||'').trim();
-    const gpsLink=String($('mqbLocationLink')?.value||'');
+    const manualMapsRaw=String($('mqbManualMapLink')?.value||'').trim();
+    const manualMapsUrl=safeMapsLink(manualMapsRaw);
+    if(manualMapsRaw&&!manualMapsUrl)return alert('Please paste a valid short HTTPS Google Maps link (202 characters or less), or clear this optional field.');
+    const gpsLink=manualMapsUrl||safeMapsLink($('mqbLocationLink')?.value||'');
     const manualNote=String($('chkDeliveryNote')?.value||'').trim();
     const form={customerName:$('chkName')?.value.trim()||'',customerPhone:$('chkPhone')?.value.trim()||'',
       customerEmail:live.auth?.currentUser?.email || contactEmail,
       address:$('chkAddress')?.value.trim()||'',postalCode:$('chkPostalCode')?.value.trim()||'',
       paymentMethod:document.querySelector('input[name="chkPaymentMethod"]:checked')?.value||'To be arranged',
       deliveryChoice:$('chkDeliveryChoice')?.value||'Standard delivery',
-      deliveryNote:[manualNote,gpsLink?'Location pin: '+gpsLink:''].filter(Boolean).join(' | ').slice(0,240)};
+      // Keep the complete map URL inside the existing 240-char deliveryNote limit.
+      deliveryNote:[manualNote.slice(0,Math.max(0,240-(gpsLink?'Location pin: '.length+gpsLink.length+3:0))),gpsLink?'Location pin: '+gpsLink:''].filter(Boolean).join(' | ').slice(0,240)};
     if(!form.customerName||!form.customerPhone||!form.address||!form.postalCode) return alert('Please complete your shipping address.');
     if(contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail))return alert('Please enter a valid email, or leave it blank for guest checkout.');
     const btn=e.target.querySelector('button[type=submit]');if(btn)btn.disabled=true;
