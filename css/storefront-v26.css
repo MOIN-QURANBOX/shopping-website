@@ -182,3 +182,23 @@ body { background:#faf9f5; }
 
 .mqb30-signin-button{margin-top:9px;border:1px solid #9ab5a1;border-radius:8px;color:#21523b;background:#f7faf8;font-weight:750;padding:9px 11px;font-size:12px;text-align:center;min-height:38px}
 .mqb30-signin-button[hidden]{display:none!important}
+
+
+/* V31 – compact staff order controls, private action notes and reversible staff archive. */
+.mqb31-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mqb31-filters label,.mqb31-note-label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:750;color:#254234}
+.mqb31-filters select,.mqb31-note-label select,.mqb31-note-label textarea{width:100%;min-width:0;border:1px solid #d6dfd6;border-radius:9px;padding:9px;background:#fff;color:#20372c;font-size:12px;line-height:1.35}
+.mqb31-history-help{font-size:11px;line-height:1.5;color:#5b685f}
+.mqb31-notes{border:1px solid #d9e5da;background:#f7faf7;border-radius:10px;padding:11px;margin-top:6px}
+.mqb31-notes summary{cursor:pointer;font-size:12px;font-weight:800;color:#23533c;list-style:revert}
+.mqb31-notes[open]{display:grid;gap:10px}
+.mqb31-note-list{max-height:240px;overflow:auto;display:grid;gap:8px}
+.mqb31-note-row{padding:9px;border-radius:8px;background:white;border:1px solid #e1ebe3;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.mqb31-note-row strong,.mqb31-note-row small{display:block}.mqb31-note-row small{color:#68756b;margin-top:2px}.mqb31-note-row p{margin-top:6px}
+.mqb31-save-note{border:0;border-radius:9px;background:#1b4d33;color:white;font-weight:800;padding:10px 12px;font-size:12px}
+.mqb31-save-note:disabled{opacity:.6;cursor:wait}.mqb31-note-message{font-size:11px;color:#285439;min-height:1em}
+.mqb31-archive-toggle{width:100%;border:1px solid #c79c69;background:#fff9f2;color:#794719;border-radius:9px;font-size:12px;font-weight:800;padding:10px 12px}
+.mqb31-restore{border-color:#8eb8a0;background:#effaf3;color:#176342}.mqb31-archived-label{font-size:11px;color:#995b16;font-weight:700}
+@media(min-width:720px){.mqb31-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1050px){.mqb31-filters{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:360px){.mqb31-filters{grid-template-columns:1fr}}
