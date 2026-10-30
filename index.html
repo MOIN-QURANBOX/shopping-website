@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MOIN QURAN BOX | Luxury Islamic Store & Manufacturer Hyderabad</title>
   
   <!-- Fonts -->
@@ -1301,11 +1301,21 @@
             <div><label for="chkPostalCode" class="block text-xs font-semibold mb-1">Postal Code *</label><input id="chkPostalCode" type="text" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" class="w-full border rounded-lg p-3 bg-white text-base" placeholder="6-digit PIN" autocomplete="postal-code" /></div>
             <div><label for="chkDeliveryChoice" class="block text-xs font-semibold mb-1">Delivery choice</label><select id="chkDeliveryChoice" class="w-full border rounded-lg p-3 bg-white text-sm"><option value="Standard delivery">Standard delivery</option><option value="Showroom pickup">Showroom pickup</option><option value="Express inquiry">Express inquiry (subject to availability)</option></select></div>
           </div>
-          <div class="rounded-lg bg-brand-sand p-3 space-y-2 text-xs">
-            <button type="button" onclick="mqbUseCurrentLocation()" id="mqbLocationButton" class="px-4 py-2.5 rounded-lg bg-brand-darkgreen text-white font-semibold">📍 Use My Current Location (Optional)</button>
-            <p id="mqbLocationStatus" class="text-brand-muted" aria-live="polite">Location is optional; please still enter your complete address and PIN code.</p>
+          <div class="mqb28-location rounded-xl bg-brand-sand p-3 space-y-2 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <strong class="text-sm text-brand-charcoal">📍 Delivery location (optional)</strong>
+              <span class="text-[10px] text-brand-muted">Your permission is required</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="mqbUseCurrentLocation()" id="mqbLocationButton" class="px-3 py-2.5 rounded-lg bg-brand-darkgreen text-white font-semibold disabled:opacity-60">Use my current location</button>
+              <a id="mqbLocationMapLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-3 py-2.5 rounded-lg border border-brand-border bg-white font-semibold">View map pin ↗</a>
+              <button type="button" onclick="mqbClearLocation()" class="px-2 py-2.5 underline text-brand-muted">Clear pin</button>
+            </div>
+            <p id="mqbLocationStatus" class="text-brand-muted" role="status" aria-live="polite">Tap to attach a GPS map pin. You can always enter your address manually.</p>
+            <label class="block" for="mqbManualMapLink">Or paste a Google Maps location link (optional)</label>
+            <input id="mqbManualMapLink" type="url" inputmode="url" autocomplete="off" maxlength="300" placeholder="https://maps.app.goo.gl/..." class="w-full rounded-lg border border-brand-border bg-white p-2.5 text-sm" />
             <input id="mqbLocationLink" type="hidden" value="" />
-            <button type="button" onclick="mqbClearLocation()" class="underline text-brand-muted">Remove saved location pin</button>
+            <p class="text-[11px] text-brand-muted">No automatic tracking. GPS accuracy varies, especially on computers. Please verify your house/flat, street and 6-digit PIN before placing an order.</p>
           </div>
           <div><label for="chkDeliveryNote" class="block text-xs font-semibold mb-1">Delivery note (optional)</label><input id="chkDeliveryNote" maxlength="240" class="w-full border rounded-lg p-3 bg-white" placeholder="Landmark or delivery instructions" /></div>
           <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery charges confirmed separately</strong><p>From dispatch PIN 500012 to your location, our team will confirm courier charges and availability before payment or dispatch.</p></div>
