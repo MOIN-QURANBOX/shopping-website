@@ -133,6 +133,9 @@
           for(const k of publicKeys) if(Object.prototype.hasOwnProperty.call(data,k)) config[k]=data[k];
           // Public social values win over an older administrator settings snapshot.
           this.publicSocial=Object.fromEntries(['whatsappPhone','instagramHandle','whatsappGreeting'].filter(k=>Object.prototype.hasOwnProperty.call(data,k)).map(k=>[k,data[k]]));
+          // V29 public QR config: read-only to customers; authorized staff publish via Firebase rules.
+          this.publicPayment={upiId:String(data.paymentUpiId||''),payee:String(data.paymentPayeeName||''),qrImage:String(data.paymentQrImage||'')};
+          window.mqb29RefreshQrAdmin?.();
           config.customCategories=Array.isArray(data.customCategories) ? data.customCategories.filter(x=>typeof x==='string').slice(0,75) : [];
           renderCategoryChips();refreshProductCategoryOptions();renderCustomCategoryList();
           syncLiveCmsUI(); renderProducts();
@@ -749,59 +752,68 @@
     if(url){a.href=url;a.classList.remove('hidden');}else{a.href='#';a.classList.add('hidden');}
   };
   window.mqbClearLocation=()=>{
-    locationAttempt++; // Invalidate any pending device callback.
+    locationAttempt++;
     if($('mqbLocationLink'))$('mqbLocationLink').value='';
     if($('mqbManualMapLink'))$('mqbManualMapLink').value='';
     updateMapPreview('');
     if($('mqbLocationButton'))$('mqbLocationButton').disabled=false;
-    setLocationStatus('Location pin removed. Please type your full delivery address and PIN code.');
+    setLocationStatus('Location cleared. Enter or confirm your full delivery address and PIN code.');
   };
+  // Reverse-geocode only after explicit click + browser permission; no passive tracking.
+  // Limited OSM Nominatim public service: 1 request per click, no autocomplete.
   window.mqbUseCurrentLocation=()=>{
-    const button=$('mqbLocationButton');
-    const token=++locationAttempt;
-    if(!window.isSecureContext){
-      setLocationStatus('Location needs a secure HTTPS website. Open the published https:// website, not a downloaded HTML file.');return;
-    }
-    if(!navigator.geolocation){
-      setLocationStatus('Your browser cannot access device location. You can paste a Google Maps location link or enter your delivery address manually.');return;
-    }
+    const button=$('mqbLocationButton'),token=++locationAttempt;
+    if(!window.isSecureContext){setLocationStatus('Location needs HTTPS. Open your published website, not a downloaded file.');return;}
+    if(!navigator.geolocation){setLocationStatus('This browser does not provide location. Enter your address and six-digit PIN manually.');return;}
     if(button)button.disabled=true;
-    setLocationStatus('Finding your current location… Please allow Location in your browser and turn on device Location services.');
-    const finish=(message)=>{
+    setLocationStatus('Requesting device location permission… Turn on Location services and select Allow.');
+    const done=(message)=>{if(token!==locationAttempt)return;if(button)button.disabled=false;setLocationStatus(message);};
+    const success=async pos=>{
       if(token!==locationAttempt)return;
-      if(button)button.disabled=false;
-      setLocationStatus(message);
+      const {latitude:lat,longitude:lon,accuracy}=pos.coords||{};
+      if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){done('Device location is invalid. Enter address manually.');return;}
+      const mapUrl='https://www.google.com/maps?q='+lat.toFixed(6)+','+lon.toFixed(6);
+      if($('mqbLocationLink'))$('mqbLocationLink').value=mapUrl;
+      updateMapPreview(mapUrl);
+      setLocationStatus('Location detected. Looking up your street, area, city and PIN code…');
+      const ac=new AbortController();const timeout=setTimeout(()=>ac.abort(),12000);
+      try{
+        const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=en&lat='+encodeURIComponent(lat.toFixed(6))+'&lon='+encodeURIComponent(lon.toFixed(6));
+        const resp=await fetch(url,{signal:ac.signal,mode:'cors',headers:{'Accept':'application/json'}});
+        if(!resp.ok)throw Error('Address service unavailable (HTTP '+resp.status+')');
+        const result=await resp.json();if(token!==locationAttempt)return;
+        const a=result?.address||{};
+        const parts=[a.house_number,a.road||a.pedestrian||a.residential,a.suburb||a.neighbourhood||a.quarter,a.city||a.town||a.village||a.municipality||a.county,a.state].filter(Boolean);
+        const address=Array.from(new Set(parts.map(String))).join(', ');
+        const six=String(a.postcode||'').trim();
+        const addressNode=$('chkAddress'),pinNode=$('chkPostalCode');
+        if(addressNode&&address){
+          const old=addressNode.value.trim();
+          // Never erase a manually typed house/flat address.
+          const prior=addressNode.dataset.autofilled||'';
+          if(!old||old===prior){addressNode.value=address;addressNode.dataset.autofilled=address;}
+          else if(!old.toLowerCase().includes(address.toLowerCase())){addressNode.value=old+', '+address;addressNode.dataset.autofilled='';}
+          addressNode.dispatchEvent(new Event('input',{bubbles:true}));
+        }
+        const pinValid=/^[0-9]{6}$/.test(six)&&String(a.country_code||'').toLowerCase()==='in';
+        if(pinNode&&pinValid){pinNode.value=six;pinNode.dispatchEvent(new Event('input',{bubbles:true}));}
+        done(address||pinValid
+          ?'✓ '+(address?'Address filled. ':'')+(pinValid?'PIN '+six+' filled. ':'PIN not available; enter it manually. ')+ 'Confirm your house/flat number and all delivery details before ordering.'
+          :'GPS found your position but the address lookup returned no usable address. Enter address and PIN manually.');
+      }catch(error){
+        done('GPS pin found, but address lookup failed or timed out. Check internet access and enter address and PIN manually.');
+      }finally{clearTimeout(timeout);}
     };
-    const success=pos=>{
-      if(token!==locationAttempt)return;
-      const {latitude,longitude,accuracy}=pos.coords||{};
-      if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180){
-        finish('Your device returned an invalid position. Paste a Google Maps link or enter the delivery address manually.');return;
-      }
-      const link='https://www.google.com/maps?q='+latitude.toFixed(6)+','+longitude.toFixed(6);
-      if($('mqbLocationLink'))$('mqbLocationLink').value=link;
-      if($('mqbManualMapLink'))$('mqbManualMapLink').value='';
-      updateMapPreview(link);
-      const metres=Number.isFinite(accuracy)?Math.round(accuracy):null;
-      finish('✓ Current location pin attached'+(metres!==null?' (estimated accuracy '+metres+' m)':'')+'. Confirm the location using “View map pin”. Add your exact house/flat, street, landmark and six-digit PIN; device GPS may be approximate.');
-    };
-    const fail=(err,canRetry)=>{
+    const fail=(err,retry)=>{
       if(token!==locationAttempt)return;
       const code=Number(err?.code)||0;
-      if(canRetry && (code===2 || code===3)){
-        setLocationStatus('High-accuracy location is unavailable. Trying a faster network-based location…');
-        navigator.geolocation.getCurrentPosition(success,e=>fail(e,false),{enableHighAccuracy:false,timeout:12000,maximumAge:30000});return;
-      }
-      const msg=code===1 ? 'Location permission is blocked. Tap the lock/location icon beside the browser address, allow Location, and try again. You can also paste a Maps link.'
-        :code===3 ? 'Location timed out. Enable device Location services and Wi-Fi, then try again, or paste a Maps link.'
-        : 'Could not determine your location on this device. Enable device Location services or enter the full delivery address manually.';
-      finish(msg);
+      if(retry&&(code===2||code===3)){setLocationStatus('Trying an alternative network location…');navigator.geolocation.getCurrentPosition(success,e=>fail(e,false),{enableHighAccuracy:false,timeout:12000,maximumAge:30000});return;}
+      done(code===1?'Location permission denied. Enable Location for this site in your browser and device settings, then retry.'
+        :code===3?'Location request timed out. Turn on device Location and try again, or type your address.'
+        :'Unable to obtain device location. Desktop browsers may not provide accurate location. Enter address and PIN manually.');
     };
-    try {
-      navigator.geolocation.getCurrentPosition(success,e=>fail(e,true),{enableHighAccuracy:true,timeout:18000,maximumAge:0});
-    } catch {
-      finish('Location access failed. You can paste a Google Maps location link or enter your address manually.');
-    }
+    try{navigator.geolocation.getCurrentPosition(success,e=>fail(e,true),{enableHighAccuracy:true,timeout:18000,maximumAge:0});}
+    catch{done('Browser could not start location detection. Enter address manually.');}
   };
   const safeMapsLink=value=>{
     const raw=String(value||'').trim();if(!raw)return '';
@@ -956,9 +968,11 @@
         <p><strong>Payment choice:</strong> ${esc(o.paymentMethod||'Not recorded')} · <strong>Status:</strong> ${esc(o.paymentStatus==='verified'?'Received and manually verified':'Unverified / awaiting confirmation')} · <strong>Delivery:</strong> ${esc(o.deliveryChoice||'Standard')}</p>
         ${o.paymentStatus==='verified'?`<p class="text-emerald-800">Verified payment: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')} — ${esc(o.paymentVerification?.method||'manual')}</p>`:''}
         ${shippingCard(o)}
+        ${o.paymentMethod==='Manual UPI'&&price(o.paymentRequest?.amount)>0&&o.paymentStatus!=='verified'&&live.publicPayment?.qrImage?`<button type="button" class="mqb29-pay-order bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold w-full">Pay via QR &amp; submit transaction details</button>`:''}
         <button type="button" class="customer-invoice-download px-3 py-2 bg-brand-darkgreen text-white font-bold rounded-lg">Download Order Invoice (PDF)</button>
       </article>`;
     }).join(''):'<p class="text-xs text-neutral-500">No previous orders in this account yet.</p>';
+    node.querySelectorAll('.mqb29-pay-order').forEach(el=>{const i=Array.prototype.indexOf.call(node.children,el.closest('article'));el.addEventListener('click',()=>mqb29OpenPay(own[i].__uid,own[i].__key));});
     node.querySelectorAll('.customer-invoice-download').forEach((el,index)=>el.addEventListener('click',()=>{
       const o=own[index];window.downloadOrderInvoice(o.__uid,o.__key);
     }));
@@ -1206,6 +1220,8 @@
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
         ${o.__uid&&o.__key?`<button type="button" class="cloud-download-shipping-label border border-teal-800 text-teal-900 px-4 py-2 rounded-lg font-bold w-full">Download Shipping Label (PDF · 4×6)</button>`:''}
         ${isSuperAdmin()&&o.__uid&&o.__key?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
+        ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-approve-amount border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full">Confirm final UPI amount ${price(o.paymentRequest?.amount)?'(₹'+esc(price(o.paymentRequest.amount).toFixed(2))+')':''}</button>`:''}
+        ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-view-proof border border-indigo-700 text-indigo-900 px-4 py-2 rounded-lg font-bold w-full">View customer payment submission</button>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-edit-shipping bg-brand-darkgreen text-white px-4 py-2 rounded-lg font-bold w-full">Edit Shipping / Courier Tracking</button>`
           :'<p class="text-[10px] text-neutral-500">POS invoices and shipping need separate verified sales records.</p>'}
         <p class="text-[10px] text-neutral-500">Non-tax order invoice, not payment proof. Courier booking and payment verification remain separate.</p>
@@ -1219,6 +1235,8 @@
         catch(err){alert('Order status not saved: '+textError(err));renderAdminOrders();}
       });
     });
+    node.querySelectorAll('.mqb29-approve-amount').forEach(el=>{const record=visible[Array.prototype.indexOf.call(node.children,el.closest('article'))];el.addEventListener('click',()=>mqb29OpenAmount(record.__uid,record.__key));});
+    node.querySelectorAll('.mqb29-view-proof').forEach(el=>{const record=visible[Array.prototype.indexOf.call(node.children,el.closest('article'))];el.addEventListener('click',()=>mqb29ReviewProof(record.__uid,record.__key));});
     node.querySelectorAll('.cloud-edit-shipping').forEach(el=>{
       // Use data attribute/index from matching cards, not filtered positions: prevents wrong-order edits.
       const card=el.closest('article');const record=visible[Array.prototype.indexOf.call(node.children,card)];
@@ -1700,6 +1718,173 @@
     $('adminTab-staffactivity')?.classList.add('hidden');
     return _switchTab(tab);
   };
+  // V29 — owner-managed QR + order-bound payment-submission flow.
+  // Firebase RTDB rules enforce the access boundary; client checks are UX only.
+  const qrP = () => live.publicPayment || {};
+  const safeInlineImage = value => /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(String(value||'')) && String(value).length<200000 ? value : '';
+  const setMessage = (id, text, error=false) => {const node=$(id);if(node){node.textContent=text;node.className='text-sm '+(error?'text-red-800':'text-emerald-800');}};
+  const encodeImage = (file, kind) => new Promise((resolve,reject)=>{
+    if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>4000000){reject(Error('Choose a PNG, JPG or WebP image under 4 MB.'));return;}
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const max=kind==='qr'?680:1100;
+        const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+        const canvas=document.createElement('canvas'); canvas.width=Math.max(1,Math.round(img.naturalWidth*scale)); canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+        const context=canvas.getContext('2d'); if(!context)throw Error('Image processing unavailable');
+        context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
+        context.drawImage(img,0,0,canvas.width,canvas.height);
+        const limit=kind==='qr'?145000:175000;
+        let data=kind==='qr'?canvas.toDataURL('image/png'):canvas.toDataURL('image/jpeg',.86);
+        if(data.length>limit){
+          for(const q of [.85,.78,.70,.60,.48]){data=canvas.toDataURL('image/jpeg',q);if(data.length<=limit)break;}
+        }
+        if(data.length>limit)throw Error(kind==='qr'?'This QR image remains too large. Crop it to only the square QR and try again.':'This screenshot is too large after compression. Crop it around payment details and try again.');
+        if(!safeInlineImage(data))throw Error('Unsupported image encoding.');
+        resolve(data);
+      }catch(e){reject(e);}finally{URL.revokeObjectURL(url);}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Could not read this image.'));};
+    img.src=url;
+  });
+  window.mqb29RefreshQrAdmin=()=>{
+    if(!canEditStore())return;
+    const p=qrP();
+    if($('mqb29StoreUpiId')&&document.activeElement!==$('mqb29StoreUpiId'))$('mqb29StoreUpiId').value=p.upiId||'';
+    if($('mqb29StorePayee')&&document.activeElement!==$('mqb29StorePayee'))$('mqb29StorePayee').value=p.payee||'';
+    const im=$('mqb29AdminQrPreview'),src=safeInlineImage(p.qrImage);
+    if(im){im.src=src||'';im.classList.toggle('hidden',!src);}
+  };
+  window.mqb29SaveQr=async event=>{
+    event.preventDefault();if(!ensureStoreEditor())return;
+    const upiId=String($('mqb29StoreUpiId')?.value||'').trim();
+    const payee=String($('mqb29StorePayee')?.value||'').trim();
+    if(!/^[A-Za-z0-9._-]{2,80}@[A-Za-z0-9._-]{2,40}$/.test(upiId))return setMessage('mqb29QrAdminStatus','Enter a valid receiving UPI ID, e.g. store@bank.',true);
+    if(payee.length<2||payee.length>120)return setMessage('mqb29QrAdminStatus','Enter the correct receiving bank account name.',true);
+    let qr=safeInlineImage(qrP().qrImage);
+    const file=$('mqb29QrUpload')?.files?.[0];
+    try{
+      if(file)qr=await encodeImage(file,'qr');
+      if(!qr)throw Error('Upload your UPI QR image before saving.');
+      setMessage('mqb29QrAdminStatus','Saving QR settings to Firebase…');
+      await live.db.ref('publicSettings').update({paymentUpiId:upiId,paymentPayeeName:payee,paymentQrImage:qr});
+      if($('mqb29QrUpload'))$('mqb29QrUpload').value='';
+      setMessage('mqb29QrAdminStatus','✓ QR payment details saved. Verify the QR scans to your own bank account.');
+      logStaffActivity('store_settings','Store UPI QR updated');
+    }catch(err){setMessage('mqb29QrAdminStatus','Could not save QR: '+textError(err),true);}
+  };
+  window.mqb29DisableQr=async()=>{
+    if(!ensureStoreEditor()||!confirm('Disable QR payments for all new customer payments? Existing order requests and payment receipts are preserved.'))return;
+    try{await live.db.ref('publicSettings').update({paymentQrImage:'',paymentUpiId:'',paymentPayeeName:''});setMessage('mqb29QrAdminStatus','QR payments disabled.');}
+    catch(e){setMessage('mqb29QrAdminStatus','Could not disable QR: '+textError(e),true);}
+  };
+  let amountTarget=null;
+  const orderRef=(uid,key)=>orders.find(o=>o.__uid===uid&&o.__key===key);
+  const allowedOrderKey=(uid,key)=>typeof uid==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(uid)&&typeof key==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(key);
+  window.mqb29OpenAmount=(uid,key)=>{
+    if(!ensureStoreEditor()||!allowedOrderKey(uid,key))return;
+    const o=orderRef(uid,key);if(!o||o.paymentMethod!=='Manual UPI')return alert('UPI order not found.');
+    amountTarget={uid,key};
+    $('mqb29AmountOrderInfo').textContent='Order '+o.orderId+' · estimated item value ₹'+price(o.total).toLocaleString('en-IN')+'. Verify items and shipping before approving.';
+    $('mqb29FinalAmount').value=o.paymentRequest?.amount||'';
+    $('mqb29AmountNote').value=o.paymentRequest?.note||'';
+    $('mqb29AmountStatus').textContent='';$('mqb29AmountModal').classList.remove('hidden');
+  };
+  window.mqb29CloseAmount=()=>{amountTarget=null;$('mqb29AmountModal')?.classList.add('hidden');};
+  window.mqb29SavePayable=async event=>{
+    event.preventDefault();if(!ensureStoreEditor()||!amountTarget)return;
+    const amount=Number($('mqb29FinalAmount')?.value);
+    if(!Number.isFinite(amount)||amount<1||amount>9999999||Math.round(amount*100)/100!==amount)return setMessage('mqb29AmountStatus','Enter a valid final amount with up to two decimal places.',true);
+    const {uid,key}=amountTarget,o=orderRef(uid,key);
+    if(!o||o.paymentStatus==='verified')return setMessage('mqb29AmountStatus','Payment already verified; do not change the payable amount.',true);
+    if(['Requested','Cancelled','Returned','Delivered'].includes(o.status))return setMessage('mqb29AmountStatus','Confirm the order and stock before approving payment. This order status does not allow a new payment request.',true);
+    try{
+      const prior=(await live.db.ref('paymentSubmissions/'+uid+'/'+key).once('value')).val();
+      if(prior)throw Error('Customer already submitted payment details. Review the receipt before changing the amount.');
+      await live.db.ref('orderRequests/'+uid+'/'+key+'/paymentRequest').set({amount,note:String($('mqb29AmountNote')?.value||'').trim().slice(0,240),confirmedBy:live.uid,confirmedAt:firebase.database.ServerValue.TIMESTAMP});
+      setMessage('mqb29AmountStatus','✓ Final amount approved. Customer can now view the payment QR.');
+      logStaffActivity('store_settings','Approved UPI amount for '+o.orderId);
+      setTimeout(()=>window.mqb29CloseAmount(),700);
+    }catch(error){setMessage('mqb29AmountStatus','Not saved: '+textError(error),true);}
+  };
+  let payTarget=null;
+  window.mqb29OpenPay=async(uid,key)=>{
+    if(!allowedOrderKey(uid,key)||!live.uid||live.uid!==uid||isAdmin())return alert('Open the order from the same customer or guest account used to place it.');
+    const o=orderRef(uid,key),p=qrP();
+    if(!o||o.paymentMethod!=='Manual UPI'||o.paymentStatus==='verified'||!price(o.paymentRequest?.amount)||!safeInlineImage(p.qrImage)||!p.upiId)
+      return alert('The owner has not yet confirmed the final payable amount or enabled the store payment QR. Please wait for confirmation.');
+    if(['Requested','Cancelled','Returned','Delivered'].includes(o.status))return alert('This order is not yet eligible for QR payment. Wait for the owner to confirm it.');
+    payTarget={uid,key};
+    $('mqb29PayOrderInfo').textContent=o.orderId+' · final payable amount confirmed by the store';
+    $('mqb29CustomerQr').src=safeInlineImage(p.qrImage);
+    $('mqb29PayeeDisplay').textContent=(p.payee||'Receiving account')+' · '+p.upiId;
+    $('mqb29PayableDisplay').textContent='₹'+price(o.paymentRequest.amount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    $('mqb29ProofAmount').value=price(o.paymentRequest.amount).toFixed(2);
+    $('mqb29ProofUtr').value='';$('mqb29ProofImage').value='';$('mqb29ProofStatus').textContent='';
+    const uri='upi://pay?'+new URLSearchParams({pa:p.upiId,pn:p.payee||'MOIN QURAN BOX',am:price(o.paymentRequest.amount).toFixed(2),cu:'INR',tn:'Order '+o.orderId}).toString();
+    $('mqb29UpiDeepLink').href=uri;
+    $('mqb29PayModal').classList.remove('hidden');
+    try{const exists=(await live.db.ref('paymentSubmissions/'+uid+'/'+key).once('value')).exists();if(exists){setMessage('mqb29ProofStatus','Payment details have already been submitted for this order. Await bank verification by the store.',true);$('mqb29ProofSubmit').disabled=true;}else $('mqb29ProofSubmit').disabled=false;}
+    catch(e){setMessage('mqb29ProofStatus','Could not check previous submissions: '+textError(e),true);$('mqb29ProofSubmit').disabled=true;}
+  };
+  window.mqb29ClosePay=()=>{payTarget=null;$('mqb29PayModal')?.classList.add('hidden');};
+  window.mqb29CopyUpi=async()=>{
+    const id=qrP().upiId||'';
+    try{await navigator.clipboard.writeText(id);setMessage('mqb29ProofStatus','UPI ID copied.');}
+    catch{setMessage('mqb29ProofStatus','Copy unavailable on this device. Use the UPI ID displayed below the QR.',true);}
+  };
+  window.mqb29SubmitProof=async event=>{
+    event.preventDefault();const target=payTarget;if(!target||!allowedOrderKey(target.uid,target.key)||!live.uid||live.uid!==target.uid||isAdmin())return;
+    const o=orderRef(target.uid,target.key);if(!o||o.paymentStatus==='verified'||!price(o.paymentRequest?.amount))return setMessage('mqb29ProofStatus','Order cannot accept payment proof.',true);
+    const utr=String($('mqb29ProofUtr')?.value||'').trim(),reportedAmount=Number($('mqb29ProofAmount')?.value);
+    if(!/^[A-Za-z0-9/-]{6,64}$/.test(utr))return setMessage('mqb29ProofStatus','Enter a valid UTR / transaction reference (6–64 letters or digits).',true);
+    if(!Number.isFinite(reportedAmount)||reportedAmount<=0||reportedAmount>9999999||Math.round(reportedAmount*100)/100!==reportedAmount)return setMessage('mqb29ProofStatus','Enter the amount that was actually paid.',true);
+    const button=$('mqb29ProofSubmit');if(button)button.disabled=true;
+    try{
+      setMessage('mqb29ProofStatus','Preparing and sending payment details…');
+      const file=$('mqb29ProofImage')?.files?.[0];const screenshotData=file?await encodeImage(file,'proof'):'';
+      const path='paymentSubmissions/'+target.uid+'/'+target.key;
+      const ref=live.db.ref(path),snapshot=await ref.once('value');
+      if(snapshot.exists())throw Error('Payment details were already submitted for this order. Contact the store to correct them.');
+      // Create-only database security rule ensures customer cannot mark payment verified.
+      await ref.set({utr,reportedAmount,screenshotData,submittedAt:firebase.database.ServerValue.TIMESTAMP});
+      setMessage('mqb29ProofStatus','✓ Details submitted. Payment remains PENDING until the store checks its receiving bank account.');
+      if(button)button.disabled=true;
+    }catch(e){setMessage('mqb29ProofStatus','Submission failed: '+textError(e),true);if(button)button.disabled=false;}
+  };
+  window.mqb29ReviewProof=async(uid,key)=>{
+    if(!ensureStoreEditor()||!allowedOrderKey(uid,key))return;
+    $('mqb29ReviewModal').classList.remove('hidden');$('mqb29ReviewContent').textContent='Loading customer submission…';
+    try{
+      const data=(await live.db.ref('paymentSubmissions/'+uid+'/'+key).once('value')).val(),o=orderRef(uid,key);
+      const node=$('mqb29ReviewContent');node.replaceChildren();
+      if(!data){node.textContent='No payment submission for this order yet.';return;}
+      const p=document.createElement('p');p.textContent='Order: '+(o?.orderId||key)+' · UTR: '+String(data.utr||'')+' · Amount claimed: ₹'+price(data.reportedAmount).toFixed(2)+' · Time: '+(data.submittedAt?new Date(data.submittedAt).toLocaleString('en-IN'):'Unknown');node.appendChild(p);
+      const imgdata=safeInlineImage(data.screenshotData);
+      if(imgdata){const im=document.createElement('img');im.src=imgdata;im.alt='Customer-uploaded payment screenshot — not verified';im.style.cssText='width:100%;max-height:450px;object-fit:contain;border:1px solid #ddd;border-radius:8px;';node.appendChild(im);}
+      else{const note=document.createElement('p');note.textContent='No screenshot attached. Customer supplied transaction details only.';node.appendChild(note);}
+    }catch(e){$('mqb29ReviewContent').textContent='Cannot load submission: '+textError(e);}
+  };
+  // Store owner/admin sees QR editor; managers cannot change payment destination.
+  const originalAdminSwitchForQr=window.switchAdminTab;
+  window.switchAdminTab=tab=>{
+    originalAdminSwitchForQr(tab);
+    if(tab==='payments'){
+      $('mqb29PaymentQrPanel')?.classList.toggle('hidden',!canEditStore());
+      window.mqb29RefreshQrAdmin();
+    }
+  };
+  // Guest customers can open QR payments through their private order tracking result.
+  const originalTracking=window.trackOrderById;
+  window.trackOrderById=()=>{
+    originalTracking();const node=$('trackingResultBox'),id=String($('trackInputId')?.value||'').trim().toUpperCase();
+    const o=orders.find(x=>String(x.orderId||'').toUpperCase()===id&&x.__uid===live.uid);
+    if(!o||!node||o.paymentStatus==='verified'||o.paymentMethod!=='Manual UPI'||!price(o.paymentRequest?.amount)||!safeInlineImage(qrP().qrImage))return;
+    const button=document.createElement('button');button.type='button';button.textContent='Pay approved amount via QR / submit payment details';
+    button.className='bg-emerald-800 text-white p-2 rounded mt-2 w-full font-bold';button.onclick=()=>window.mqb29OpenPay(o.__uid,o.__key);node.appendChild(button);
+  };
+
   // All changes to the catalog, settings, roles and order records must also be
   // enforced by the Firebase Realtime Database Security Rules shipped for review.
   // Client-side hidden controls are not authorization.
