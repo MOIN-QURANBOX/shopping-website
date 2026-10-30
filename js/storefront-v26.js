@@ -31,12 +31,12 @@
   function buildLayout(){
     const services=byId('welcomeGreetingBanner')?.parentElement;
     const main=document.querySelector('main');
-    const showroom=byId('storefrontBranchesContainer')?.parentElement;
-    if(!main||!showroom)return;
+    const catalogAnchor=byId('catalogTopAnchor');
+    if(!main||!catalogAnchor)return;
     if(!byId('mqbV26Highlights')){
       const block=str('div','',undefined);block.id='mqbV26Highlights';
       block.innerHTML='<section id="mqbV28ShopBar" class="mqb28-shopbar" aria-label="Quick shopping tools"><div class="mqb28-searcharea"><label id="mqbV28SearchLabel" for="mqbV28Search" class="mqb28-label"></label><div class="mqb28-inputrow"><span aria-hidden="true">⌕</span><input type="search" id="mqbV28Search" autocomplete="off" enterkeyhint="search" aria-describedby="mqbV28Results"><button type="button" id="mqbV28Clear" class="mqb28-clear" hidden></button></div><p id="mqbV28Results" class="mqb28-searchresults" aria-live="polite"></p></div><div class="mqb28-shopactions"><button type="button" id="mqbV28Bag" class="mqb28-bagbtn"></button><button type="button" id="mqbV28Checkout" class="mqb28-checkoutbtn" disabled></button></div></section><section class="mqb26-featured" aria-label="Featured products"><div class="mqb26-intro"><div><div class="mqb26-eyebrow">OUR COLLECTION</div><h2 id="mqbV26FeaturedTitle" class="mqb26-title"></h2><p class="mqb26-subtitle" id="mqbV26FeaturedSub"></p></div><button type="button" id="mqbV26Explore" class="mqb26-textlink"></button></div><div id="mqbV26Products" class="mqb26-featuredgrid"></div></section><div id="mqbV26PaymentNotice" class="mqb26-notice"></div>';
-      main.insertBefore(block,showroom);
+      main.insertBefore(block,catalogAnchor);
       byId('mqbV28Search')?.addEventListener('input',applySearch);
       byId('mqbV28Search')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();byId('catalogTopAnchor')?.scrollIntoView({behavior:'smooth',block:'start'});}});
       byId('mqbV28Clear')?.addEventListener('click',()=>{byId('mqbV28Search').value='';applySearch();byId('mqbV28Search')?.focus();});
