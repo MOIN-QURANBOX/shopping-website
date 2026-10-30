@@ -783,7 +783,7 @@
         if(!resp.ok)throw Error('Address service unavailable (HTTP '+resp.status+')');
         const result=await resp.json();if(token!==locationAttempt)return;
         const a=result?.address||{};
-        const parts=[a.house_number,a.road||a.pedestrian||a.residential,a.suburb||a.neighbourhood||a.quarter,a.city||a.town||a.village||a.municipality||a.county,a.state].filter(Boolean);
+        const parts=[a.house_number,a.road||a.pedestrian||a.residential,a.suburb||a.neighbourhood||a.quarter||a.city_district||a.locality||a.ward,a.city||a.town||a.village||a.municipality||a.county||a.state_district,a.state].filter(Boolean);
         const address=Array.from(new Set(parts.map(String))).join(', ');
         const six=String(a.postcode||'').trim();
         const addressNode=$('chkAddress'),pinNode=$('chkPostalCode');
@@ -797,8 +797,9 @@
         }
         const pinValid=/^[0-9]{6}$/.test(six)&&String(a.country_code||'').toLowerCase()==='in';
         if(pinNode&&pinValid){pinNode.value=six;pinNode.dispatchEvent(new Event('input',{bubbles:true}));}
+        const accuracyNote=Number.isFinite(accuracy)&&accuracy>250?'Location is approximate ('+Math.round(accuracy)+' m). ':'';
         done(address||pinValid
-          ?'✓ '+(address?'Address filled. ':'')+(pinValid?'PIN '+six+' filled. ':'PIN not available; enter it manually. ')+ 'Confirm your house/flat number and all delivery details before ordering.'
+          ?'✓ '+accuracyNote+(address?'Address filled. ':'')+(pinValid?'PIN '+six+' filled. ':'PIN not available; enter it manually. ')+ 'Confirm your house/flat number and all delivery details before ordering.'
           :'GPS found your position but the address lookup returned no usable address. Enter address and PIN manually.');
       }catch(error){
         done('GPS pin found, but address lookup failed or timed out. Check internet access and enter address and PIN manually.');
@@ -878,7 +879,7 @@
     const manualNote=String($('chkDeliveryNote')?.value||'').trim();
     const form={customerName:$('chkName')?.value.trim()||'',customerPhone:$('chkPhone')?.value.trim()||'',
       customerEmail:live.auth?.currentUser?.email || contactEmail,
-      address:$('chkAddress')?.value.trim()||'',postalCode:$('chkPostalCode')?.value.trim()||'',
+      address:(()=>{const house=String($('mqb30HouseFlat')?.value||'').trim(),street=String($('chkAddress')?.value||'').trim();return (house && !street.toLowerCase().startsWith(house.toLowerCase())?house+', ':'')+street;})().slice(0,600),postalCode:$('chkPostalCode')?.value.trim()||'',
       paymentMethod:document.querySelector('input[name="chkPaymentMethod"]:checked')?.value||'To be arranged',
       deliveryChoice:$('chkDeliveryChoice')?.value||'Standard delivery',
       // Keep the complete map URL inside the existing 240-char deliveryNote limit.
@@ -1883,6 +1884,106 @@
     if(!o||!node||o.paymentStatus==='verified'||o.paymentMethod!=='Manual UPI'||!price(o.paymentRequest?.amount)||!safeInlineImage(qrP().qrImage))return;
     const button=document.createElement('button');button.type='button';button.textContent='Pay approved amount via QR / submit payment details';
     button.className='bg-emerald-800 text-white p-2 rounded mt-2 w-full font-bold';button.onclick=()=>window.mqb29OpenPay(o.__uid,o.__key);node.appendChild(button);
+  };
+
+
+  // V30 — user-facing order progress, guest continuity notice, address validation.
+  // No new Firebase paths, read permissions, or changes to QR verification logic.
+  const mqb30Stages=['Requested','Confirmed','Processing','Packed','Shipped','In Transit','Out for Delivery','Delivered'];
+  const mqb30ProgressFor=order=>{
+    const current=String(order?.status||'Requested');
+    const cancelled=/^(Cancelled|Returned)$/i.test(current);
+    const normal=cancelled?0:mqb30Stages.indexOf(current);
+    const stage=normal<0?0:normal;
+    const list=document.createElement('div');list.className='mqb30-tracking';
+    const heading=document.createElement('div');heading.className='mqb30-tracking-heading';
+    const title=document.createElement('strong');title.textContent='Order progress';heading.appendChild(title);
+    const tag=document.createElement('span');tag.className='mqb30-payment-tag';
+    tag.textContent=order?.paymentStatus==='verified'?'Payment manually verified':'Payment pending verification';
+    heading.appendChild(tag);list.appendChild(heading);
+    if(cancelled){
+      const notice=document.createElement('p');notice.className='mqb30-cancel-notice';notice.textContent='Order '+current+'. Contact the store for assistance.';list.appendChild(notice);
+      return list;
+    }
+    const ol=document.createElement('ol');ol.className='mqb30-timeline';ol.setAttribute('aria-label','Current order progress');
+    mqb30Stages.forEach((name,index)=>{
+      const li=document.createElement('li');li.className=index<stage?'mqb30-stage done':index===stage?'mqb30-stage current':'mqb30-stage future';
+      if(index===stage)li.setAttribute('aria-current','step');
+      const marker=document.createElement('span');marker.className='mqb30-stage-mark';marker.textContent=index<stage?'✓':String(index+1);
+      const label=document.createElement('span');label.textContent=name;
+      li.append(marker,label);ol.appendChild(li);
+    });
+    list.appendChild(ol);
+    const note=document.createElement('p');note.className='mqb30-stage-note';
+    note.textContent=stage<4?'The store will update this order as it is prepared. Delivery charges and payment are confirmed separately.':stage<7?'Courier and estimated delivery details appear above when assigned.':'Delivery is marked complete.';
+    list.appendChild(note);return list;
+  };
+  const mqb30PreviousTrack=window.trackOrderById;
+  window.trackOrderById=()=>{
+    mqb30PreviousTrack();
+    const node=$('trackingResultBox');
+    const id=String($('trackInputId')?.value||'').trim().toUpperCase();
+    const o=orders.find(x=>String(x.orderId||'').toUpperCase()===id && (isAdmin()||x.__uid===live.uid));
+    if(!o||!node)return;
+    node.querySelector('.mqb30-tracking')?.remove();
+    const after=node.querySelector('.mqb29-pay-order');
+    const progress=mqb30ProgressFor(o);
+    if(after)node.insertBefore(progress,after);else node.appendChild(progress);
+  };
+  const mqb30PreviousOrders=window.renderCustProfileOrders;
+  window.renderCustProfileOrders=()=>{
+    mqb30PreviousOrders();
+    if(currentUser?.role!=='customer')return;
+    const own=orders.filter(o=>o.__uid===live.uid);
+    $('custOrderList')?.querySelectorAll('article').forEach((el,i)=>{
+      if(own[i]&&!el.querySelector('.mqb30-tracking'))el.appendChild(mqb30ProgressFor(own[i]));
+    });
+  };
+  window.mqb30CopyOrderId=async()=>{
+    const raw=String($('successOrderIdDisplay')?.textContent||'');
+    const orderId=raw.match(/MQB-REQ-[A-Z0-9-]+/i)?.[0]||'';
+    const status=$('mqb30CopyOrderStatus');
+    if(!orderId){if(status)status.textContent='Order ID not available.';return;}
+    try{
+      if(!navigator.clipboard?.writeText)throw Error('Clipboard not available');
+      await navigator.clipboard.writeText(orderId);
+      if(status)status.textContent='✓ Order ID copied. Keep it for tracking.';
+    }catch{
+      if(status)status.textContent='Select the order ID above and copy it manually.';
+    }
+  };
+  // Existing email/password login is the supported cross-device path for NEW orders.
+  // This does not reassign anonymous orders or bypass Firebase ownership rules.
+  window.mqb30SignInFirst=()=>{
+    window.closeCheckoutModal?.();
+    window.openCustomerAuthModal?.('login');
+  };
+  // Checkout user data is not silently stored in browser/local storage.
+  // Protect human-entered address from GPS overrides; let the user correct PIN.
+  const mqb30PreviousPlace=window.handlePlaceOrder;
+  window.handlePlaceOrder=async(event)=>{
+    const postal=$('chkPostalCode');
+    if(postal){postal.value=String(postal.value||'').replace(/\D/g,'').slice(0,6);}
+    const house=$('mqb30HouseFlat');
+    const street=$('chkAddress');
+    if(house?.value.trim() && !street?.value.trim()){
+      event.preventDefault();street?.focus();
+      const status=$('mqbLocationStatus');if(status)status.textContent='Please enter your street / area / city in addition to the house number.';
+      return;
+    }
+    return mqb30PreviousPlace(event);
+  };
+  // Reset the copy confirmation only when a new order succeeds.
+  const mqb30PreviousCheckout=window.startCheckout;
+  window.startCheckout=()=>{
+    const copy=$('mqb30CopyOrderStatus');if(copy)copy.textContent='';
+    const signIn=$('mqb30SignInFirst');if(signIn)signIn.hidden=currentUser?.role==='customer';
+    mqb30PreviousCheckout();
+  };
+  const mqb30PreviousGps=window.mqbUseCurrentLocation;
+  window.mqbUseCurrentLocation=()=>{
+    const status=$('mqbLocationStatus');if(status)status.textContent='Locating with your permission. Please keep device Location/GPS enabled. We will fill only available address details.';
+    return mqb30PreviousGps();
   };
 
   // All changes to the catalog, settings, roles and order records must also be
