@@ -111,3 +111,36 @@ body { background:#faf9f5; }
   .mqb26-category{padding:8px;min-height:63px;}
   .mqb26-catname{font-size:11px;}
 }
+
+/* V28 — compact, working customer shopping toolbar (replaces the old four-item trust strip). */
+.mqb28-shopbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:13px 15px;margin-bottom:24px;background:#fff;border:1px solid var(--mqb26-bdr);border-radius:16px;box-shadow:0 6px 24px rgba(29,48,34,.045)}
+.mqb28-searcharea{flex:1 1 320px;min-width:0}
+.mqb28-label{display:block;font-size:12px;font-weight:800;color:#1b4030;margin-bottom:6px}
+.mqb28-inputrow{display:flex;align-items:center;gap:8px;height:43px;border:1px solid #d7ddd6;background:#fafbf8;border-radius:10px;padding:0 10px}
+.mqb28-inputrow:focus-within{outline:2px solid #648976;outline-offset:1px}
+.mqb28-inputrow>span{font-size:22px;color:#5c7767}
+.mqb28-inputrow input{width:100%;min-width:0;border:0;outline:0;background:transparent;font-size:13px;color:#182e24}
+.mqb28-clear{border:0;background:none;color:#276349;font-size:12px;font-weight:800;text-decoration:underline}
+.mqb28-clear[hidden],#productGrid>[hidden]{display:none!important}
+.mqb28-searchresults{min-height:0;color:#456052;font-size:11px;margin-top:3px}
+.mqb28-searchresults:empty{display:none}
+.mqb28-shopactions{display:flex;gap:8px;align-items:center}
+.mqb28-shopactions button{min-height:43px;padding:9px 13px;white-space:nowrap;font-size:12px;font-weight:800;border-radius:10px;transition:background .15s}
+.mqb28-bagbtn{border:1px solid #557260;background:#f7faf7;color:#183e2b}
+.mqb28-checkoutbtn{background:#1a3c2b;color:#fff;border:1px solid #1a3c2b}
+.mqb28-checkoutbtn:disabled{opacity:.45;cursor:not-allowed}
+.mqb28-shopactions button:not(:disabled):hover{filter:brightness(.92)}
+.mqb28-feature-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto}
+.mqb28-feature-actions>button{min-height:38px;padding:6px 5px;margin:0;font-size:11px;line-height:1.25}
+.mqb28-addbtn{background:#1b3c2e;color:#fff;border:1px solid #1b3c2e;border-radius:8px;font-weight:800;cursor:pointer}
+.mqb28-addbtn:hover{background:#2b5d43}
+.mqb28-location button:disabled{cursor:wait}
+.mqb28-location #mqbLocationStatus{line-height:1.55}
+.dark #mqbV26Highlights .mqb28-shopbar{background:#1e2822;border-color:#3f4c43}
+.dark #mqbV26Highlights .mqb28-label{color:#e8f4e9}
+.dark #mqbV26Highlights .mqb28-inputrow{background:#263b30;border-color:#587360}
+.dark #mqbV26Highlights .mqb28-inputrow input{color:#fff}
+.dark #mqbV26Highlights .mqb28-bagbtn{background:#30493a;color:#f8fff7}
+.dark #mqbV26Highlights .mqb28-searchresults{color:#c7e4d0}
+@media(max-width:639px){.mqb28-shopbar{gap:9px;padding:11px;border-radius:12px;margin-bottom:17px}.mqb28-searcharea{flex-basis:100%}.mqb28-shopactions{width:100%;display:grid;grid-template-columns:1fr 1fr}.mqb28-shopactions button{min-height:39px;font-size:12px}.mqb28-feature-actions{grid-template-columns:1fr}.mqb28-feature-actions>button{min-height:34px;font-size:11px}}
+@media(max-width:380px){.mqb28-feature-actions>button{font-size:10px}}
