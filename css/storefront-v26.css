@@ -217,3 +217,26 @@ body { background:#faf9f5; }
 .mqb32-publish-btn{width:max-content;max-width:100%;min-height:44px;border-radius:8px;background:#1c3026;color:#fff;font-size:13px;font-weight:800;padding:10px 15px}
 .mqb32-publish-btn:disabled{opacity:.65;cursor:wait}
 @media(max-width:480px){.mqb32-contact-action{font-size:.75rem;flex:1 1 44%}.mqb32-floating-call{right:1.4rem;bottom:6rem;width:44px;height:44px;font-size:20px}}
+
+
+/* V33 — visible genuine customer ratings and compact staff review controls */
+.mqb33-card-rating{font-size:11px;line-height:1.5;color:#99610a;font-weight:750;padding:5px 0;letter-spacing:.01em}
+.mqb33-stock-rating{font-size:10px;color:#946008;margin-top:4px;font-weight:650}
+.mqb33-stock-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;margin-top:6px}
+.mqb33-review-action,.mqb33-restore-action{border:1px solid #c29e60;background:#fff8e6;color:#614712;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:750;cursor:pointer}
+.mqb33-remove-action{border:1px solid #f4b2b2;background:#fff5f5;color:#a32b2b;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:750;cursor:pointer}
+.mqb33-review-action:hover,.mqb33-restore-action:hover{background:#f8edcf}
+.mqb33-remove-action:hover{background:#ffe4e4}
+.mqb33-stars{color:#b47710;font-weight:800;font-size:13px}
+.mqb33-review-card{border:1px solid #e7dfd1;border-radius:11px;background:#fffcf6;padding:12px;display:flex;flex-direction:column;gap:6px}
+.mqb33-review-comment{white-space:pre-wrap;overflow-wrap:anywhere;color:#333;font-size:12px}
+.mqb33-store-reply{background:#f0f9f4;border-left:3px solid #16593b;padding:8px;color:#1c5035;font-size:12px;overflow-wrap:anywhere}
+.mqb33-review-heading{font-size:13px;font-weight:800;color:#27372a}
+.mqb33-review-filter{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px}
+.mqb33-review-select,.mqb33-reply-input{border:1px solid #d8d3c8;border-radius:8px;padding:9px;background:#fff;max-width:100%;font-size:12px}
+.mqb33-reply-input{width:100%}
+.mqb33-archive-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px;border:1px solid #eee6db;border-radius:8px}
+.mqb33-empty{font-size:12px;color:#6f6b63;padding:10px}
+.mqb33-details-review{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid #e8e0d3;padding-top:12px;margin-top:14px}
+#mqb33ArchivePanel[hidden]{display:none!important}
+@media(max-width:640px){.mqb33-stock-actions{justify-content:flex-start}.mqb33-review-card{padding:9px}.mqb33-review-filter>*{max-width:100%}}
