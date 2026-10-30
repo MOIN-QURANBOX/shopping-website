@@ -1291,6 +1291,7 @@
         <button type="button" onclick="closeCheckoutModal()" aria-label="Close checkout" class="text-xl">×</button>
       </header>
       <form onsubmit="handlePlaceOrder(event)" class="p-3 sm:p-5 space-y-4 overflow-y-auto" style="overscroll-behavior:contain">
+        <div class="mqb30-checkout-steps" aria-label="Checkout sections"><span><b>1</b> Bag</span><span><b>2</b> Address</span><span><b>3</b> Request order</span></div>
         <section class="rounded-2xl bg-white shadow-sm border border-brand-border overflow-hidden">
           <button type="button" onclick="mqbToggleCheckoutSummary()" aria-expanded="false" aria-controls="mqbCheckoutItems" id="mqbSummaryToggle" class="w-full flex items-center justify-between gap-2 px-4 py-4 text-left font-bold">
             <span>Order summary (<span id="mqbCheckoutCount">0</span> items)</span>
@@ -1300,7 +1301,7 @@
           <p class="bg-emerald-50 text-emerald-800 px-4 py-2 text-xs">Item prices shown are estimates; final total and shipping are confirmed by the store.</p>
         </section>
         <div id="guestCheckoutNotice" class="rounded-xl bg-white border border-brand-border px-4 py-3 text-xs text-brand-charcoal">
-          <strong>✓ No account required</strong><p class="mt-1 text-brand-muted">You can place an order with just your name, phone and delivery details. Save your order ID for updates.</p>
+          <strong>✓ Guest checkout available</strong><p class="mt-1 text-brand-muted">No account required. For later tracking, use the same browser and do not clear site data. To track future orders across devices, sign in before placing an order. We never reveal private orders using only an order ID.</p><button id="mqb30SignInFirst" type="button" onclick="mqb30SignInFirst()" class="mqb30-signin-button">Already have an account? Sign in before ordering</button>
         </div>
         <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-3">
           <h4 class="font-extrabold text-base">Contact &amp; delivery address</h4>
@@ -1309,9 +1310,10 @@
             <div><label for="chkPhone" class="block text-xs font-semibold mb-1">WhatsApp Mobile *</label><input id="chkPhone" type="tel" required class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="tel" placeholder="10-digit mobile number" /></div>
             <div><label for="chkEmail" class="block text-xs font-semibold mb-1">Email (optional)</label><input id="chkEmail" type="email" class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="email" placeholder="Optional for guest orders" /></div>
           </div>
-          <div><label for="chkAddress" class="block text-xs font-semibold mb-1">Delivery Address *</label><textarea id="chkAddress" rows="2" required class="w-full border rounded-lg p-3 bg-white text-base" placeholder="House / Flat, Street, Area, Landmark" autocomplete="street-address"></textarea></div>
+          <div><label for="mqb30HouseFlat" class="block text-xs font-semibold mb-1">House / flat / building <span class="font-normal text-brand-muted">(please complete for delivery)</span></label><input id="mqb30HouseFlat" type="text" maxlength="140" autocomplete="address-line1" class="w-full border rounded-lg p-3 bg-white text-base" placeholder="Example: Flat 202, Building B" /><p class="text-[11px] text-brand-muted mt-1">GPS cannot identify your flat or house number. Please enter it yourself.</p></div>
+          <div><label for="chkAddress" class="block text-xs font-semibold mb-1">Street / area / city / state *</label><textarea id="chkAddress" rows="2" required class="w-full border rounded-lg p-3 bg-white text-base" placeholder="Street, colony, landmark, city and state" autocomplete="address-line2"></textarea></div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label for="chkPostalCode" class="block text-xs font-semibold mb-1">Postal Code *</label><input id="chkPostalCode" type="text" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" class="w-full border rounded-lg p-3 bg-white text-base" placeholder="6-digit PIN" autocomplete="postal-code" /></div>
+            <div><label for="chkPostalCode" class="block text-xs font-semibold mb-1">Postal Code *</label><input id="chkPostalCode" type="text" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" class="w-full border rounded-lg p-3 bg-white text-base" placeholder="6-digit PIN" autocomplete="postal-code" aria-describedby="mqb30PinHelp" /><small id="mqb30PinHelp" class="mqb30-input-help">Check this PIN before ordering; GPS results may be approximate.</small></div>
             <div><label for="chkDeliveryChoice" class="block text-xs font-semibold mb-1">Delivery choice</label><select id="chkDeliveryChoice" class="w-full border rounded-lg p-3 bg-white text-sm"><option value="Standard delivery">Standard delivery</option><option value="Showroom pickup">Showroom pickup</option><option value="Express inquiry">Express inquiry (subject to availability)</option></select></div>
           </div>
           <div class="mqb28-location rounded-xl bg-brand-sand p-3 space-y-2 text-xs">
@@ -1325,6 +1327,7 @@
               <button type="button" onclick="mqbClearLocation()" class="px-2 py-2.5 underline text-brand-muted">Clear location</button>
             </div>
             <p id="mqbLocationStatus" class="text-brand-muted" role="status" aria-live="polite">Tap to detect your location and fill your address and PIN code when available. Check all details before ordering.</p>
+            <details class="mqb30-location-details"><summary>Location not working? See how to allow it</summary><p>Use the HTTPS website, turn on Phone Location / GPS, and allow Location permission for this website in your browser settings. On desktop or indoors, a precise address may be unavailable. You can always type your address and PIN manually.</p></details>
             <input id="mqbManualMapLink" type="hidden" value="" />
             <input id="mqbLocationLink" type="hidden" value="" />
             <p class="text-[11px] text-brand-muted">One-time location lookup only with your permission. Your coordinates are shared with the address lookup provider. Enter your house/flat and confirm your 6-digit PIN. Address data © OpenStreetMap contributors.</p>
@@ -1343,11 +1346,11 @@
             <input type="radio" name="chkPaymentMethod" value="COD" onchange="mqbUpdatePaymentDescription()" class="mt-1" />
             <span class="flex-1"><strong>Cash on delivery</strong><small class="block text-brand-muted mt-1">Pay when your eligible parcel arrives; subject to courier serviceability</small></span>
           </label>
-          <div class="space-y-2 pt-1" aria-label="Future payment methods">
+          <details class="mqb30-upcoming-payments"><summary>Other payment methods (not available yet)</summary><div class="space-y-2 pt-2" aria-label="Future payment methods">
             <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Credit / Debit Card</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
             <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Net Banking</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
             <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Wallets</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
-          </div>
+          </div></details>
           <div id="mqbPaymentDescription" class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-950" role="status" aria-live="polite">For UPI: submit your request now, then wait for confirmed product and shipping charges. Pay only to the verified business UPI ID after the store contacts you.</div>
           <p class="text-xs text-brand-muted">Payment is NOT collected at checkout. Card, Net Banking and Wallets are not active yet.</p>
           <strong class="hidden" id="displayCheckoutUpi"></strong>
@@ -1376,6 +1379,7 @@
       <div class="bg-brand-sand p-3 rounded-xl border text-xs">
         <span class="text-brand-muted block">Tracking Order ID</span>
         <div id="successOrderIdDisplay" class="font-mono text-base font-bold text-brand-charcoal select-all">MQB-2026-0000</div>
+        <button type="button" id="mqb30CopyOrderId" onclick="mqb30CopyOrderId()" class="mqb30-copy-id">Copy order ID</button><span id="mqb30CopyOrderStatus" role="status" aria-live="polite" class="text-xs text-brand-muted"></span>
       </div>
       <p class="text-xs text-brand-muted" id="guestReceiptNote">Keep your order ID or send it to the store on WhatsApp. After the owner confirms the final payable amount, open Order Tracking on this same device to pay using QR and submit payment details. Guest orders may not be accessible if you change devices or clear browser storage.</p>
       <div class="space-y-2 pt-2 text-xs">
@@ -1397,6 +1401,7 @@
         <button onclick="trackOrderById()" class="bg-brand-charcoal text-white px-4 py-2 text-xs font-bold uppercase rounded-lg">Track</button>
       </div>
       <div id="trackingResultBox" class="hidden border rounded-xl p-3 bg-brand-sand text-xs space-y-2"></div>
+      <p class="mqb30-track-help">Guest orders are private to the browser session used at checkout. If you no longer have access to that browser, contact the store for manual assistance. An order ID alone cannot unlock private details.</p>
     </div>
   </div>
 
