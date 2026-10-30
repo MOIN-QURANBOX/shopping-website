@@ -765,6 +765,15 @@
               <input id="adminOrderHistorySearch" type="search" oninput="searchAdminOrderHistory()" placeholder="Search saved orders..." class="flex-1 min-w-[210px] border rounded-lg p-3 text-sm" autocomplete="off" />
               <button type="button" onclick="clearAdminOrderHistorySearch()" class="border rounded-lg px-3 py-2 text-xs font-bold">Clear filters</button>
             </div>
+            <!-- V31: staff order filters; orders remain in Firebase, no permanent deletion -->
+            <div class="mqb31-filters">
+              <label>Order status<select id="mqb31StatusFilter" onchange="renderAdminOrders()"><option value="">All statuses</option><option>Requested</option><option>Confirmed</option><option>Processing</option><option>Packed</option><option>Shipped</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>Cancelled</option><option>Returned</option></select></label>
+              <label>Payment<select id="mqb31PaymentFilter" onchange="renderAdminOrders()"><option value="">All payment states</option><option value="unverified">Unverified</option><option value="verified">Verified</option></select></label>
+              <label>Order type<select id="mqb31TypeFilter" onchange="renderAdminOrders()"><option value="">All orders</option><option value="test">Test orders</option><option value="cancelled">Cancelled orders</option><option value="regular">Other orders</option></select></label>
+              <label>Staff history<select id="mqb31ArchiveFilter" onchange="renderAdminOrders()"><option value="active">Active orders</option><option value="archived">Archived orders</option><option value="all">All orders</option></select></label>
+              <label>Sort<select id="mqb31SortFilter" onchange="renderAdminOrders()"><option value="latest">Newest first</option><option value="oldest">Oldest first</option></select></label>
+            </div>
+            <p class="mqb31-history-help">Staff notes are private to authorized Super Admin / Owner accounts. Archiving hides eligible unpaid test/cancelled orders from the staff's active list; it does not delete them from Firebase or customer history.</p>
             <p id="adminHistoryFilterStatus" class="text-xs font-bold text-emerald-800"></p>
             <p id="adminOrderHistoryCount" class="text-xs text-neutral-500" aria-live="polite"></p>
           </div>
