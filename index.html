@@ -43,6 +43,7 @@
   </script>
 
   <link rel="stylesheet" href="css/customer-experience-v34.css" />
+  <link rel="stylesheet" href="css/product-media-v35.css" />
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/storefront-v26.css" />
@@ -181,6 +182,8 @@
           <a id="heroWhatsAppLink" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="bg-emerald-700 border border-emerald-600 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-emerald-600 transition">💬 WhatsApp</a>
         </div>
       </div>
+      <!-- V35: live featured-product display; no promotional product data is hard-coded. -->
+      <aside id="mqb35HeroAd" class="mqb35-hero-ad" aria-label="Featured products" hidden></aside>
     </div>
 
     <!-- Quick Services Bar -->
@@ -1354,6 +1357,27 @@
           <input type="url" id="editProductImage" placeholder="https://..." class="w-full bg-white border rounded p-1.5" />
           <img id="photoUploadPreview" src="" alt="Preview" class="w-16 h-16 object-cover rounded border hidden mt-1" />
         </div>
+        <!-- V35 additional media; all optional. Existing one-photo products remain supported. -->
+        <fieldset class="mqb35-editor-media">
+          <legend>Product gallery &amp; homepage advertising <span class="mqb35-optional">Optional</span></legend>
+          <label for="editProductImage2">Second product photo (HTTPS image URL)</label>
+          <input id="editProductImage2" type="url" inputmode="url" maxlength="1200" placeholder="https://example.com/product-back.webp" />
+          <label for="editProductGifUrl">Animated product GIF (HTTPS .gif URL)</label>
+          <input id="editProductGifUrl" type="url" inputmode="url" maxlength="1200" placeholder="https://example.com/product-demo.gif" />
+          <p>Paste image links hosted online. GIF files animate automatically; video uploads and Firebase Storage are not enabled.</p>
+          <button type="button" id="mqb35PreviewMediaButton" class="mqb35-preview-btn">Preview gallery</button>
+          <div id="mqb35EditorMediaPreview" class="mqb35-editor-preview" aria-live="polite"></div>
+          <label class="mqb35-checkline" for="editProductFeatured"><input type="checkbox" id="editProductFeatured" /> Advertise this product in the homepage spotlight</label>
+          <label for="editProductFeaturedLabel">Advertisement badge</label>
+          <select id="editProductFeaturedLabel">
+            <option value="featured">Featured Product</option>
+            <option value="top-pick">Store Pick</option>
+            <option value="bestseller">Best Seller — only when sales support this claim</option>
+          </select>
+          <label for="editProductPromoHeadline">Advertising headline (optional)</label>
+          <input id="editProductPromoHeadline" type="text" maxlength="80" placeholder="e.g. Handcrafted with care" />
+          <p class="mqb35-promonote">Best Seller must be supported by actual sales. Saving updates only this product; other products and order data are untouched. Super Admin and Owner can edit product catalog information.</p>
+        </fieldset>
 
         <button type="submit" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded mt-2">Save Product</button>
       </form>
@@ -1725,5 +1749,6 @@
   <script defer src="js/contact-v32.js"></script>
   <script defer src="js/product-feedback-v33.js"></script>
   <script defer src="js/customer-experience-v34.js"></script>
+  <script defer src="js/product-media-v35.js"></script>
 </body>
 </html>
