@@ -23,3 +23,11 @@
 #mqbV26Products .mqb35-image-host{display:block}
 @media(max-width:530px){.mqb35-gallery-stage{height:230px}}
 @media(prefers-reduced-motion:reduce){.mqb35-gallery-image{transition:none!important}}
+
+/* V35.3: compact, accessible product photo uploads. */
+.mqb353-upload-status{font:500 11px/1.45 system-ui;color:#355a45;margin:5px 0}
+.mqb353-upload-status.mqb353-error{color:#a32424}
+.mqb353-upload-preview{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mqb353-clear-photo{border:1px solid #c8d3ca;border-radius:7px;background:white;color:#355a45;font:700 11px system-ui;padding:7px 11px}
+.mqb353-clear-photo:hover{background:#f2f6f1}
+#productEditModal button[type=submit]:disabled{opacity:.6;cursor:progress}
