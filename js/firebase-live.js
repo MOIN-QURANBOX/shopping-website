@@ -118,6 +118,7 @@
               salePrice:price(v.salePrice ?? v.price), oldPrice:price(v.oldPrice),
               wholesalePrice:price(v.wholesalePrice), stock:Math.max(0,Number(v.stock)||0),
               image:safeImage(v.image), desc:String(v.desc ?? v.description ?? '').slice(0,3000),color:String(v.color ?? v.colour ?? '').slice(0,120),
+              staffScore:Number.isInteger(Number(v.staffScore)) && Number(v.staffScore)>=1 && Number(v.staffScore)<=5 ? Number(v.staffScore) : null,
               sku:v.sku || id
             }));
           } else {
@@ -555,7 +556,18 @@
         status:'Requested',paymentStatus:'unverified',date:new Date().toISOString(),
         channel:'Website request',courierName:'Not assigned',awb:'',
         note:'Estimate only. Owner confirms stock, delivery, price and payment.'};
-      await this.db.ref('orderRequests/'+this.uid).push(request);
+      // Safe transition: older V33 rules reject the new optional consent field.
+      // Retry without ONLY that new field, so existing checkout still works if
+      // the V34 rule update has not yet been deployed. Never retry other fields.
+      const orderRef=this.db.ref('orderRequests/'+this.uid).push();
+      try { await orderRef.set(request); }
+      catch(error) {
+        const denied=/permission[_-]?denied/i.test(String(error?.code||'')+' '+String(error?.message||''));
+        if(!denied || !request.orderUpdatesConsent)throw error;
+        const legacy={...request};delete legacy.orderUpdatesConsent;
+        await orderRef.set(legacy);
+        this.setStatus('✓ Order saved. Optional message preferences await V34 Firebase Rules activation.','waiting');
+      }
       cart=[];
       if(this.auth?.currentUser?.isAnonymous) localStorage.removeItem('mqb_v20_guest_cart');
       else await this.db.ref('customerCarts/'+this.uid).set([]);
@@ -897,12 +909,15 @@
       deliveryNote:[manualNote.slice(0,Math.max(0,240-(gpsLink?'Location pin: '.length+gpsLink.length+3:0))),gpsLink?'Location pin: '+gpsLink:''].filter(Boolean).join(' | ').slice(0,240)};
     if(!form.customerName||!form.customerPhone||!form.address||!form.postalCode) return alert('Please complete your shipping address.');
     if(contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail))return alert('Please enter a valid email, or leave it blank for guest checkout.');
+    if($('mqb34EmailOptIn')?.checked && !(live.auth?.currentUser?.email || contactEmail))return alert('Enter your email before selecting email order updates.');
+    form.orderUpdatesConsent={whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked};
     const btn=e.target.querySelector('button[type=submit]');if(btn)btn.disabled=true;
     try {
       await ensureGuestIdentity();
       const result=await live.sendOrder(form);
       updateCartUI();closeCheckoutModal();
       if($('successOrderIdDisplay'))$('successOrderIdDisplay').textContent=result.orderId+' · Pending owner confirmation';
+      window.mqb34OnOrderCreated?.(result);
       const link=$('successWhatsAppOrderBtn');
       if(link) link.href='https://wa.me/91'+(config.whatsappPhone||'')+'?text='+encodeURIComponent('Assalamu Alaikum, I submitted order request '+result.orderId+'. Please confirm availability and shipping.');
       $('orderSuccessModal')?.classList.remove('hidden');
@@ -1296,6 +1311,7 @@
           ${s.trackingUrl?`<a href="${esc(s.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="underline font-bold text-emerald-800">Open courier tracking</a>`:''}
         </div>
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
+        ${o.__uid&&o.__key?`<div class="mqb34-staff-message-actions"><button type="button" class="mqb34-send-whatsapp" title="Opens WhatsApp with an order summary; you must press Send">💬 Compose WhatsApp order update</button><button type="button" class="mqb34-send-email" title="Opens your email app; you must press Send">✉️ Compose email order update</button></div>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-download-shipping-label border border-teal-800 text-teal-900 px-4 py-2 rounded-lg font-bold w-full">Download Shipping Label (PDF · 4×6)</button>`:''}
         ${isSuperAdmin()&&o.__uid&&o.__key?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
         ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-approve-amount border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full">Confirm final UPI amount ${price(o.paymentRequest?.amount)?'(₹'+esc(price(o.paymentRequest.amount).toFixed(2))+')':''}</button>`:''}
@@ -1313,6 +1329,10 @@
         <p class="text-[10px] text-neutral-500">Non-tax order invoice, not payment proof. Courier booking and payment verification remain separate.</p>
       </article>`;
     }).join(''):'<p class="text-neutral-500 text-sm">No orders match this search.</p>';
+    node.querySelectorAll('.mqb34-send-whatsapp, .mqb34-send-email').forEach(button=>{
+      const record=visible[Array.prototype.indexOf.call(node.children,button.closest('article'))];
+      button.addEventListener('click',()=>window.mqb34ComposeOrderUpdate?.(record,button.classList.contains('mqb34-send-whatsapp')?'whatsapp':'email'));
+    });
     node.querySelectorAll('.mqb31-save-note').forEach(button=>{
       const record=visible[Array.prototype.indexOf.call(node.children,button.closest('article'))];
       button.addEventListener('click',()=>window.mqb31SaveNote(button,record.__uid,record.__key));
