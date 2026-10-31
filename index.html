@@ -42,6 +42,7 @@
     }
   </script>
 
+  <link rel="stylesheet" href="css/customer-experience-v34.css" />
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/storefront-v26.css" />
@@ -117,6 +118,8 @@
             <span id="customerStatusDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
           </button>
 
+          <!-- V34: live in-store announcements (does not send device push alerts) -->
+          <button type="button" id="mqb34Bell" class="mqb34-bell" title="Offers and store messages" aria-label="Store notifications" aria-expanded="false" onclick="mqb34ToggleAlerts()">🔔 <span id="mqb34Unread" hidden>0</span></button>
           <!-- Shopping Cart Icon -->
           <button onclick="toggleCart(true)" class="p-2 text-brand-charcoal hover:opacity-70 relative transition" title="Shopping Bag">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,6 +137,13 @@
     </div>
   </div>
 
+  <!-- V34: store messages and genuine price-reduction alerts -->
+  <section id="mqb34AlertStrip" class="mqb34-alert-strip" hidden aria-live="polite"></section>
+  <section id="mqb34NoticePanel" class="mqb34-notice-panel" hidden aria-label="Store announcements">
+    <div class="mqb34-notice-head"><strong>Latest store messages</strong><button type="button" onclick="mqb34ToggleAlerts(false)" aria-label="Close notifications">×</button></div>
+    <div id="mqb34NoticeList" class="mqb34-notice-list">No messages yet.</div>
+    <p class="mqb34-notice-disclosure">Messages appear while visiting this website. Browser push, SMS and email broadcasts are not enabled.</p>
+  </section>
   <!-- ================= WELCOME GREETING MESSAGE CARD ================= -->
   <div id="welcomeGreetingBanner" class="hidden bg-amber-50/90 border-b border-amber-200 text-amber-900 py-3 px-4 transition-all">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -655,6 +665,7 @@
         <button onclick="switchAdminTab('hub')" id="adminTabBtn-hub" class="px-4 py-3 border-b-2 border-brand-charcoal text-brand-charcoal whitespace-nowrap">⚡ Grid Hub</button>
         <button onclick="switchAdminTab('expert')" id="adminTabBtn-expert" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🛠️ Expert Tools</button>
         <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
+        <button onclick="switchAdminTab('promotions')" id="adminTabBtn-promotions" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📣 Offers &amp; Messages</button>
         <button onclick="switchAdminTab('reviews')" id="adminTabBtn-reviews" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⭐ Customer Reviews</button>
         <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock</button>
         <button onclick="switchAdminTab('branches')" id="adminTabBtn-branches" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏢 Branch (1)</button>
@@ -839,6 +850,33 @@
         </section>
         </div>
 
+        <!-- V34: new authorized staff promotions/messages panel -->
+        <section id="adminTab-promotions" class="hidden space-y-4">
+          <div class="mqb34-staff-card">
+            <h4>📣 Offers, Deals &amp; Customer Messages</h4>
+            <p>Send an in-site message to visitors across the store. This does not send a WhatsApp, email, SMS or background push notification.</p>
+            <form id="mqb34AnnouncementForm" onsubmit="mqb34PublishAnnouncement(event)" class="mqb34-staff-form">
+              <label>Message type<select id="mqb34NoticeType" required><option value="notice">Store update</option><option value="offer">Special offer</option><option value="sale">Sale alert</option><option value="deal">Deal of the day</option></select></label>
+              <label>Title<input id="mqb34NoticeTitle" maxlength="70" placeholder="Example: New arrivals this week" required></label>
+              <label>Message<textarea id="mqb34NoticeMessage" maxlength="240" rows="3" required placeholder="Clearly describe your real offer or announcement"></textarea></label>
+              <label>Product (optional)<select id="mqb34NoticeProduct"><option value="">Entire store</option></select></label>
+              <label>Expires in<select id="mqb34NoticeDuration"><option value="1">1 day</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option></select></label>
+              <button type="submit" class="mqb34-primary">Publish to visiting customers</button>
+              <p id="mqb34NoticeStatus" role="status"></p>
+            </form>
+          </div>
+          <div class="mqb34-staff-card">
+            <h4>⭐ Store team product assessment</h4>
+            <p>Set a separate staff assessment only after examining the product. This is labelled <b>Store team score</b> and is never added to customer review averages. No random or fabricated customer ratings will be shown.</p>
+            <div class="mqb34-staff-form">
+              <label>Product<select id="mqb34ScoreProduct"></select></label>
+              <label>Staff assessment<select id="mqb34ScoreValue"><option value="">Not scored / Clear score</option><option value="5">5 / 5 — Excellent</option><option value="4">4 / 5 — Very good</option><option value="3">3 / 5 — Good</option><option value="2">2 / 5 — Fair</option><option value="1">1 / 5 — Needs improvement</option></select></label>
+              <button type="button" class="mqb34-primary" onclick="mqb34SaveStaffScore()">Save labelled staff assessment</button>
+              <p id="mqb34ScoreStatus" role="status"></p>
+            </div>
+          </div>
+          <p class="mqb34-policy-note">Promotions and scores must be accurate and not mislead customers. Only real customer feedback contributes to the customer star rating.</p>
+        </section>
         <div id="adminTab-reviews" class="hidden space-y-3">
           <div class="flex flex-wrap items-start justify-between gap-2">
             <div>
@@ -1405,11 +1443,18 @@
           <div class="flex justify-between text-xs text-brand-muted"><span>Delivery charge</span><span>Confirmed after PIN-code check</span></div>
           <div class="border-t border-brand-border pt-2 text-xs text-amber-900">Final payable amount will be shared for approval. Payment remains unverified until the store checks it.</div>
         </section>
+        <fieldset class="mqb34-consent"><legend>Optional order updates</legend>
+          <label><input id="mqb34WaOptIn" type="checkbox"> I agree to receive order-related WhatsApp messages from MOIN QURAN BOX.</label>
+          <label><input id="mqb34EmailOptIn" type="checkbox"> I agree to receive order-related emails. Please provide a valid email above.</label>
+          <p>These preferences will be saved with this order. Automatic messages are not active; staff may send a prefilled message manually.</p>
+        </fieldset>
         <button type="submit" class="w-full py-4 bg-brand-darkgreen hover:bg-brand-forest text-white font-bold rounded-xl shadow-md text-base">Submit Order Request (No Payment)</button>
         <p class="text-center text-[11px] text-brand-muted pb-3">You can order without a password. Saving your Order ID helps us assist you later.</p>
       </form>
     </div>
   </div>
+
+  <aside id="mqb34LiveToast" class="mqb34-live-toast" hidden role="status" aria-live="polite"></aside>
 
   <!-- ================= ORDER SUCCESS MODAL ================= -->
   <div id="orderSuccessModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
@@ -1426,6 +1471,8 @@
         <a id="successWhatsAppOrderBtn" href="#" target="_blank" class="w-full py-2.5 bg-brand-whatsapp text-white rounded-lg font-bold flex items-center justify-center gap-2">
           💬 Send Order Receipt to Owner on WhatsApp
         </a>
+        <div id="mqb34OrderSummary" class="mqb34-order-summary" aria-label="Order summary">Your order request summary will appear here.</div>
+        <a id="mqb34EmailOrderBtn" href="#" class="mqb34-email-share" hidden>✉️ Open email app with my order details</a>
         <button onclick="closeSuccessModal()" class="w-full py-2 bg-neutral-100 rounded font-semibold">Done</button>
       </div>
     </div>
@@ -1677,5 +1724,6 @@
   <script defer src="js/storefront-v26.js"></script>
   <script defer src="js/contact-v32.js"></script>
   <script defer src="js/product-feedback-v33.js"></script>
+  <script defer src="js/customer-experience-v34.js"></script>
 </body>
 </html>
