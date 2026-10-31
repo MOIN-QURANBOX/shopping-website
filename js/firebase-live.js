@@ -43,6 +43,15 @@
   const safeImage = src => {
     try { const u = new URL(src); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
   };
+  // V35.3: only catalog photos may contain compact JPEG/WebP data URLs.
+  // Never accept SVG, HTML, arbitrary data URLs or unbounded base64 strings.
+  const safeProductImage = src => {
+    if(typeof src!=='string') return '';
+    const data=src.trim();
+    if(data.length<=70000 && /^data:image\/(?:jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(data)) return data;
+    if(data.length<=1200) return safeImage(data);
+    return '';
+  };
   const price = n => Number.isFinite(Number(n)) ? Math.max(0, Number(n)) : 0;
   const publicKeys = ['brandName','urduSubtitle','proprietor','address','phone1','phone2','whatsappPhone','instagramHandle','whatsappGreeting','announcement','maintenanceMode'];
   const publicConfig = () => Object.fromEntries(publicKeys.map(k => [k, config[k] ?? '']));
@@ -117,7 +126,7 @@
               id, title:v.title, category:v.category||'Islamic Products',
               salePrice:price(v.salePrice ?? v.price), oldPrice:price(v.oldPrice),
               wholesalePrice:price(v.wholesalePrice), stock:Math.max(0,Number(v.stock)||0),
-              image:safeImage(v.image), image2:safeImage(v.image2), gifUrl:safeImage(v.gifUrl),
+              image:safeProductImage(v.image), image2:safeProductImage(v.image2), gifUrl:safeImage(v.gifUrl),
               desc:String(v.desc ?? v.description ?? '').slice(0,3000),color:String(v.color ?? v.colour ?? '').slice(0,120),
               staffScore:Number.isInteger(Number(v.staffScore)) && Number(v.staffScore)>=1 && Number(v.staffScore)<=5 ? Number(v.staffScore) : null,
               sku:v.sku || id
@@ -492,11 +501,11 @@
     },
     async saveProduct(product) {
       if(!canEditStore()) throw Error('Super Admin or Owner access required');
-      const photo=safeImage(product.image);
-      const photo2=safeImage(product.image2 || '');
+      const photo=safeProductImage(product.image);
+      const photo2=safeProductImage(product.image2 || '');
       const gif=safeImage(product.gifUrl || '');
-      if(product.image && !photo) throw Error('Use an HTTPS product image URL, not a large embedded photo.');
-      if(product.image2 && !photo2) throw Error('Second photo must be a valid HTTPS image URL.');
+      if(product.image && !photo) throw Error('Main photo must be HTTPS or a compressed JPEG/WebP under 70 KB.');
+      if(product.image2 && !photo2) throw Error('Second photo must be HTTPS or a compressed JPEG/WebP under 70 KB.');
       if(product.gifUrl && (!gif || !/\.gif$/i.test(new URL(gif).pathname))) throw Error('Animated preview must be a valid HTTPS URL ending in .gif.');
       if(!product.title || price(product.salePrice)<=0 || !Number.isInteger(Number(product.stock)) || Number(product.stock)<0) throw Error('Check title, price and stock.');
       const id=String(product.id || this.db.ref('catalog').push().key);
@@ -1026,9 +1035,11 @@
     const before=products.find(p=>p.id===id);
     const input={...before,id,title:$('editProductTitle')?.value.trim(),
       category:$('editProductCategory')?.value,stock:Number($('editProductStock')?.value),
-      salePrice:Number($('editProductSalePrice')?.value),image:$('editProductImage')?.value.trim()||'',
+      salePrice:Number($('editProductSalePrice')?.value),
+      image:window.MQBLocalProductMedia?.resolve('image',$('editProductImage')?.value.trim()||'',before?.image)||$('editProductImage')?.value.trim()||'',
       color:$('editProductColor')?.value.trim()||'',desc:$('editProductDescription')?.value.trim()||'',
-      image2:$('editProductImage2')?.value.trim()||'',gifUrl:$('editProductGifUrl')?.value.trim()||''};
+      image2:window.MQBLocalProductMedia?.resolve('image2',$('editProductImage2')?.value.trim()||'',before?.image2)||$('editProductImage2')?.value.trim()||'',
+      gifUrl:$('editProductGifUrl')?.value.trim()||''};
     try { await live.saveProduct(input);closeProductEditModal();alert('Product saved and synchronized across devices.'); }
     catch(err) {alert('Product NOT saved: '+textError(err));}
   };
@@ -1495,8 +1506,8 @@
   };
   window.saveApiGatewaySettings=()=>alert('Never save SMS or webhook secret keys in a public website. Use a trusted backend for API connections.');
   window.handlePhotoFileInput=e=>{
-    if(e?.target) e.target.value='';
-    alert('Photos must be hosted on HTTPS. Firebase Storage upload is not configured; paste a secure image URL instead.');
+    if(window.MQBLocalProductMedia?.select) return window.MQBLocalProductMedia.select(e,'image');
+    alert('Product image uploader has not loaded. Refresh the site and try again.');
   };
   window.completePosSale=()=>alert('POS sale finalization needs a server-side stock and payment transaction. Do not mark unverified sales as paid.');
   // --- V23: Staff roles, provisioning and staff dashboard access ---
