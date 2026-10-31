@@ -117,7 +117,10 @@
               id, title:v.title, category:v.category||'Islamic Products',
               salePrice:price(v.salePrice ?? v.price), oldPrice:price(v.oldPrice),
               wholesalePrice:price(v.wholesalePrice), stock:Math.max(0,Number(v.stock)||0),
-              image:safeImage(v.image), desc:String(v.desc ?? v.description ?? '').slice(0,3000),color:String(v.color ?? v.colour ?? '').slice(0,120),
+              image:safeImage(v.image), image2:safeImage(v.image2), gifUrl:safeImage(v.gifUrl),
+              featured:v.featured===true, featuredLabel:['featured','top-pick','bestseller'].includes(v.featuredLabel)?v.featuredLabel:'featured',
+              promoHeadline:String(v.promoHeadline||'').slice(0,80),
+              desc:String(v.desc ?? v.description ?? '').slice(0,3000),color:String(v.color ?? v.colour ?? '').slice(0,120),
               staffScore:Number.isInteger(Number(v.staffScore)) && Number(v.staffScore)>=1 && Number(v.staffScore)<=5 ? Number(v.staffScore) : null,
               sku:v.sku || id
             }));
@@ -492,14 +495,22 @@
     async saveProduct(product) {
       if(!canEditStore()) throw Error('Super Admin or Owner access required');
       const photo=safeImage(product.image);
+      const photo2=safeImage(product.image2 || '');
+      const gif=safeImage(product.gifUrl || '');
       if(product.image && !photo) throw Error('Use an HTTPS product image URL, not a large embedded photo.');
+      if(product.image2 && !photo2) throw Error('Second photo must be a valid HTTPS image URL.');
+      if(product.gifUrl && (!gif || !/\.gif$/i.test(new URL(gif).pathname))) throw Error('Animated preview must be a valid HTTPS URL ending in .gif.');
       if(!product.title || price(product.salePrice)<=0 || !Number.isInteger(Number(product.stock)) || Number(product.stock)<0) throw Error('Check title, price and stock.');
       const id=String(product.id || this.db.ref('catalog').push().key);
       if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id)) throw Error('Invalid product ID.');
       const clean={title:product.title.slice(0,120),category:String(product.category).slice(0,90),
         salePrice:price(product.salePrice),oldPrice:price(product.oldPrice),
         stock:Number(product.stock),sku:String(product.sku||id).slice(0,100),
-        image:photo,desc:String(product.desc ?? product.description ?? '').slice(0,3000),
+        image:photo,image2:photo2,gifUrl:gif,
+        featured:product.featured===true,
+        featuredLabel:['featured','top-pick','bestseller'].includes(product.featuredLabel)?product.featuredLabel:'featured',
+        promoHeadline:String(product.promoHeadline||'').slice(0,80),
+        desc:String(product.desc ?? product.description ?? '').slice(0,3000),
         color:String(product.color ?? product.colour ?? '').slice(0,120),
         updatedAt:firebase.database.ServerValue.TIMESTAMP};
       // Patch only these edited fields, preserving any other existing product metadata.
@@ -1013,7 +1024,11 @@
     const input={...before,id,title:$('editProductTitle')?.value.trim(),
       category:$('editProductCategory')?.value,stock:Number($('editProductStock')?.value),
       salePrice:Number($('editProductSalePrice')?.value),image:$('editProductImage')?.value.trim()||'',
-      color:$('editProductColor')?.value.trim()||'',desc:$('editProductDescription')?.value.trim()||''};
+      color:$('editProductColor')?.value.trim()||'',desc:$('editProductDescription')?.value.trim()||'',
+      image2:$('editProductImage2')?.value.trim()||'',gifUrl:$('editProductGifUrl')?.value.trim()||'',
+      featured:!!$('editProductFeatured')?.checked,
+      featuredLabel:$('editProductFeaturedLabel')?.value||'featured',
+      promoHeadline:$('editProductPromoHeadline')?.value.trim()||''};
     try { await live.saveProduct(input);closeProductEditModal();alert('Product saved and synchronized across devices.'); }
     catch(err) {alert('Product NOT saved: '+textError(err));}
   };
