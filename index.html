@@ -1350,19 +1350,25 @@
         <!-- Photo Upload & URL -->
         <div class="p-3 bg-brand-sand border rounded-lg space-y-2">
           <label class="block font-bold">Product Photo</label>
-          <input type="file" accept="image/*" onchange="handlePhotoFileInput(event)" class="w-full text-[11px]" />
-          <p class="text-[10px] text-neutral-500">Or paste an Image Web URL:</p>
-          <input type="url" id="editProductImage" placeholder="https://..." class="w-full bg-white border rounded p-1.5" />
-          <img id="photoUploadPreview" src="" alt="Preview" class="w-16 h-16 object-cover rounded border hidden mt-1" />
+          <label for="mqb353MainImageFile" class="block text-[11px] font-semibold">Upload main product photo (JPG, PNG, WebP)</label>
+          <input id="mqb353MainImageFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="handlePhotoFileInput(event)" class="w-full text-[11px]" />
+          <p id="mqb353MainStatus" class="mqb353-upload-status" role="status" aria-live="polite">Choose a photo; it will be compressed and stored with this product in Firebase Realtime Database.</p>
+          <p class="text-[10px] text-neutral-500">Alternatively, enter an HTTPS image URL:</p>
+          <input type="url" id="editProductImage" maxlength="1200" placeholder="https://..." class="w-full bg-white border rounded p-1.5" />
+          <div class="mqb353-upload-preview"><img id="photoUploadPreview" src="" alt="Main product photo preview" class="w-20 h-20 object-contain rounded border hidden mt-1" /><button type="button" id="mqb353ClearMain" class="mqb353-clear-photo">Remove photo</button></div>
         </div>
         <!-- V35 additional media; all optional. Existing one-photo products remain supported. -->
         <fieldset class="mqb35-editor-media">
           <legend>Product photo gallery <span class="mqb35-optional">Optional</span></legend>
-          <label for="editProductImage2">Second product photo (HTTPS image URL)</label>
+          <label for="mqb353SecondImageFile">Upload second product photo (JPG, PNG, WebP)</label>
+          <input id="mqb353SecondImageFile" type="file" accept="image/jpeg,image/png,image/webp" />
+          <p id="mqb353SecondStatus" class="mqb353-upload-status" role="status" aria-live="polite">Optional second photo. Existing images remain unchanged unless replaced or removed.</p>
+          <div class="mqb353-upload-preview"><img id="mqb353SecondPreview" src="" alt="Second product photo preview" class="w-20 h-20 object-contain rounded border hidden" /><button type="button" id="mqb353ClearSecond" class="mqb353-clear-photo">Remove second photo</button></div>
+          <label for="editProductImage2">Or second photo HTTPS image URL</label>
           <input id="editProductImage2" type="url" inputmode="url" maxlength="1200" placeholder="https://example.com/product-back.webp" />
           <label for="editProductGifUrl">Animated product GIF (HTTPS .gif URL)</label>
           <input id="editProductGifUrl" type="url" inputmode="url" maxlength="1200" placeholder="https://example.com/product-demo.gif" />
-          <p>Paste image links hosted online. GIF files animate automatically; video uploads and Firebase Storage are not enabled.</p>
+          <p>Photos you upload here are compressed and saved in Firebase Realtime Database. Animated GIFs still need a hosted HTTPS link. Use small product photos to conserve Spark Free data transfer.</p>
           <button type="button" id="mqb35PreviewMediaButton" class="mqb35-preview-btn">Preview gallery</button>
           <div id="mqb35EditorMediaPreview" class="mqb35-editor-preview" aria-live="polite"></div>
           <p class="mqb35-gallery-note">Optional gallery images do not change the product price, stock, orders or customer reviews.</p>
