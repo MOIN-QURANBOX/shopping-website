@@ -71,10 +71,23 @@
     const content=$('productDetailsContent');const modal=$('productDetailsModal');
     if(!detailId||!content||!modal||modal.classList.contains('hidden'))return;
     const product=getProduct(detailId),media=galleryMedia(product);
-    if(!product||media.length<=1||content.querySelector('[data-mqb35-gallery]'))return;
+    if(!product||!media.length)return;
+    // V35.4: the legacy product-details renderer rejects compact data:image
+    // photos and initially renders an empty src. Restore that photo from the
+    // trusted, already-sanitized product catalog before handling any carousel.
+    const original=content.querySelector('.aspect-square img')||content.querySelector('img');
+    if(media.length===1){
+      if(original && original.getAttribute('src')!==media[0].url){
+        original.src=media[0].url;original.alt=product.title+' — '+media[0].label;
+      }
+      return;
+    }
+    if(content.querySelector('[data-mqb35-gallery]'))return;
     const display=gallery({product,media});
-    const original=[...content.querySelectorAll('img')].find(i=>safeUrl(i.getAttribute('src'))===safeUrl(product.image));
-    if(original){original.replaceWith(display);}else content.prepend(display);
+    const photoFrame=original?.closest('.aspect-square');
+    if(photoFrame)photoFrame.replaceWith(display);
+    else if(original)original.replaceWith(display);
+    else content.prepend(display);
   }
   const editorIds=['editProductImage2','editProductGifUrl'];
   function populateEditor(){
@@ -109,9 +122,19 @@
   }
   function trackCard(card,p){
     if(!card||!p)return;
-    const media=galleryMedia(p);if(media.length<2)return;
-    const img=card.querySelector('.mqb26-prodimage img')||card.querySelector('img');
+    const media=galleryMedia(p);if(!media.length)return;
+    // V35.4: BOTH original storefronts only rendered HTTPS images. Replace the
+    // empty src on old catalog cards, and insert an img into V26's featured cards
+    // (that renderer omits the element entirely for data:image photos).
+    const v26Photo=card.querySelector('.mqb26-prodimage');
+    let img=card.querySelector('.mqb26-prodimage img')||card.querySelector('img');
+    if(!img&&v26Photo){
+      img=node('img');img.loading='lazy';v26Photo.prepend(img);
+    }
     if(!img)return;
+    if(img.getAttribute('src')!==media[0].url)img.src=media[0].url;
+    img.alt=p.title+' — '+media[0].label;
+    if(media.length<2)return;
     img.dataset.mqb35ProductId=p.id;
     const badge=node('span','mqb35-card-count','1 / '+media.length);
     let host=img.closest('button')||img.parentElement;
