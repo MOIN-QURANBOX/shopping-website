@@ -562,17 +562,25 @@
         status:'Requested',paymentStatus:'unverified',date:new Date().toISOString(),
         channel:'Website request',courierName:'Not assigned',awb:'',
         note:'Estimate only. Owner confirms stock, delivery, price and payment.'};
-      // Safe transition: older V33 rules reject the new optional consent field.
-      // Retry without ONLY that new field, so existing checkout still works if
-      // the V34 rule update has not yet been deployed. Never retry other fields.
+      // V35.2 additive migration: SMS consent requires the optional rule update.
+      // On older V34 rules retry preserving WhatsApp and email preferences;
+      // V33 fallback without the whole consent field remains as before.
+      // Do not claim SMS was requested if the old rules could not save consent.
       const orderRef=this.db.ref('orderRequests/'+this.uid).push();
+      const isDenied=e=>/permission[_-]?denied/i.test(String(e?.code||'')+' '+String(e?.message||''));
       try { await orderRef.set(request); }
       catch(error) {
-        const denied=/permission[_-]?denied/i.test(String(error?.code||'')+' '+String(error?.message||''));
-        if(!denied || !request.orderUpdatesConsent)throw error;
-        const legacy={...request};delete legacy.orderUpdatesConsent;
-        await orderRef.set(legacy);
-        this.setStatus('✓ Order saved. Optional message preferences await V34 Firebase Rules activation.','waiting');
+        if(!isDenied(error)||!request.orderUpdatesConsent)throw error;
+        const v34={...request,orderUpdatesConsent:{whatsapp:request.orderUpdatesConsent.whatsapp,email:request.orderUpdatesConsent.email}};
+        try {
+          await orderRef.set(v34);
+          this.setStatus('✓ Order saved. SMS preference not saved; V35.2 rules await activation.','waiting');
+        }catch(error2){
+          if(!isDenied(error2))throw error2;
+          const legacy={...request};delete legacy.orderUpdatesConsent;
+          await orderRef.set(legacy);
+          this.setStatus('✓ Order saved. Optional message preferences await Firebase Rules activation.','waiting');
+        }
       }
       cart=[];
       if(this.auth?.currentUser?.isAnonymous) localStorage.removeItem('mqb_v20_guest_cart');
@@ -916,7 +924,7 @@
     if(!form.customerName||!form.customerPhone||!form.address||!form.postalCode) return alert('Please complete your shipping address.');
     if(contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail))return alert('Please enter a valid email, or leave it blank for guest checkout.');
     if($('mqb34EmailOptIn')?.checked && !(live.auth?.currentUser?.email || contactEmail))return alert('Enter your email before selecting email order updates.');
-    form.orderUpdatesConsent={whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked};
+    form.orderUpdatesConsent={whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked,sms:!!$('mqb352SmsOptIn')?.checked};
     const btn=e.target.querySelector('button[type=submit]');if(btn)btn.disabled=true;
     try {
       await ensureGuestIdentity();
