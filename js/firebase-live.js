@@ -1018,7 +1018,7 @@
         <p><strong>Payment choice:</strong> ${esc(o.paymentMethod||'Not recorded')} · <strong>Status:</strong> ${esc(o.paymentStatus==='verified'?'Received and manually verified':'Unverified / awaiting confirmation')} · <strong>Delivery:</strong> ${esc(o.deliveryChoice||'Standard')}</p>
         ${o.paymentStatus==='verified'?`<p class="text-emerald-800">Verified payment: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')} — ${esc(o.paymentVerification?.method||'manual')}</p>`:''}
         ${shippingCard(o)}
-        ${o.paymentMethod==='Manual UPI'&&price(o.paymentRequest?.amount)>0&&o.paymentStatus!=='verified'&&live.publicPayment?.qrImage?`<button type="button" class="mqb29-pay-order bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold w-full">Pay via QR &amp; submit transaction details</button>`:''}
+        ${o.paymentMethod==='Manual UPI'&&price(o.paymentRequest?.amount)>0&&o.paymentStatus!=='verified'&&live.publicPayment?.qrImage?`<button type="button" class="mqb29-pay-order bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold w-full">UPI Pay Now / Scan QR · Submit payment details</button>`:''}
         <button type="button" class="customer-invoice-download px-3 py-2 bg-brand-darkgreen text-white font-bold rounded-lg">Download Order Invoice (PDF)</button>
       </article>`;
     }).join(''):'<p class="text-xs text-neutral-500">No previous orders in this account yet.</p>';
@@ -1954,11 +1954,54 @@
       setTimeout(()=>window.mqb29CloseAmount(),700);
     }catch(error){setMessage('mqb29AmountStatus','Not saved: '+textError(error),true);}
   };
-  let payTarget=null;
+  // V35.5: Use only owner-confirmed amount + the SAME receiving VPA as the existing QR settings.
+  // This is a convenience UPI-app launcher, NOT a payment gateway or payment verification.
+  const mqb355Android = () => /Android/i.test(String(navigator.userAgent||''));
+  const mqb355UpiIntent = (order, settings) => {
+    const vpa=String(settings?.upiId||'').trim();
+    const name=String(settings?.payee||'').trim();
+    const amount=Number(order?.paymentRequest?.amount);
+    if(!/^[A-Za-z0-9._-]{2,80}@[A-Za-z0-9._-]{2,40}$/.test(vpa))return '';
+    if(name.length<2 || name.length>120)return '';
+    if(!Number.isFinite(amount) || amount<1 || amount>9999999 || Math.abs(Math.round(amount*100)-amount*100)>0.00001)return '';
+    const note=('MQB order '+String(order?.orderId||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,50)).trim();
+    return 'upi://pay?'+new URLSearchParams({pa:vpa,pn:name,am:amount.toFixed(2),cu:'INR',tn:note}).toString();
+  };
+  const mqb355PaymentEligible=(order, settings)=>!!(
+    order && live.uid && order.__uid===live.uid && !isAdmin() &&
+    order.paymentMethod==='Manual UPI' && order.paymentStatus!=='verified' &&
+    !['Requested','Cancelled','Returned','Delivered'].includes(order.status) &&
+    safeInlineImage(settings?.qrImage) && mqb355UpiIntent(order,settings)
+  );
+  const mqb355PayNotice=message=>setMessage('mqb29ProofStatus',message,false);
+  const mqb355UpiLink=$('mqb29UpiDeepLink');
+  if(mqb355UpiLink){
+    mqb355UpiLink.textContent='📱 UPI Pay Now — Open Payment App';
+    mqb355UpiLink.className='mqb355-pay-now bg-brand-darkgreen text-white py-3 px-4 rounded-xl font-extrabold text-center w-full block shadow-sm';
+    mqb355UpiLink.setAttribute('aria-label','Pay approved order amount in a UPI app on Android');
+    // Keep the existing Copy UPI ID fallback but lead with the Pay Now action.
+    mqb355UpiLink.parentElement?.prepend(mqb355UpiLink);
+    const note=document.createElement('p');note.id='mqb355PayInstructions';
+    note.className='w-full text-xs text-amber-900 rounded-lg bg-amber-50 px-3 py-2 leading-relaxed';
+    mqb355UpiLink.parentElement?.insertAdjacentElement('afterend',note);
+    mqb355UpiLink.addEventListener('click',event=>{
+      // Recheck at the actual click; showing a link is NOT evidence of an approved payment.
+      const order=payTarget&&orderRef(payTarget.uid,payTarget.key);
+      const config=qrP();
+      const refreshed=mqb355PaymentEligible(order,config)?mqb355UpiIntent(order,config):'';
+      if(!mqb355Android()||!refreshed||mqb355UpiLink.getAttribute('href')!==refreshed){
+        event.preventDefault();
+        mqb355PayNotice('Cannot open payment app. Refresh this order and verify the owner-approved amount. You can still use the QR or copy the UPI ID.');
+        return;
+      }
+      // Deliberately do NOT alter any Firebase payment fields or mark the order paid.
+      mqb355PayNotice('If your UPI app opens, confirm the recipient and amount before paying. Return here to submit the UTR. Payment stays pending until bank verification.');
+    });
+  }
   window.mqb29OpenPay=async(uid,key)=>{
     if(!allowedOrderKey(uid,key)||!live.uid||live.uid!==uid||isAdmin())return alert('Open the order from the same customer or guest account used to place it.');
     const o=orderRef(uid,key),p=qrP();
-    if(!o||o.paymentMethod!=='Manual UPI'||o.paymentStatus==='verified'||!price(o.paymentRequest?.amount)||!safeInlineImage(p.qrImage)||!p.upiId)
+    if(!mqb355PaymentEligible(o,p))
       return alert('The owner has not yet confirmed the final payable amount or enabled the store payment QR. Please wait for confirmation.');
     if(['Requested','Cancelled','Returned','Delivered'].includes(o.status))return alert('This order is not yet eligible for QR payment. Wait for the owner to confirm it.');
     payTarget={uid,key};
@@ -1968,8 +2011,16 @@
     $('mqb29PayableDisplay').textContent='₹'+price(o.paymentRequest.amount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
     $('mqb29ProofAmount').value=price(o.paymentRequest.amount).toFixed(2);
     $('mqb29ProofUtr').value='';$('mqb29ProofImage').value='';$('mqb29ProofStatus').textContent='';
-    const uri='upi://pay?'+new URLSearchParams({pa:p.upiId,pn:p.payee||'MOIN QURAN BOX',am:price(o.paymentRequest.amount).toFixed(2),cu:'INR',tn:'Order '+o.orderId}).toString();
-    $('mqb29UpiDeepLink').href=uri;
+    const link=$('mqb29UpiDeepLink');
+    const uri=mqb355UpiIntent(o,p);
+    if(link){
+      link.setAttribute('href',mqb355Android()?uri:'#');
+      link.classList.toggle('hidden',!mqb355Android());
+    }
+    const help=$('mqb355PayInstructions');
+    if(help)help.textContent=mqb355Android()
+      ? 'On Android, tap UPI Pay Now, verify the recipient and owner-approved amount in your UPI app, and enter your UPI PIN ONLY inside that app. Return here with the UTR. If the app does not open, use the QR or Copy UPI ID.'
+      : 'UPI Pay Now is available on supported Android phones. On this device, scan the QR using a UPI app on another phone, or copy the UPI ID to pay manually. Always check the recipient and exact approved amount.';
     $('mqb29PayModal').classList.remove('hidden');
     try{const exists=(await live.db.ref('paymentSubmissions/'+uid+'/'+key).once('value')).exists();if(exists){setMessage('mqb29ProofStatus','Payment details have already been submitted for this order. Await bank verification by the store.',true);$('mqb29ProofSubmit').disabled=true;}else $('mqb29ProofSubmit').disabled=false;}
     catch(e){setMessage('mqb29ProofStatus','Could not check previous submissions: '+textError(e),true);$('mqb29ProofSubmit').disabled=true;}
@@ -2027,7 +2078,7 @@
     originalTracking();const node=$('trackingResultBox'),id=String($('trackInputId')?.value||'').trim().toUpperCase();
     const o=orders.find(x=>String(x.orderId||'').toUpperCase()===id&&x.__uid===live.uid);
     if(!o||!node||o.paymentStatus==='verified'||o.paymentMethod!=='Manual UPI'||!price(o.paymentRequest?.amount)||!safeInlineImage(qrP().qrImage))return;
-    const button=document.createElement('button');button.type='button';button.textContent='Pay approved amount via QR / submit payment details';
+    const button=document.createElement('button');button.type='button';button.textContent='UPI Pay Now / QR · Submit payment details';
     button.className='bg-emerald-800 text-white p-2 rounded mt-2 w-full font-bold';button.onclick=()=>window.mqb29OpenPay(o.__uid,o.__key);node.appendChild(button);
   };
 
