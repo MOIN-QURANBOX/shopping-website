@@ -1439,6 +1439,12 @@
             <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked onchange="mqbUpdatePaymentDescription()" class="mt-1" />
             <span class="flex-1"><strong>UPI payment / QR after confirmation</strong><small class="block text-brand-muted mt-1">Google Pay, PhonePe, Paytm or any UPI app — after order confirmation</small></span><span class="text-xs font-semibold text-emerald-700">Manual</span>
           </label>
+          <!-- V36 staged. Hidden until secure TEST backend is deployed and reports ready. -->
+          <label id="mqbV36PaymentOption" hidden class="hidden mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-emerald-300 bg-emerald-50 cursor-pointer">
+            <input type="radio" name="chkPaymentMethod" value="Razorpay" class="mt-1" />
+            <span class="flex-1"><strong>Pay online securely with Razorpay (TEST)</strong><small class="block text-brand-muted mt-1">UPI, cards and other methods enabled in test mode. Final price and shipping calculated securely before payment; confirmed only after captured-payment verification.</small></span>
+          </label>
+          <p id="mqbV36Feedback" class="hidden text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3" role="status" aria-live="polite"></p>
           <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
             <input type="radio" name="chkPaymentMethod" value="COD" onchange="mqbUpdatePaymentDescription()" class="mt-1" />
             <span class="flex-1"><strong>Cash on delivery</strong><small class="block text-brand-muted mt-1">Pay when your eligible parcel arrives; subject to courier serviceability</small></span>
@@ -1747,5 +1753,7 @@
   <script defer src="js/product-feedback-v33.js"></script>
   <script defer src="js/customer-experience-v34.js"></script>
   <script defer src="js/product-media-v35.js"></script>
+  <script defer src="js/razorpay-v36-config.js"></script>
+  <script defer src="js/razorpay-v36.js"></script>
 </body>
 </html>
