@@ -485,7 +485,7 @@ function openProductDetails(prodId) {
         </div>
         ${color?`<p class="text-sm text-brand-charcoal"><strong>Color / Finish:</strong> ${mqbProductEscape(color)}</p>`:''}
         <p class="text-sm font-semibold ${available?'text-emerald-700':'text-red-700'}">${available?`${Math.floor(Number(p.stock))} in stock`:'Currently unavailable for ordering'}</p>
-        <p class="text-xs text-brand-muted">Final price, availability and delivery charges are confirmed by MOIN QURAN BOX after the order request.</p>
+        <p class="text-xs text-brand-muted">Product prices include delivery. MOIN QURAN BOX confirms stock and the item total after the order request.</p>
         <div class="flex flex-col sm:flex-row gap-2 pt-2">
           <button type="button" onclick="productDetailsAddToCart('${p.id}')" ${!available?'disabled':''} class="flex-1 bg-brand-charcoal text-white px-4 py-3 rounded-lg text-sm font-bold disabled:opacity-40">Add to Cart</button>
           <button type="button" onclick="productDetailsBuyNow('${p.id}')" ${!available?'disabled':''} class="flex-1 bg-brand-gold text-white px-4 py-3 rounded-lg text-sm font-bold disabled:opacity-40">Buy Now</button>
@@ -498,7 +498,7 @@ function openProductDetails(prodId) {
       <h3 class="serif-title text-xl font-bold text-brand-charcoal mb-3">Product Description</h3>
       <p class="text-sm text-neutral-700 leading-7 whitespace-pre-wrap break-words">${mqbProductEscape(description || 'Detailed product information will be added by our team. Contact us for material, size, color or customization details.')}</p>
       ${color?`<p class="mt-4 text-sm"><strong>Color / Finish:</strong> ${mqbProductEscape(color)}</p>`:''}
-      <p class="text-xs text-brand-muted mt-5">Orders are requests only. Availability, final amount and shipping charges are confirmed by our team before payment.</p>
+      <p class="text-xs text-brand-muted mt-5">Orders are requests only. Our team confirms availability and the final item amount before payment; delivery is included in displayed prices.</p>
     </section>`;
   modal.classList.remove('hidden');
   document.getElementById('productDetailsScroll')?.scrollTo({top:0,behavior:'instant'});
