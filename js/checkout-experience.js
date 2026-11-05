@@ -44,8 +44,8 @@
      row.classList.toggle('bg-white',!active);
    });
    if($('mqbPaymentDescription'))$('mqbPaymentDescription').textContent=sel==='COD'
-     ?'Cash on Delivery: available only for eligible PIN codes. The store will confirm courier and total. No payment is taken now.'
-     :'For UPI: submit your request now, then wait for confirmed product and shipping charges. Pay only to the verified business UPI ID after the store contacts you.';
+     ?'Cash on Delivery: available for serviceable PIN codes. Delivery is included in product prices. The store confirms stock before dispatch. No payment is taken now.'
+     :'For UPI: submit your request and wait for the store to confirm stock and the final item total. Delivery is included in the price. Pay only to the verified business UPI ID.';
  };
  const originalAdd=window.addToCart;
  if(typeof originalAdd==='function') window.addToCart=function(id){
