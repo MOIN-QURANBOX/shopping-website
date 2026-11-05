@@ -105,12 +105,12 @@
    txt(45,y,'Order estimate recorded',11,true);txt(430,y,amt(d.total),11,true);y-=23;
    if(d.final>0){
      rect(42,y-22,511,35,.90,.96,.91);txt(53,y,'Owner-approved payable amount',10,true);txt(424,y,amt(d.final),10,true);y-=49;
-   }else{paragraph('Delivery charges','Confirmed separately before payment');y-=6;}
+   }else{paragraph('Additional delivery fee','INR 0.00 - included in item prices');y-=6;}
    section('Important payment and tax information');
    paragraph('', 'This document is a non-tax order summary, not a GST tax invoice.');
    paragraph('', 'An approved payable amount does not mean that payment has been received.');
    paragraph('', 'Payment remains unverified unless separately confirmed by the store.');
-   paragraph('', 'Stock, delivery charges and dispatch are subject to owner confirmation.');
+   paragraph('', 'Product prices include delivery. Stock and dispatch are subject to store confirmation.');
    footer();streams.push(cmds.join('\n')+'\n');
    const objects=[null];const add=obj=>(objects.push(obj),objects.length-1);
    const pagesId=add('');const f1=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');const f2=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
