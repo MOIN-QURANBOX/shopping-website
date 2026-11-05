@@ -2111,7 +2111,7 @@
     });
     list.appendChild(ol);
     const note=document.createElement('p');note.className='mqb30-stage-note';
-    note.textContent=stage<4?'The store will update this order as it is prepared. Delivery charges and payment are confirmed separately.':stage<7?'Courier and estimated delivery details appear above when assigned.':'Delivery is marked complete.';
+    note.textContent=stage<4?'The store will update this order as it is prepared. Delivery is included in item prices; payment status is confirmed separately.':stage<7?'Courier and estimated delivery details appear above when assigned.':'Delivery is marked complete.';
     list.appendChild(note);return list;
   };
   const mqb30PreviousTrack=window.trackOrderById;
