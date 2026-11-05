@@ -98,7 +98,7 @@
    const text=$('mqbV36Feedback');
    if(!hint)return;
    if(selected()) {
-    hint.textContent='Razorpay TEST only: the backend computes live catalog prices plus the configured shipping charge. You will see the exact total in Razorpay before authorizing payment. No real money is charged in test mode.';
+    hint.textContent='Razorpay TEST only: the backend calculates the payable item total. Our policy is ₹0 additional delivery charge; verify the backend is configured to enforce that before activating checkout. No real money is charged in test mode.';
     if(text)text.classList.add('hidden');
    } else window.mqbUpdatePaymentDescription?.();
  };
