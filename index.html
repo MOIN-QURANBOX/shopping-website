@@ -577,7 +577,7 @@
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-xl w-full max-h-[94vh] overflow-y-auto p-5 sm:p-6 relative text-xs space-y-3">
       <button type="button" onclick="closeOrderPaymentModal()" class="absolute right-4 top-4 text-neutral-500 text-lg" aria-label="Close payment editor">✕</button>
       <h3 id="paymentModalTitle" class="serif-title text-lg font-bold text-brand-charcoal pr-8">Verify Manual Payment</h3>
-      <p class="text-amber-900 bg-amber-50 border border-amber-300 rounded-lg p-3">Only Super Admin may confirm receipts. Check stock, actual prices, shipping charges and the receiving bank statement or collected COD cash yourself. Customer claims, screenshots, browser totals and UPI reference numbers alone are NOT payment evidence.</p>
+      <p class="text-amber-900 bg-amber-50 border border-amber-300 rounded-lg p-3">Only Super Admin may confirm receipts. Check stock, actual item prices (which include delivery) and the receiving bank statement or collected COD cash yourself. Customer claims, screenshots, browser totals and UPI reference numbers alone are NOT payment evidence.</p>
       <div id="paymentOrderSummary" class="bg-brand-sand rounded-lg p-3 font-mono break-all"></div>
       <form onsubmit="saveManualPaymentVerification(event)" class="space-y-3">
         <div><label for="paymentMethodVerified" class="block font-bold mb-1">Actual payment method</label>
@@ -1395,7 +1395,7 @@
             <span class="flex items-center gap-2"><span id="checkoutTotalAmount" class="text-base font-bold">₹0.00</span><span id="mqbSummaryChevron">⌄</span></span>
           </button>
           <div id="mqbCheckoutItems" class="hidden border-t border-brand-border px-4 py-3 text-xs space-y-2"></div>
-          <p class="bg-emerald-50 text-emerald-800 px-4 py-2 text-xs">Item prices shown are estimates; final total and shipping are confirmed by the store.</p>
+          <p class="bg-emerald-50 text-emerald-800 px-4 py-2 text-xs">Delivery is included in displayed product prices. The store confirms stock and the final item total before payment.</p>
         </section>
         <div id="guestCheckoutNotice" class="rounded-xl bg-white border border-brand-border px-4 py-3 text-xs text-brand-charcoal">
           <strong>✓ Guest checkout available</strong><p class="mt-1 text-brand-muted">No account required. For later tracking, use the same browser and do not clear site data. To track future orders across devices, sign in before placing an order. We never reveal private orders using only an order ID.</p><button id="mqb30SignInFirst" type="button" onclick="mqb30SignInFirst()" class="mqb30-signin-button">Already have an account? Sign in before ordering</button>
@@ -1430,7 +1430,7 @@
             <p class="text-[11px] text-brand-muted">One-time location lookup only with your permission. Your coordinates are shared with the address lookup provider. Enter your house/flat and confirm your 6-digit PIN. Address data © OpenStreetMap contributors.</p>
           </div>
           <div><label for="chkDeliveryNote" class="block text-xs font-semibold mb-1">Delivery note (optional)</label><input id="chkDeliveryNote" maxlength="240" class="w-full border rounded-lg p-3 bg-white" placeholder="Landmark or delivery instructions" /></div>
-          <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery charges confirmed separately</strong><p>From dispatch PIN 500012 to your location, our team will confirm courier charges and availability before payment or dispatch.</p></div>
+          <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery included in product prices</strong><p>There is no additional delivery fee. We confirm address serviceability and stock before dispatch.</p></div>
         </section>
         <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-3">
           <h4 class="font-extrabold text-base">Pay via</h4>
@@ -1442,7 +1442,7 @@
           <!-- V36 staged. Hidden until secure TEST backend is deployed and reports ready. -->
           <label id="mqbV36PaymentOption" hidden class="hidden mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-emerald-300 bg-emerald-50 cursor-pointer">
             <input type="radio" name="chkPaymentMethod" value="Razorpay" class="mt-1" />
-            <span class="flex-1"><strong>Pay online securely with Razorpay (TEST)</strong><small class="block text-brand-muted mt-1">UPI, cards and other methods enabled in test mode. Final price and shipping calculated securely before payment; confirmed only after captured-payment verification.</small></span>
+            <span class="flex-1"><strong>Pay online securely with Razorpay (TEST)</strong><small class="block text-brand-muted mt-1">UPI, cards and other methods enabled in test mode. Product total calculated securely before payment, with ₹0 additional delivery fee; confirmed only after captured-payment verification.</small></span>
           </label>
           <p id="mqbV36Feedback" class="hidden text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3" role="status" aria-live="polite"></p>
           <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
@@ -1454,7 +1454,7 @@
             <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Net Banking</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
             <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Wallets</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
           </div></details>
-          <div id="mqbPaymentDescription" class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-950" role="status" aria-live="polite">For UPI: submit your request now, then wait for confirmed product and shipping charges. Pay only to the verified business UPI ID after the store contacts you.</div>
+          <div id="mqbPaymentDescription" class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-950" role="status" aria-live="polite">For UPI: submit your request and wait for the store to confirm stock and the final item total. Delivery is included in the price. Pay only to the verified business UPI ID.</div>
           <p class="text-xs text-brand-muted">Payment is NOT collected at checkout. Card, Net Banking and Wallets are not active yet.</p>
           <strong class="hidden" id="displayCheckoutUpi"></strong>
         </section>
@@ -1465,7 +1465,7 @@
         </section>
         <section class="border border-brand-border bg-white rounded-2xl p-4 space-y-2">
           <div class="flex justify-between font-bold"><span>Estimated item subtotal</span><span id="mqbCheckoutFooterSubtotal">₹0.00</span></div>
-          <div class="flex justify-between text-xs text-brand-muted"><span>Delivery charge</span><span>Confirmed after PIN-code check</span></div>
+          <div class="flex justify-between text-xs text-brand-muted"><span>Additional delivery fee</span><span>₹0 — included in item prices</span></div>
           <div class="border-t border-brand-border pt-2 text-xs text-amber-900">Final payable amount will be shared for approval. Payment remains unverified until the store checks it.</div>
         </section>
         <fieldset class="mqb34-consent"><legend>Optional order updates</legend>
@@ -1666,7 +1666,7 @@
       <label class="block text-sm font-bold" for="mqb29FinalAmount">Final payable amount in ₹, including shipping</label>
       <input id="mqb29FinalAmount" type="number" min="1" max="9999999" step="0.01" required class="w-full border rounded-lg px-3 py-3 text-lg" />
       <label class="block text-sm font-bold" for="mqb29AmountNote">Confirmed delivery / amount note</label>
-      <textarea id="mqb29AmountNote" maxlength="240" rows="2" class="w-full border rounded-lg p-3" placeholder="Includes item total and delivery charges"></textarea>
+      <textarea id="mqb29AmountNote" maxlength="240" rows="2" class="w-full border rounded-lg p-3" placeholder="Final item total (delivery included)"></textarea>
       <p class="text-xs text-amber-800">The QR becomes visible to this customer only when this exact final amount is approved. This does NOT confirm payment.</p>
       <p id="mqb29AmountStatus" class="text-sm" role="status"></p>
       <button type="submit" class="w-full bg-brand-darkgreen text-white font-bold rounded-lg py-3">Approve final amount</button>
