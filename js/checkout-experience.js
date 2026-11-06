@@ -45,7 +45,16 @@
    });
    if($('mqbPaymentDescription'))$('mqbPaymentDescription').textContent=sel==='COD'
      ?'Cash on Delivery: available for serviceable PIN codes. Delivery is included in product prices. The store confirms stock before dispatch. No payment is taken now.'
+     :sel==='Razorpay'
+     ?'Razorpay: after saving your order, secure online checkout opens. Successful captured payment automatically confirms the order. If it fails, your order remains Payment Pending and you can retry.'
      :'For UPI: submit your request and wait for the store to confirm stock and the final item total. Delivery is included in the price. Pay only to the verified business UPI ID.';
+   const submit=$('checkoutModal')?.querySelector('button[type=submit]');
+   if(submit)submit.textContent=sel==='Razorpay' && window.mqb39RazorpayReady===true
+     ?'Continue to Secure Razorpay Payment':'Submit Order Request (No Payment)';
+   const note=$('mqb39CheckoutPaymentNote');
+   if(note)note.textContent=sel==='Razorpay' && window.mqb39RazorpayReady===true
+     ?'Your saved order starts as Payment Pending. Payment happens securely in Razorpay Checkout; order confirmation is automatic after capture verification.'
+     :'Payment is not collected at this checkout form. For Manual UPI, wait for store confirmation; COD is paid on delivery.';
  };
  const originalAdd=window.addToCart;
  if(typeof originalAdd==='function') window.addToCart=function(id){
