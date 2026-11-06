@@ -25,9 +25,10 @@
       return url.protocol === 'https:' && !url.username && !url.password && url.hostname ? url.href : '';
     } catch { return ''; }
   };
-  const SHIP_STATUSES = ['Requested','Confirmed','Processing','Packed','Shipped','In Transit','Out for Delivery','Delivered','Returned','Cancelled'];
+  const SHIP_STATUSES = ['Requested','Payment Pending','Confirmed','Processing','Packed','Shipped','In Transit','Out for Delivery','Delivered','Returned','Cancelled'];
   const REQUIRES_DISPATCH_PAYMENT = ['Shipped','In Transit','Out for Delivery','Delivered'];
   const needsUpiVerification = o => ['Manual UPI','To be arranged'].includes(String(o?.paymentMethod||'')) && o?.paymentStatus!=='verified';
+  const blockPendingRazorpayStatus = (o,next) => o?.paymentMethod==='Razorpay' && o.paymentStatus!=='verified' && next!=='Payment Pending';
   const shipmentFor = o => {
     const s=o?.shipping && typeof o.shipping==='object' ? o.shipping : {};
     return {
@@ -552,7 +553,9 @@
     async sendOrder(form) {
       if(!this.uid || !['customer','guest'].includes(currentUser?.role)) throw Error('Please use customer login or guest checkout to send an order request.');
       if(!this.catalogPublished) throw Error('No live cloud catalog has been published.');
-      if(!['COD','Manual UPI'].includes(form.paymentMethod)) throw Error('Choose COD or Manual UPI at checkout.');
+      if(!['COD','Manual UPI','Razorpay'].includes(form.paymentMethod)) throw Error('Choose an available checkout payment method.');
+      if(form.paymentMethod==='Razorpay' && window.mqb39RazorpayReady!==true)
+        throw Error('Razorpay is not ready yet. Please choose COD or Manual UPI.');
       const cartItems=cart.map(item=>({id:item.id,qty:Math.max(1,Math.floor(Number(item.qty)||1))}));
       if(!cartItems.length) throw Error('Your bag is empty.');
       if(!/^[0-9]{6}$/.test(form.postalCode)) throw Error('Please enter a valid six-digit postal code.');
@@ -568,9 +571,13 @@
       }
       const orderId='MQB-REQ-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
       const request={...form, uid:this.uid,orderId,items:summary,total:estimate,
-        status:'Requested',paymentStatus:'unverified',date:new Date().toISOString(),
+        status:form.paymentMethod==='Razorpay'?'Payment Pending':'Requested',
+        paymentStatus:form.paymentMethod==='Razorpay'?'pending':'unverified',
+        date:new Date().toISOString(),
         channel:'Website request',courierName:'Not assigned',awb:'',
-        note:'Estimate only. Owner confirms stock, delivery, price and payment.'};
+        note:form.paymentMethod==='Razorpay'
+          ?'Razorpay online payment pending. Automatically confirmed only after verified captured payment.'
+          :'Estimate only. Owner confirms stock, delivery, price and payment.'};
       // V35.2 additive migration: SMS consent requires the optional rule update.
       // On older V34 rules retry preserving WhatsApp and email preferences;
       // V33 fallback without the whole consent field remains as before.
@@ -594,7 +601,7 @@
       cart=[];
       if(this.auth?.currentUser?.isAnonymous) localStorage.removeItem('mqb_v20_guest_cart');
       else await this.db.ref('customerCarts/'+this.uid).set([]);
-      return request;
+      return {...request,__key:orderRef.key,__uid:this.uid};
     },
     maybePersistSettings() {
       if(this.applying || !this.settingsReady || !canEditStore()) return;
@@ -939,12 +946,20 @@
       await ensureGuestIdentity();
       const result=await live.sendOrder(form);
       updateCartUI();closeCheckoutModal();
-      if($('successOrderIdDisplay'))$('successOrderIdDisplay').textContent=result.orderId+' · Pending owner confirmation';
+      if($('successOrderIdDisplay'))$('successOrderIdDisplay').textContent=result.orderId+(result.paymentMethod==='Razorpay'?' · Payment Pending — pay online to confirm automatically':' · Pending owner confirmation');
       window.mqb34OnOrderCreated?.(result);
       const link=$('successWhatsAppOrderBtn');
-      if(link) link.href='https://wa.me/91'+(config.whatsappPhone||'')+'?text='+encodeURIComponent('Assalamu Alaikum, I submitted order request '+result.orderId+'. Please confirm availability and shipping.');
+      if(link) link.href='https://wa.me/91'+(config.whatsappPhone||'')+'?text='+encodeURIComponent(result.paymentMethod==='Razorpay'
+        ?'Assalamu Alaikum, I placed Razorpay order '+result.orderId+'. Payment is pending until Razorpay verifies a successful transaction.'
+        :'Assalamu Alaikum, I submitted order request '+result.orderId+'. Please confirm availability and shipping.');
       $('orderSuccessModal')?.classList.remove('hidden');
-      live.setStatus('✓ Order request saved to Firebase. Await owner confirmation.','ok');
+      live.setStatus(result.paymentMethod==='Razorpay'
+        ?'Order saved as Payment Pending. Complete Razorpay checkout to confirm automatically.'
+        :'✓ Order request saved to Firebase. Await owner confirmation.','ok');
+      if(result.paymentMethod==='Razorpay'){
+        $('orderSuccessModal')?.classList.add('hidden');
+        await window.mqb39StartCheckout?.(result);
+      }
     }catch(err){showCheckoutSaveProblem(err);}
     finally{if(btn)btn.disabled=false;}
   };
@@ -1015,7 +1030,7 @@
         <div class="flex flex-wrap justify-between gap-2"><strong>${esc(o.orderId||o.__key)}</strong><span>${esc(o.status||'Requested')}</span></div>
         <p><strong>Date:</strong> ${esc(o.date?new Date(o.date).toLocaleString('en-IN'):'Not recorded')} · <strong>Estimate:</strong> INR ${price(o.total).toLocaleString('en-IN')}</p>
         <p><strong>Products:</strong> ${esc(items.map(i=>`${i.title||'Item'} × ${i.qty||0}`).join(', ')||'No item details')}</p>
-        <p><strong>Payment choice:</strong> ${esc(o.paymentMethod||'Not recorded')} · <strong>Status:</strong> ${esc(o.paymentStatus==='verified'?'Received and manually verified':'Unverified / awaiting confirmation')} · <strong>Delivery:</strong> ${esc(o.deliveryChoice||'Standard')}</p>
+        <p><strong>Payment choice:</strong> ${esc(o.paymentMethod||'Not recorded')} · <strong>Status:</strong> ${esc(o.paymentStatus==='verified'?(o.paymentMethod==='Razorpay'?'Paid — Razorpay verified':'Received and manually verified'):o.paymentMethod==='Razorpay'?'Payment Pending — retry available':'Unverified / awaiting confirmation')} · <strong>Delivery:</strong> ${esc(o.deliveryChoice||'Standard')}</p>
         ${o.paymentStatus==='verified'?`<p class="text-emerald-800">Verified payment: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')} — ${esc(o.paymentVerification?.method||'manual')}</p>`:''}
         ${shippingCard(o)}
         ${o.paymentMethod==='Manual UPI'&&price(o.paymentRequest?.amount)>0&&o.paymentStatus!=='verified'&&live.publicPayment?.qrImage?`<button type="button" class="mqb29-pay-order bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold w-full">UPI Pay Now / Scan QR · Submit payment details</button>`:''}
@@ -1047,6 +1062,7 @@
     if(!ensureAdmin())return;
     const o=orders.find(x=>x.orderId===orderId);
     if(!o?.__uid||!o?.__key) return alert('This order cannot be modified from the cloud dashboard.');
+    if(blockPendingRazorpayStatus(o,status))return alert('Razorpay order is Payment Pending. Only the verified payment backend can confirm it.');
     if(REQUIRES_DISPATCH_PAYMENT.includes(status)&&needsUpiVerification(o))return alert('Manual UPI receipt is not verified. Do not dispatch this order before bank confirmation.');
     try {await live.db.ref('orderRequests/'+o.__uid+'/'+o.__key+'/status').set(status);live.setStatus('✓ Order status saved to Firebase','ok');logStaffActivity('order_status','Order '+String(orderId).slice(0,70)+' to '+String(status).slice(0,35));}
     catch(err){alert('Order status NOT saved: '+textError(err));}
@@ -1107,6 +1123,7 @@
     if(rawUrl&&!trackingUrl)return statusNotice('Enter a valid HTTPS link from the courier website.',true);
     const newStatus=$('shippingOrderStatus')?.value||'Requested';
     const existing=orders.find(o=>o.__uid===uid&&o.__key===key);
+    if(blockPendingRazorpayStatus(existing,newStatus))return alert('Razorpay order is Payment Pending. Wait for captured-payment confirmation.');
     if(REQUIRES_DISPATCH_PAYMENT.includes(newStatus) && needsUpiVerification(existing))
       return statusNotice('Manual UPI payment is not verified. Confirm bank credit before dispatching.',true);
     if(!SHIP_STATUSES.includes(newStatus) && !orders.some(o=>o.__uid===uid&&o.__key===key&&o.status===newStatus))
@@ -1163,6 +1180,7 @@
     if(!ensureSuperAdmin())return;
     const order=orders.find(o=>o.__uid===uid&&o.__key===key);
     if(!order)return alert('Order not found. Refresh and try again.');
+    if(order.paymentMethod==='Razorpay')return alert('Razorpay payment is verified only by the payment backend. Manual verification is not permitted.');
     paymentEditingRef={uid,key};
     $('paymentOrderSummary').textContent='Order '+(order.orderId||key)+' · '+(order.customerName||'Customer')+
       ' · Customer requested '+(order.paymentMethod||'Unspecified')+
@@ -1184,6 +1202,7 @@
     const {uid,key}=paymentEditingRef;
     const order=orders.find(o=>o.__uid===uid&&o.__key===key);
     if(!order)return paymentNotice('Order no longer found. Refresh the dashboard.',true);
+    if(order.paymentMethod==='Razorpay')return paymentNotice('Only the Razorpay backend can verify this payment.',true);
     const method=$('paymentMethodVerified')?.value;
     if(!['COD','Manual UPI'].includes(method))return paymentNotice('Choose a supported payment method.',true);
     const verifiedAmount=Number($('paymentVerifiedAmount')?.value);
@@ -1218,6 +1237,8 @@
   window.resetManualPaymentVerification=async()=>{
     if(!ensureSuperAdmin()||!paymentEditingRef)return;
     const {uid,key}=paymentEditingRef;
+    const order=orders.find(o=>o.__uid===uid&&o.__key===key);
+    if(order?.paymentMethod==='Razorpay')return paymentNotice('Razorpay verification cannot be reversed in the manual payment editor.',true);
     if(!confirm('Revert this order to UNVERIFIED? This does not issue a refund or reverse a bank transfer. The old verification remains recorded for audit.'))return;
     try {
       const recordRef=live.db.ref('orderRequests/'+uid+'/'+key);
@@ -1326,7 +1347,7 @@
         <p><strong>Email:</strong> ${esc(o.customerEmail||o.email||profile.email||'Not recorded')}</p>
         <p>${esc(items.map(i=>i.title+' (x'+i.qty+')').join(', '))}</p>
         <p class="text-amber-700 font-semibold">Estimated total INR ${price(o.total).toLocaleString('en-IN')} · Method ${esc(o.paymentMethod||'Not recorded')} · Payment ${esc(o.paymentStatus||'unverified')}</p>
-        ${o.paymentStatus==='verified'?`<p class="text-emerald-800 font-semibold">Bank/COD receipt manually verified by Super Admin: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')}</p>`:''}
+        ${o.paymentStatus==='verified'?`<p class="text-emerald-800 font-semibold">${o.paymentMethod==='Razorpay'?'Razorpay captured — automatically verified':'Bank/COD receipt manually verified by Super Admin'}: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')}</p>`:''}
         <p>${esc(o.address||'')} ${esc(o.postalCode||'')} · ${esc(o.deliveryChoice||'')}</p>
         <div class="flex gap-2 items-center flex-wrap"><label for="ship-${esc(o.__key||id)}">Status</label>
         <select id="ship-${esc(o.__key||id)}" class="cloud-order-status border rounded p-2" ${o.__uid?'':'disabled'}>${choices}</select></div>
@@ -1339,7 +1360,7 @@
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
         ${o.__uid&&o.__key?`<div class="mqb34-staff-message-actions"><button type="button" class="mqb34-send-whatsapp" title="Opens WhatsApp with an order summary; you must press Send">💬 Compose WhatsApp order update</button><button type="button" class="mqb34-send-email" title="Opens your email app; you must press Send">✉️ Compose email order update</button></div>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-download-shipping-label border border-teal-800 text-teal-900 px-4 py-2 rounded-lg font-bold w-full">Download Shipping Label (PDF · 4×6)</button>`:''}
-        ${isSuperAdmin()&&o.__uid&&o.__key?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
+        ${isSuperAdmin()&&o.__uid&&o.__key&&o.paymentMethod!=='Razorpay'?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
         ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-approve-amount border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full">Confirm final UPI amount ${price(o.paymentRequest?.amount)?'(₹'+esc(price(o.paymentRequest.amount).toFixed(2))+')':''}</button>`:''}
         ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-view-proof border border-indigo-700 text-indigo-900 px-4 py-2 rounded-lg font-bold w-full">View customer payment submission</button>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-edit-shipping bg-brand-darkgreen text-white px-4 py-2 rounded-lg font-bold w-full">Edit Shipping / Courier Tracking</button>`
@@ -1370,6 +1391,7 @@
     node.querySelectorAll('.cloud-order-status').forEach((el,index)=>{
       const record=visible[index];el.addEventListener('change',async()=>{
         if(!ensureAdmin()||!record.__uid||!record.__key)return;
+        if(blockPendingRazorpayStatus(record,el.value)){alert('Only the Razorpay backend can confirm a pending online-payment order.');renderAdminOrders();return;}
         if(REQUIRES_DISPATCH_PAYMENT.includes(el.value) && needsUpiVerification(record)){alert('Manual UPI receipt is not verified. Confirm bank credit first.');renderAdminOrders();return;}
         try {const before=record.status;await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);
           mqb31BestEffortNote(record.__uid,record.__key,'Status change',String(before||'Requested')+' → '+el.value);
