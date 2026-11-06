@@ -1,8 +1,9 @@
-/* MOIN QURAN BOX V38.2 — owner-approved Razorpay checkout (NOT ACTIVATED).
- * The frontend NEVER creates its own provider order, computes a trusted price,
- * verifies capture locally, or writes paymentStatus=verified to Firebase.
- * This code can be activated only after server reconciliation, webhook, account,
- * and end-to-end payment checks have passed. COD and manual UPI are unchanged.
+/* MOIN QURAN BOX V39 — customer-initiated automatic confirmation (NOT ACTIVATED).
+ * Razorpay and COD/Manual UPI remain separate choices. Payments are confirmed
+ * exclusively by the backend after Razorpay reports a captured payment.
+ * Retry always reuses the provider order and never creates a second order.
+ * This frontend remains DISABLED until signed webhooks, Firebase rules,
+ * account activation and end-to-end payment tests have been verified.
  */
 (() => {
   'use strict';
@@ -24,13 +25,12 @@
   const LIVE_KEY = /^rzp_live_[A-Za-z0-9]+$/;
   let active = false;
   let busy = false;
-  const attempted = new Set();
   const liveState = () => window.mqbLive;
   const allOrders = () => typeof orders !== 'undefined' && Array.isArray(orders) ? orders : [];
   const staffAllowed = () => liveState()?.verifiedAdmin === true &&
-    ['admin', 'owner'].includes(String(liveState()?.activeRole || ''));
-  const payable = order => order && order.paymentMethod === 'Manual UPI' &&
-    order.paymentStatus === 'unverified' && ['Requested','Confirmed'].includes(order.status) &&
+    ['admin', 'owner', 'manager'].includes(String(liveState()?.activeRole || ''));
+  const payable = order => order && order.paymentMethod === 'Razorpay' &&
+    ['unverified','pending'].includes(order.paymentStatus) && ['Requested','Payment Pending'].includes(order.status) &&
     Array.isArray(order.items) && KEY.test(order.__key || '');
   const notice = text => window.alert(String(text).slice(0,400));
   const exactOrder = card => {
@@ -69,18 +69,8 @@
       return data;
     } finally { clearTimeout(timer); }
   }
-  // A manual UPI proof may represent a payment that has not yet been bank-verified.
-  // Fail closed if its status cannot be checked. A backend-side atomic exclusion
-  // remains necessary before real payments can be enabled (Step 139).
-  async function noManualPaymentProof(order) {
-    const db = liveState()?.db;
-    if (!db || typeof db.ref !== 'function')
-      throw Error('Cannot check an existing UPI payment. Contact the store.');
-    let snapshot;
-    try {snapshot = await db.ref('paymentSubmissions/' + order.__uid + '/' + order.__key).once('value');}
-    catch {throw Error('Cannot check an existing UPI payment. Contact the store.');}
-    if (snapshot.exists()) throw Error('UPI payment details already submitted. Contact the store; do not pay twice.');
-  }
+  // A manual UPI submission is checked by Firebase Admin SDK inside /create.
+  // Browser-side access to paymentSubmissions is deliberately not required.
   const sdk = () => new Promise((resolve, reject) => {
     if (typeof window.Razorpay === 'function') return resolve();
     const script = document.createElement('script');
@@ -92,20 +82,16 @@
 
   async function pay(selected) {
     if (!active || busy || !payable(selected) || selected.__uid !== liveState()?.uid || staffAllowed()) return;
-    const key = selected.__uid + '/' + selected.__key;
-    if (attempted.has(key)) return notice('This order has already had a payment attempt on this page. Verify its status with the store before trying again.');
-    if (!window.confirm('Only pay after the store approves the final order amount. If you already paid by QR/manual UPI, cancel and contact the store. Continue?')) return;
+    if (!window.confirm('Pay this order securely using Razorpay? If you already see a debit in your bank account, do NOT pay again; contact the store instead.')) return;
     busy = true;
     let sdkOpened = false;
     try {
-      const latest = currentOrder(selected);
+      // Brand-new orders may not yet have reached the Firebase history listener.
+      // All trusted validations are repeated on the server.
+      const latest = currentOrder(selected) || selected;
       if (!payable(latest) || latest.orderId !== selected.orderId)
-        throw Error('Order status changed. Refresh your order history.');
+        throw Error('Order details changed. Refresh your order history.');
       await token();
-      await noManualPaymentProof(latest);
-      // After this point a provider order may exist, including after a timeout.
-      // Never blindly send another create request from this page.
-      attempted.add(key);
       const session = await api('/api/razorpay/create',{orderKey:latest.__key});
       if (!LIVE_KEY.test(session?.keyId || '') || !ORDER.test(session?.razorpayOrderId || '') ||
           session.orderKey !== latest.__key || session.orderId !== latest.orderId ||
@@ -117,7 +103,7 @@
       const widget = new window.Razorpay({
         key: session.keyId, order_id: session.razorpayOrderId,
         amount: session.amountPaise, currency: 'INR', name: 'MOIN QURAN BOX',
-        description: 'Owner-approved order ' + String(session.orderId).slice(0,60),
+        description: 'Order ' + String(session.orderId).slice(0,60),
         prefill: {name: String(latest.customerName || '').slice(0,80),
           contact: String(latest.customerPhone || '').slice(0,18),
           email: String(latest.customerEmail || '').slice(0,120)},
@@ -131,70 +117,38 @@
               razorpay_signature: outcome.razorpay_signature
             });
             if (result?.confirmed === true && result.orderPersisted === true &&
-                result.paymentStatus === 'captured' && result.orderId === session.orderId)
-              notice('Payment securely verified for order ' + session.orderId + '. Thank you!');
-            else notice('Payment outcome pending. Do not pay again; contact the store with your order ID.');
+                result.paymentStatus === 'captured' && result.orderStatus === 'Confirmed' &&
+                result.orderId === session.orderId)
+              notice('Payment successful! Order ' + session.orderId + ' is automatically confirmed. No owner approval is needed.');
+            else notice('Payment verification pending. If money was debited, do not retry; contact the store.');
           } catch {
-            notice('Payment may have succeeded, but order confirmation is pending. Do not pay again. Contact the store with your order ID.');
+            notice('Payment may have succeeded; the server has not confirmed the order yet. If money was debited, do not retry. Contact the store.');
           } finally { busy = false; }
         },
         modal: {ondismiss: () => {
-          if (!verifying) {busy = false; notice('Checkout closed. Before paying again, check the order status with the store.');}
+          if (!verifying) {
+            busy = false;
+            $('orderSuccessModal')?.classList.remove('hidden');
+            notice('Order ' + session.orderId + ' is Payment Pending. Retry from order history if no money was deducted. If debited, contact the store.');
+          }
         }}
       });
       widget.on('payment.failed', () => {
-        // The provider may still show an in-checkout retry option; do not create a new order.
-        notice('Payment was not confirmed. Check payment status before another attempt.');
+        notice('Payment failed. Your order remains Payment Pending. Retry using Razorpay (same order) if no funds were debited.');
       });
       widget.open();
       sdkOpened = true;
     } catch (error) {
-      notice('Razorpay is unavailable: ' + String(error?.message || 'Please contact the store').slice(0,170) +
-        (attempted.has(key) ? ' Do not initiate another payment until reviewed.' : ''));
+      notice('Razorpay: ' + String(error?.message || 'Please contact the store').slice(0,170) +
+        ' If your bank shows a debit, do not retry. Contact support.');
     } finally { if (!sdkOpened) busy = false; }
   }
-  async function approve(selected) {
-    if (!active || busy || !staffAllowed() || !payable(selected)) return;
-    const latest = currentOrder(selected);
-    if (!payable(latest) || latest.orderId !== selected.orderId) return notice('Order details changed. Refresh orders.');
-    const display = (Number(latest.total) || 0).toFixed(2);
-    const entered = window.prompt('First verify stock, shipping, and the final item amount.\nEnter the exact INR amount (current estimate ₹' + display + ').');
-    if (entered === null) return;
-    const amount = Number(entered);
-    const paise = Math.round(amount * 100);
-    if (!Number.isSafeInteger(paise) || paise < 100 || !Number.isFinite(amount) ||
-        Math.abs(amount*100 - paise) > 0.001)
-      return notice('Enter a valid INR amount with at most two decimals.');
-    if (!window.confirm('Approve exactly ₹' + amount.toFixed(2) + ' for Razorpay? The payment backend will also recalculate prices.')) return;
-    busy = true;
-    try {
-      await token();
-      await noManualPaymentProof(latest);
-      const result = await api('/api/razorpay/staff/approve',{
-        customerUid: latest.__uid, orderKey: latest.__key, expectedAmountPaise: paise
-      });
-      if (result?.approved === true && result?.orderKey === latest.__key && result?.amountPaise === paise)
-        notice('Approved ₹' + (paise/100).toFixed(2) + ' for Razorpay. Customer may pay from order history after approval.');
-      else notice('Approval response unexpected. Check with support before proceeding.');
-    } catch (error) {notice('Approval not completed: ' + String(error?.message || 'Contact the store').slice(0,180));}
-    finally {busy = false;}
-  }
+  // The existing checkout calls this once after an online order is saved.
+  // A saved order means Payment Pending, never a successful charge.
+  window.mqb39StartCheckout = order => pay(order);
   function attach() {
     if (!active || !liveState()?.auth ||
         liveState()?.auth?.app?.options?.projectId !== cfg.expectedFirebaseProjectId) return;
-    const staffNode = $('adminOrdersContainer');
-    if (staffAllowed() && staffNode) {
-      staffNode.querySelectorAll('article[data-mqb38-uid][data-mqb38-key]').forEach(card => {
-        if (card.querySelector('.mqb38-approve')) return;
-        const record = exactOrder(card);
-        if (!payable(record)) return;
-        const button = document.createElement('button');
-        button.type = 'button';button.className = 'mqb38-approve border border-emerald-800 rounded-lg px-3 py-2 w-full font-bold';
-        button.textContent = 'Approve final amount for Razorpay';
-        button.addEventListener('click', () => approve(record));
-        card.appendChild(button);
-      });
-    }
     const customerNode = $('custOrderList');
     if (customerNode && liveState()?.auth?.currentUser && !staffAllowed()) {
       customerNode.querySelectorAll('article[data-mqb38-uid][data-mqb38-key]').forEach(card => {
@@ -203,7 +157,7 @@
         if (!payable(record) || record.__uid !== liveState()?.uid) return;
         const button = document.createElement('button');
         button.type = 'button';button.className = 'mqb38-pay w-full bg-emerald-800 text-white rounded-lg px-3 py-2 font-bold';
-        button.textContent = 'Razorpay — pay after store approval';
+        button.textContent = 'Payment Pending — Pay / Retry Razorpay';
         button.addEventListener('click', () => pay(record));
         card.appendChild(button);
       });
@@ -220,7 +174,7 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'mqb38-pay-track w-full bg-emerald-800 text-white rounded-lg px-3 py-2 font-bold mt-2';
-        button.textContent = 'Razorpay — pay after store approval';
+        button.textContent = 'Payment Pending — Pay / Retry Razorpay';
         button.addEventListener('click', () => pay(matches[0]));
         tracking.appendChild(button);
       }
@@ -238,19 +192,27 @@
       if (data?.mode !== 'live' || data.checkoutReady !== true ||
           data.paymentCreationEnabled !== true || data.webhookReady !== true ||
           data.livePaymentsEnabled !== true || data.autoConfirm !== true ||
-          data.serverApprovedFinalAmountRequired !== true ||
+          data.serverApprovedFinalAmountRequired !== false ||
+          data.autoConfirmWithoutStaff !== true || data.retryUsesSameProviderOrder !== true ||
+          data.paymentModel !== 'customer-auto-confirm-v39' ||
           data.additionalDeliveryPaise !== 0 || data.testPaymentsEnabled !== false ||
           data.firebaseProjectId !== cfg.expectedFirebaseProjectId) return;
       active = true;
-      const card = $('mqbV37ComingSoon');
-      if (card) {
-        const small = card.querySelector('small');
-        if (small) small.textContent = 'Submit a Manual UPI order request first. After store approval, pay from order history. Do not also pay using the manual UPI QR.';
-        const badge = $('mqb38AvailabilityBadge');
-        if (badge) badge.textContent = 'After approval';
-        const warning = card.querySelector('.mqb38-method-warning');
-        if (warning) warning.textContent = 'Payment is collected only from an approved order in your order history — not in this checkout form.';
+      window.mqb39RazorpayReady = true;
+      const option = $('mqbV36PaymentOption');
+      if (option) {
+        option.hidden = false;
+        option.classList.remove('hidden');
+        const radio = option.querySelector('input[name="chkPaymentMethod"]');
+        if (radio) radio.disabled = false;
       }
+      const card = $('mqbV37ComingSoon');
+      if (card) card.hidden = true;
+      const message = $('mqb37PaymentPolicy');
+      if (message) message.textContent = 'Choose Razorpay to pay online now. Your order will be confirmed automatically after the server verifies payment capture. Failed payments remain Payment Pending, with Retry available in order history.';
+      window.mqbUpdatePaymentDescription?.();
+      const footnote = $('mqb37CheckoutFootnote');
+      if (footnote) footnote.textContent = 'For Razorpay, the server securely checks the current item total. When captured payment is verified, the order is confirmed automatically. No additional delivery fee.';
       for (const id of ['adminOrdersContainer','custOrderList','trackingResultBox']) {
         const node = $(id);
         if (node) new MutationObserver(attach).observe(node,{childList:true,subtree:true});
