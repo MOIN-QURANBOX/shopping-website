@@ -1011,7 +1011,7 @@
     const count=$('custOrderCount');if(count)count.textContent=own.length+' order'+(own.length===1?'':'s')+' in your account';
     node.innerHTML=own.length?own.map(o=>{
       const items=Array.isArray(o.items)?o.items:[];
-      return `<article class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-2">
+      return `<article data-mqb38-uid="${esc(o.__uid||'')}" data-mqb38-key="${esc(o.__key||'')}" class="p-3 border rounded-lg bg-brand-sand/50 text-xs space-y-2">
         <div class="flex flex-wrap justify-between gap-2"><strong>${esc(o.orderId||o.__key)}</strong><span>${esc(o.status||'Requested')}</span></div>
         <p><strong>Date:</strong> ${esc(o.date?new Date(o.date).toLocaleString('en-IN'):'Not recorded')} · <strong>Estimate:</strong> INR ${price(o.total).toLocaleString('en-IN')}</p>
         <p><strong>Products:</strong> ${esc(items.map(i=>`${i.title||'Item'} × ${i.qty||0}`).join(', ')||'No item details')}</p>
@@ -1319,7 +1319,7 @@
       const items=Array.isArray(o.items)?o.items:[];
       const s=shipmentFor(o);
       const profile=live.profiles?.[o.__uid]||{};
-      return `<article class="p-3 border rounded-lg bg-white shadow-sm text-xs space-y-2">
+      return `<article data-mqb38-uid="${esc(o.__uid||'')}" data-mqb38-key="${esc(o.__key||'')}" class="p-3 border rounded-lg bg-white shadow-sm text-xs space-y-2">
         <div class="flex justify-between gap-2"><strong>${id}</strong><strong>${esc(o.status||'Requested')}</strong></div>
         <p><strong>Date:</strong> ${esc(o.date?new Date(o.date).toLocaleString('en-IN'):'Not recorded')}</p>
         <p><strong>Customer:</strong> ${esc(o.customerName||profile.name||'')} · ${esc(o.customerPhone||profile.phone||'')}</p>
