@@ -1440,21 +1440,21 @@
             <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked onchange="mqbUpdatePaymentDescription()" class="mt-1" />
             <span class="flex-1"><strong>UPI payment / QR after confirmation</strong><small class="block text-brand-muted mt-1">Google Pay, PhonePe, Paytm or any UPI app — after order confirmation</small></span><span class="text-xs font-semibold text-emerald-700">Manual</span>
           </label>
-          <!-- V38.2: INFORMATION ONLY. The live payment option is NOT selectable. -->
+          <!-- V39: This card stays informational until the payment backend is independently verified as ready. -->
           <div id="mqbV37ComingSoon" class="mqb38-method-card" role="note" aria-live="polite">
             <span class="mqb38-method-icon" aria-hidden="true">🔒</span>
             <div class="mqb38-method-copy">
               <strong>Razorpay secure online payment</strong>
-              <small class="block text-brand-muted mt-1">UPI, cards and other supported methods — available only after the store approves your final amount and the gateway goes live.</small>
-              <p class="mqb38-method-steps">How it will work: submit an order request → store confirms final amount → pay securely from your order history.</p>
+              <small class="block text-brand-muted mt-1">UPI, cards and other supported methods — pay online without waiting for owner or staff approval once the gateway is activated.</small>
+              <p class="mqb38-method-steps">How it will work: choose Razorpay at checkout → pay securely → your order is automatically confirmed when payment succeeds. If payment fails, retry from your order history.</p>
               <p class="mqb38-method-warning">Not accepting Razorpay payments yet. Use Manual UPI or Cash on Delivery for now. Never pay twice for one order.</p>
             </div>
             <span id="mqb38AvailabilityBadge" class="mqb38-method-badge">Coming soon</span>
           </div>
           <!-- Razorpay is intentionally hidden and unselectable until an approved PRODUCTION backend confirms readiness. -->
           <label id="mqbV36PaymentOption" hidden class="hidden mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-emerald-300 bg-emerald-50 cursor-pointer">
-            <input type="radio" name="chkPaymentMethod" value="Razorpay" class="mt-1" />
-            <span class="flex-1"><strong>Pay online securely with Razorpay</strong><small class="block text-brand-muted mt-1">Online payment becomes available only when our production payment server verifies readiness; no added delivery fee.</small></span>
+            <input type="radio" name="chkPaymentMethod" value="Razorpay" class="mt-1" disabled onchange="mqbUpdatePaymentDescription()" />
+            <span class="flex-1"><strong>Pay online securely with Razorpay</strong><small class="block text-brand-muted mt-1">Payment confirms the order automatically after secure server verification; failed payments remain pending and can be retried.</small></span>
           </label>
           <p id="mqbV36Feedback" class="hidden text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3" role="status" aria-live="polite"></p>
           <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
@@ -1467,7 +1467,7 @@
             <div class="p-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-neutral-600 flex justify-between gap-2"><span>Wallets</span><span class="text-[11px] font-semibold">Requires payment gateway</span></div>
           </div></details>
           <div id="mqbPaymentDescription" class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-950" role="status" aria-live="polite">For UPI: submit your request and wait for the store to confirm stock and the final item total. Delivery is included in the price. Pay only to the verified business UPI ID.</div>
-          <p class="text-xs text-brand-muted">Payment is NOT collected at checkout. Card, Net Banking and Wallets are not active yet.</p>
+          <p id="mqb39CheckoutPaymentNote" class="text-xs text-brand-muted">Payment is not collected at this checkout form. Card and UPI payments through Razorpay are coming soon.</p>
           <strong class="hidden" id="displayCheckoutUpi"></strong>
         </section>
         <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-2">
@@ -1765,8 +1765,8 @@
   <script defer src="js/product-feedback-v33.js"></script>
   <script defer src="js/customer-experience-v34.js"></script>
   <script defer src="js/product-media-v35.js"></script>
-  <!-- Retired V36/V37 immediate-charge adapters remain as historical files, NOT loaded.
-       V38.2 uses owner-approved payment from existing order history only. -->
+  <!-- Retired V36/V37 immediate-charge adapters remain historical files, NOT loaded.
+       V39 payment is customer initiated, server verified and production locked by default. -->
   <script defer src="js/razorpay-v38-approved-config.js"></script>
   <script defer src="js/razorpay-v38-approved-orders.js"></script>
 </body>
