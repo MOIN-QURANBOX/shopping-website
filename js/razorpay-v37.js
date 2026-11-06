@@ -1,32 +1,32 @@
-/* MOIN QURAN BOX V37 — fail-closed, TEST-mode Razorpay checkout adapter.
- * This static frontend NEVER creates payment orders or verifies signatures on
- * its own. All amounts, payment status and persistence require a trusted server.
- * The option stays hidden until an explicitly approved TEST backend is ready.
- * COD and Manual UPI follow the original Firebase order-request flow.
+/* MOIN QURAN BOX V38 — production-ready storefront adapter (DISABLED by default).
+ * Browser does not create Razorpay orders or verify payments itself.
+ * COD and Manual UPI retain their existing Firebase request handler.
+ * The isolated V37 staging payment endpoints are deliberately incompatible.
  */
 (()=>{'use strict';
   const cfg=window.MQB_RAZORPAY_V37||{};
   const $=id=>document.getElementById(id);
   const form=$('checkoutModal')?.querySelector('form');
   const option=$('mqbV36PaymentOption');
+  const pendingCard=$('mqbV37ComingSoon');
   if(!form || !option)return;
   const submit=form.querySelector('button[type="submit"]');
-  const paymentHelp=$('mqb37PaymentPolicy');
+  const payHelp=$('mqb37PaymentPolicy');
   const payFootnote=$('mqb37CheckoutFootnote');
   const defaultSubmit=submit?.textContent||'Submit Order Request (No Payment)';
   const defaultFootnote=payFootnote?.textContent||'';
-  const defaultPaymentHelp=paymentHelp?.textContent||'';
-  const $notice=()=> $('mqbV36Feedback');
-  let enabled=false, busy=false, base='';
+  const defaultPaymentHelp=payHelp?.textContent||'';
+  const defaultDescription=$('mqbPaymentDescription')?.textContent||'';
+  const safeText=(value,max=180)=>String(value==null?'':value).replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
+  const report=message=>{const p=$('mqbV36Feedback');if(p){p.textContent=message;p.classList.remove('hidden');}};
+  let enabled=false,busy=false,alreadyAttempted=false,base='';
   const selected=()=>form.querySelector('input[name="chkPaymentMethod"]:checked')?.value==='Razorpay';
-  const safeText=(value,max=160)=>String(value==null?'':value).replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
-  const report=message=>{const p=$notice();if(p){p.textContent=message;p.classList.remove('hidden');}};
-  const testGuard=()=>{
-    if(cfg.enabled!==true || cfg.mode!=='test')return false;
-    if(!cfg.approvedBackendHost || !cfg.expectedFirebaseProjectId)return false;
-    try{
+  const validConfig=()=>{
+    if(cfg.enabled!==true || cfg.mode!=='live' || cfg.expectedFirebaseProjectId!=='moin-quran-box')return false;
+    if(typeof cfg.approvedBackendHost!=='string'||!cfg.approvedBackendHost)return false;
+    try {
       const url=new URL(cfg.backendUrl);
-      if(url.protocol!=='https:' || url.username || url.password || url.port || url.pathname!=='/' || url.search || url.hash || !url.hostname)return false;
+      if(url.protocol!=='https:'||url.username||url.password||url.port||url.pathname!=='/'||url.search||url.hash||!url.hostname)return false;
       if(url.hostname!==cfg.approvedBackendHost)return false;
       base=url.origin;
       return true;
@@ -44,126 +44,155 @@
     card.append(h,p,close);wrapper.append(card);close.focus();
   };
   const reflect=()=>{
-    if(submit)submit.textContent=selected()&&enabled?'Continue to Razorpay TEST Payment':defaultSubmit;
+    if(submit)submit.textContent=selected()&&enabled?'Continue to secure Razorpay checkout':defaultSubmit;
     if(payFootnote)payFootnote.textContent=selected()&&enabled?
-      'Razorpay TEST only. The backend determines the total; ₹0 extra delivery fee. A test order is not a real customer sale.':defaultFootnote;
-    if(paymentHelp)paymentHelp.textContent=enabled?
-      'For Razorpay TEST, the payment screen opens only after secure server checks. COD and Manual UPI remain available. No real money is charged in TEST mode.':defaultPaymentHelp;
-    if(selected()){
-      $('mqbPaymentDescription').textContent=enabled?
-        'Razorpay TEST — online checkout will use the server-calculated item total and ₹0 extra delivery fee. A draft is confirmed only when Razorpay reports a captured test payment.':
-        'Online payment is not active. Please choose COD or Manual UPI.';
-    }else window.mqbUpdatePaymentDescription?.();
+      'The server calculates your payable amount; delivery is included. Please wait for confirmed payment before treating your order as placed.':defaultFootnote;
+    if(payHelp)payHelp.textContent=enabled?
+      'Pay securely online with Razorpay, or choose COD / Manual UPI. A successful order requires server-confirmed capture.':defaultPaymentHelp;
+    window.mqbUpdatePaymentDescription?.();
+    const description=$('mqbPaymentDescription');
+    if(selected()&&description)description.textContent=enabled?
+      'Razorpay: the trusted payment server calculates the item total and verifies capture before confirming your order.':
+      'Online payment is not active. Please choose COD or Manual UPI.';
+    else if(!window.mqbUpdatePaymentDescription&&description)description.textContent=defaultDescription;
   };
-  const requireAuth=async()=>{
+  const getToken=async()=>{
     const auth=window.mqbLive?.auth;
-    if(!auth || auth.app?.options?.projectId!==cfg.expectedFirebaseProjectId)throw Error('Secure checkout configuration is not ready.');
+    if(!auth || auth.app?.options?.projectId!==cfg.expectedFirebaseProjectId)throw Error('Secure customer login is not ready.');
     let user=auth.currentUser;
-    if(!user){if(typeof auth.signInAnonymously!=='function')throw Error('Guest sign-in unavailable.');user=(await auth.signInAnonymously()).user;}
-    if(!user?.getIdToken)throw Error('Secure login unavailable.');
+    if(!user){
+      if(typeof auth.signInAnonymously!=='function')throw Error('Guest checkout is unavailable.');
+      user=(await auth.signInAnonymously()).user;
+    }
+    if(!user?.getIdToken)throw Error('Secure authentication unavailable.');
     return user.getIdToken();
   };
-  const call=async(path,payload,token)=>{
-    const response=await fetch(base+path,{method:'POST',cache:'no-store',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify(payload)});
-    let json={};try{json=await response.json();}catch{}
-    if(!response.ok)throw Error('Payment server could not complete this step ('+response.status+').');
-    return json;
+  const request=async(path,payload,token,attemptKey)=>{
+    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),20000);
+    try{
+      const headers={'Content-Type':'application/json','Authorization':'Bearer '+token};
+      if(attemptKey)headers['Idempotency-Key']=attemptKey;
+      const res=await fetch(base+path,{method:'POST',cache:'no-store',credentials:'omit',headers,
+        body:JSON.stringify(payload),signal:ctrl.signal,redirect:'error'});
+      let data={};try{data=await res.json();}catch{}
+      if(!res.ok)throw Error('Payment server could not complete the request (HTTP '+res.status+').');
+      return data;
+    }finally{clearTimeout(timer);}
   };
-  const getDetails=()=>{
+  const customerDetails=()=>{
     const items=typeof cart!=='undefined'?cart:window.cart;
     if(!Array.isArray(items)||!items.length)throw Error('Your bag is empty.');
-    const lineItems=items.map(item=>({id:String(item.id||'').trim(),qty:Number(item.qty)}));
-    if(lineItems.some(item=>!item.id || !Number.isSafeInteger(item.qty)||item.qty<1||item.qty>50))throw Error('Please review item quantities.');
+    const products=items.map(item=>({id:String(item.id||'').trim(),qty:Number(item.qty)}));
+    if(products.some(i=>!i.id||!Number.isSafeInteger(i.qty)||i.qty<1||i.qty>50))throw Error('Review item quantities.');
     const val=id=>safeText($(id)?.value,500);
-    const customerName=val('chkName'),phone=val('chkPhone'),house=val('mqb30HouseFlat'),street=val('chkAddress'),email=val('chkEmail');
-    const postalCode=val('chkPostalCode');
-    if(!customerName||!/^[\d+()\s-]{10,18}$/.test(phone)||!street||!/^[0-9]{6}$/.test(postalCode))throw Error('Check your name, phone number, complete address and 6-digit PIN.');
-    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Please enter a valid email or leave it blank.');
-    if($('mqb34EmailOptIn')?.checked&&!email&&!window.mqbLive?.auth?.currentUser?.email)throw Error('Please provide an email for email updates.');
-    const address=safeText([house,street].filter(Boolean).join(', '),600);
-    return {items:lineItems,customerName,customerPhone:phone,customerEmail:email,
-      address,postalCode,deliveryChoice:val('chkDeliveryChoice'),deliveryNote:val('chkDeliveryNote'),
+    const name=val('chkName'),phone=val('chkPhone'),house=val('mqb30HouseFlat'),street=val('chkAddress');
+    const email=val('chkEmail'),postalCode=val('chkPostalCode');
+    if(!name||!/^[\d+()\s-]{10,18}$/.test(phone)||!street||!/^[0-9]{6}$/.test(postalCode))throw Error('Check your name, phone, address and PIN.');
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Enter a valid email or leave it blank.');
+    if($('mqb34EmailOptIn')?.checked&&!email&&!window.mqbLive?.auth?.currentUser?.email)throw Error('Enter an email for email updates.');
+    return {items:products,customerName:name,customerPhone:phone,customerEmail:email,
+      address:safeText([house,street].filter(Boolean).join(', '),600),postalCode,
+      deliveryChoice:val('chkDeliveryChoice'),deliveryNote:val('chkDeliveryNote'),
       orderUpdatesConsent:{whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked,sms:!!$('mqb352SmsOptIn')?.checked}};
   };
   const checkoutSdk=()=>new Promise((resolve,reject)=>{
     if(typeof window.Razorpay==='function')return resolve();
     const script=document.createElement('script');script.src='https://checkout.razorpay.com/v1/checkout.js';script.async=true;
     script.onload=()=>typeof window.Razorpay==='function'?resolve():reject(Error('Payment checkout unavailable.'));
-    script.onerror=()=>reject(Error('Could not load payment checkout.'));
+    script.onerror=()=>reject(Error('Unable to load Razorpay checkout.'));
     document.head.append(script);
   });
   const start=async()=>{
     if(busy)return;
-    if(!enabled){report('Online payment remains disabled. Please choose COD or Manual UPI.');return;}
+    if(!enabled){report('Razorpay is not available yet. Choose COD or Manual UPI.');return;}
+    if(alreadyAttempted){report('A payment attempt may already exist. Please check its status or contact support before retrying.');return;}
     busy=true;if(submit)submit.disabled=true;
-    let checkoutOpened=false;
+    let opened=false;
     try{
-      if(typeof form.reportValidity==='function'&&!form.reportValidity())throw Error('Please complete the required checkout fields.');
-      const details=getDetails();
-      report('Preparing a Razorpay TEST payment. No real money will be collected.');
-      const token=await requireAuth();
-      const session=await call('/api/razorpay/create',details,token);
-      if(!session || !/^rzp_test_[A-Za-z0-9]+$/.test(session.keyId||'') ||
-        !/^order_[A-Za-z0-9]+$/.test(session.razorpayOrderId||'') ||
+      if(typeof form.reportValidity==='function'&&!form.reportValidity())throw Error('Please fill the required checkout fields.');
+      const details=customerDetails();
+      const token=await getToken();
+      const attemptKey=window.crypto?.randomUUID?.();
+      if(!attemptKey)throw Error('Your browser cannot safely start this payment.');
+      // Once creation is attempted, never auto-create a second Razorpay order on
+      // timeout or ambiguous failure. Reconcile using the server first.
+      alreadyAttempted=true;
+      report('Contacting our secure payment server. Please do not submit twice.');
+      const session=await request('/api/razorpay/create',details,token,attemptKey);
+      if(!session || !/^rzp_live_[A-Za-z0-9]+$/.test(session.keyId||'')||
+        !/^order_[A-Za-z0-9]+$/.test(session.razorpayOrderId||'')||
         !Number.isSafeInteger(session.amountPaise)||session.amountPaise<100||
-        !session.orderKey || !session.orderId || session.additionalDeliveryPaise!==0){
-        throw Error('Payment backend returned an invalid TEST checkout session.');
-      }
+        typeof session.orderId!=='string'||!session.orderId||
+        typeof session.orderKey!=='string'||!session.orderKey||
+        session.additionalDeliveryPaise!==0)throw Error('Invalid payment session.');
       await checkoutSdk();
-      let resultInProgress=false;
+      let verifying=false;
       const rzp=new window.Razorpay({key:session.keyId,order_id:session.razorpayOrderId,
         amount:session.amountPaise,currency:'INR',name:'MOIN QURAN BOX',
-        description:'Razorpay TEST order '+safeText(session.orderId,80),
+        description:'Order '+safeText(session.orderId,65),
         prefill:{name:details.customerName,contact:details.customerPhone,email:details.customerEmail},
         handler:async outcome=>{
-          if(resultInProgress)return;resultInProgress=true;
-          report('Checking captured TEST payment directly with the server…');
+          if(verifying)return;verifying=true;
+          report('Verifying payment and order directly with our server…');
           try{
-            const verified=await call('/api/razorpay/verify',{
-              orderKey:session.orderKey,
-              razorpay_order_id:outcome.razorpay_order_id,
+            const verified=await request('/api/razorpay/verify',{
+              orderKey:session.orderKey,razorpay_order_id:outcome.razorpay_order_id,
               razorpay_payment_id:outcome.razorpay_payment_id,
-              razorpay_signature:outcome.razorpay_signature
-            },token);
-            if(verified?.confirmed===true && verified.paymentStatus==='captured' && verified.orderId===session.orderId){
-              // TEST mode: never clear the real storefront cart or mark a production order confirmed.
-              modal('Razorpay TEST payment verified','Test order '+safeText(session.orderId,80)+' was verified as captured by the server. No real funds were collected; your regular shopping bag remains unchanged.');
-            }else{
-              modal('Verification pending','TEST order '+safeText(session.orderId,80)+' is not confirmed as captured. Do not retry blindly. Check the payment in the test dashboard.');
-            }
-          }catch{
-            modal('Verification pending','The payment may have been attempted, but the server has not confirmed capture. Check its status before trying again.');
-          }finally{busy=false;if(submit)submit.disabled=false;}
+              razorpay_signature:outcome.razorpay_signature},token);
+            if(verified?.confirmed===true && verified.paymentStatus==='captured' &&
+              verified.orderPersisted===true && verified.orderId===session.orderId){
+              // Do not create a second COD/Manual UPI request. The payment backend
+              // alone persists the paid production order, then returns this receipt.
+              // The server has already durably confirmed the paid order.
+              // Only now clear the cart; never send a legacy order request.
+              if(typeof cart!=='undefined')cart=[];
+              try{window.mqbLive?.saveCart?.();}catch{/* Order is already confirmed server-side. */}
+              window.updateCartUI?.();
+              window.closeCheckoutModal?.();
+              modal('Payment confirmed','Your payment and order '+safeText(session.orderId,65)+' are confirmed. Keep your order reference for tracking.');
+            } else modal('Payment pending','A payment was attempted, but the order has not been confirmed. Do not pay again until it is checked.');
+          }catch{modal('Verification pending','The payment may have succeeded. Please contact the store with your order reference before attempting another payment.');}
+          finally{busy=false;if(submit)submit.disabled=false;}
         },
-        modal:{ondismiss:()=>{if(resultInProgress)return;busy=false;if(submit)submit.disabled=false;report('TEST payment window closed. No payment has been confirmed.');}}
+        modal:{ondismiss:()=>{if(verifying)return;busy=false;if(submit)submit.disabled=false;report('Checkout closed. Do not pay again until the previous attempt is checked.');}}
       });
-      rzp.on('payment.failed',()=>{busy=false;if(submit)submit.disabled=false;report('TEST payment failed. No order has been confirmed.');});
-      rzp.open();checkoutOpened=true;
-    }catch(err){report('Online TEST payment unavailable: '+safeText(err?.message||'Please try again later.',180));}
-    finally{if(!checkoutOpened){busy=false;if(submit)submit.disabled=false;}}
+      rzp.on('payment.failed',()=>{busy=false;if(submit)submit.disabled=false;report('The payment was not confirmed. Verify its status before retrying.');});
+      rzp.open();opened=true;
+    }catch(error){report('Online payment unavailable: '+safeText(error?.message||'Please contact support.',180)+(alreadyAttempted?' Do not retry automatically.':' See payment options above.'));}
+    finally{if(!opened){busy=false;if(submit)submit.disabled=false;}}
   };
-  form.addEventListener('submit',e=>{
+  form.addEventListener('submit',event=>{
     if(!selected())return;
-    e.preventDefault();e.stopImmediatePropagation(); // NEVER invoke the legacy Firebase order-request handler
+    event.preventDefault();event.stopImmediatePropagation(); // prevents original Firebase request handler
     start();
   },true);
-  form.addEventListener('change',e=>{if(e.target?.name==='chkPaymentMethod')reflect();});
+  form.addEventListener('change',event=>{if(event.target?.name==='chkPaymentMethod')reflect();});
   const readiness=async()=>{
-    if(!testGuard())return;
-    try{
-      const response=await fetch(base+'/api/razorpay/status',{cache:'no-store',mode:'cors'});
+    if(!validConfig())return;
+    try {
+      const auth=window.mqbLive?.auth;
+      if(!auth||auth.app?.options?.projectId!==cfg.expectedFirebaseProjectId)return;
+      const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),8000);
+      let response;
+      try{response=await fetch(base+'/api/razorpay/status',{cache:'no-store',credentials:'omit',mode:'cors',redirect:'error',signal:controller.signal});}
+      finally{clearTimeout(timer);}
       if(!response.ok)return;
       const state=await response.json();
-      if(!state || state.mode!=='test' || state.checkoutReady!==true ||
-        state.paymentCreationEnabled!==true || state.autoConfirm!==true || state.webhookReady!==true ||
-        state.livePaymentsEnabled!==false || state.additionalDeliveryPaise!==0 ||
-        state.firebaseProjectId!==cfg.expectedFirebaseProjectId)return;
-      const app=window.mqbLive?.auth?.app;
-      if(!app || app.options?.projectId!==cfg.expectedFirebaseProjectId)return;
-      enabled=true;option.hidden=false;option.classList.remove('hidden');reflect();
-    }catch{/* Fail closed; keep COD and Manual UPI intact. */}
+      if(!state || state.mode!=='live' || state.checkoutReady!==true ||
+        state.paymentCreationEnabled!==true || state.autoConfirm!==true ||
+        state.webhookReady!==true || state.livePaymentsEnabled!==true ||
+        state.additionalDeliveryPaise!==0 || state.firebaseProjectId!==cfg.expectedFirebaseProjectId)return;
+      enabled=true;option.hidden=false;option.classList.remove('hidden');
+      if(pendingCard){pendingCard.hidden=true;pendingCard.classList.add('hidden');}
+      reflect();
+    }catch{/* fail closed, leave manual methods untouched */}
   };
-  reflect();readiness();
+  option.hidden=true;option.classList.add('hidden');
+  reflect();
+  // Firebase initializes after the existing storefront loads its catalog.
+  // Only attempt readiness if explicitly enabled and a vetted backend is set.
+  if(cfg.enabled===true){
+    const retries=[0,600,1500,3500,7000,14000];
+    retries.forEach(delay=>setTimeout(()=>{if(!enabled)readiness();},delay));
+  }
 })();
