@@ -1,0 +1,27 @@
+/* V38.2 checkout: informational preview only while Razorpay integration is disabled. */
+.mqb38-method-card {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .9rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: .85rem;
+  color: #1f2937;
+}
+.mqb38-method-icon {flex: 0 0 auto; font-size: 1.15rem;line-height: 1.5rem;}
+.mqb38-method-copy {flex: 1 1 auto; min-width: 0; font-size: .84rem; line-height: 1.45;}
+.mqb38-method-copy strong {display: block; font-size: .92rem;line-height: 1.4;}
+.mqb38-method-steps {margin-top: .55rem; font-size: .75rem; line-height: 1.45;}
+.mqb38-method-warning {margin-top: .55rem; color: #92400e; font-size: .72rem; line-height: 1.45;}
+.mqb38-method-badge {
+ flex:0 0 auto;max-width:6.5rem;
+ border-radius: .4rem; background: #e2e8f0; color: #334155;
+ padding: .3rem .45rem; font-size: .67rem; font-weight:700; text-align:center;
+}
+@media (max-width: 440px) {
+ .mqb38-method-card {flex-wrap:wrap;gap:.6rem;padding:.75rem;}
+ .mqb38-method-copy {flex:1 1 calc(100% - 2.5rem);}
+ .mqb38-method-badge {margin-left:1.9rem;max-width:none;}
+}
+@media (prefers-reduced-motion: reduce) {.mqb38-method-card {scroll-behavior:auto;}}
