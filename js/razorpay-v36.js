@@ -43,8 +43,7 @@
   const house=v('mqb30HouseFlat'),street=v('chkAddress');
   return {items:cart.map(x=>({id:x.id,qty:Number(x.qty)||1})),
    customerName:v('chkName'),customerPhone:v('chkPhone'),customerEmail:v('chkEmail')||window.mqbLive?.auth?.currentUser?.email||'',
-   address:(house ? house+', ':'')+street,postalCode:v('chkPostalCode'),deliveryNote:v('chkDeliveryNote'),
-   orderUpdatesConsent:{whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked,sms:!!$('mqb352SmsOptIn')?.checked}};
+   address:(house ? house+', ':'')+street,postalCode:v('chkPostalCode'),deliveryNote:v('chkDeliveryNote')};
  };
  const loadRazorpay=()=>new Promise((resolve,reject)=>{
   if(window.Razorpay)return resolve();
