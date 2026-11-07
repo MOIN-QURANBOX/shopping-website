@@ -1123,6 +1123,10 @@ function openProductEditModal(id = null) {
     document.getElementById("editProductTitle").value = p.title;
     document.getElementById("editProductCategory").value = p.category;
     document.getElementById("editProductStock").value = p.stock;
+    // V39: Capture the stock seen WHEN this edit form opened. Do not overwrite
+    // inventory reserved later by the trusted Razorpay backend.
+    document.getElementById("editProductStock").dataset.mqb39BaseStock = String(p.stock);
+    document.getElementById("editProductStock").dataset.mqb39BaseId = p.id;
     document.getElementById("editProductSalePrice").value = p.salePrice;
     document.getElementById("editProductImage").value = p.image;
     document.getElementById("editProductColor").value = p.color ?? p.colour ?? '';
@@ -1134,6 +1138,8 @@ function openProductEditModal(id = null) {
     document.getElementById("editProductId").value = "";
     document.getElementById("editProductTitle").value = "";
     document.getElementById("editProductStock").value = "25";
+    delete document.getElementById("editProductStock").dataset.mqb39BaseStock;
+    delete document.getElementById("editProductStock").dataset.mqb39BaseId;
     document.getElementById("editProductSalePrice").value = "";
     document.getElementById("editProductImage").value = "";
     document.getElementById("editProductColor").value = "";
