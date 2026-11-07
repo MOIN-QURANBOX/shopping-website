@@ -89,11 +89,9 @@
     const email=val('chkEmail'),postalCode=val('chkPostalCode');
     if(!name||!/^[\d+()\s-]{10,18}$/.test(phone)||!street||!/^[0-9]{6}$/.test(postalCode))throw Error('Check your name, phone, address and PIN.');
     if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Enter a valid email or leave it blank.');
-    if($('mqb34EmailOptIn')?.checked&&!email&&!window.mqbLive?.auth?.currentUser?.email)throw Error('Enter an email for email updates.');
     return {items:products,customerName:name,customerPhone:phone,customerEmail:email,
       address:safeText([house,street].filter(Boolean).join(', '),600),postalCode,
-      deliveryChoice:val('chkDeliveryChoice'),deliveryNote:val('chkDeliveryNote'),
-      orderUpdatesConsent:{whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked,sms:!!$('mqb352SmsOptIn')?.checked}};
+      deliveryChoice:val('chkDeliveryChoice'),deliveryNote:val('chkDeliveryNote')};
   };
   const checkoutSdk=()=>new Promise((resolve,reject)=>{
     if(typeof window.Razorpay==='function')return resolve();
