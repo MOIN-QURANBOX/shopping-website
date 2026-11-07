@@ -36,6 +36,7 @@ let sessionTimerInterval = null;
 
 // Default Admin Feature Controls
 const DEFAULT_TOGGLES = {
+  featuredCollection: false, // OFF by default; Super Admin can publish to publicSettings
   customerWishlist: true,
   customerWallet: true,
   customerSupportTickets: true,
@@ -1044,10 +1045,17 @@ function triggerAbandonedCartRecovery() {
   logAuditEvent("Abandoned Cart Recovery reminder dispatched", currentUser?.username || 'Admin', "marketing");
 }
 
-function toggleFeatureFlag(key, enabled) {
-  if (currentUser?.role !== 'admin') return alert("Access Denied: Only Developer Master Admin can toggle features.");
+async function toggleFeatureFlag(key, enabled) {
+  if (currentUser?.role !== 'admin' || !window.mqbLive?.verifiedAdmin)
+    return alert("Access Denied: Only verified Super Admin can toggle features.");
   if (!config.featureToggles) config.featureToggles = {};
-  config.featureToggles[key] = enabled;
+  // Featured section is public: persist this one flag to Firebase, not just this browser.
+  if(key === 'featuredCollection') {
+    if(!window.mqbLive?.db)return alert('Firebase is not connected. This setting was not changed.');
+    try {await window.mqbLive.db.ref('publicSettings/featuredCollectionEnabled').set(enabled===true);}
+    catch(error){renderAdminFeatureToggles();alert('Featured collection was not changed: '+String(error?.message||error));return;}
+  }
+  config.featureToggles[key] = enabled===true;
   persist();
   renderProducts();
   logAuditEvent(`Feature toggle '${key}' set to ${enabled}`, currentUser.username, "toggles");
@@ -1123,10 +1131,6 @@ function openProductEditModal(id = null) {
     document.getElementById("editProductTitle").value = p.title;
     document.getElementById("editProductCategory").value = p.category;
     document.getElementById("editProductStock").value = p.stock;
-    // V39: Capture the stock seen WHEN this edit form opened. Do not overwrite
-    // inventory reserved later by the trusted Razorpay backend.
-    document.getElementById("editProductStock").dataset.mqb39BaseStock = String(p.stock);
-    document.getElementById("editProductStock").dataset.mqb39BaseId = p.id;
     document.getElementById("editProductSalePrice").value = p.salePrice;
     document.getElementById("editProductImage").value = p.image;
     document.getElementById("editProductColor").value = p.color ?? p.colour ?? '';
@@ -1138,8 +1142,6 @@ function openProductEditModal(id = null) {
     document.getElementById("editProductId").value = "";
     document.getElementById("editProductTitle").value = "";
     document.getElementById("editProductStock").value = "25";
-    delete document.getElementById("editProductStock").dataset.mqb39BaseStock;
-    delete document.getElementById("editProductStock").dataset.mqb39BaseId;
     document.getElementById("editProductSalePrice").value = "";
     document.getElementById("editProductImage").value = "";
     document.getElementById("editProductColor").value = "";
