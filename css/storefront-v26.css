@@ -240,3 +240,16 @@ body { background:#faf9f5; }
 .mqb33-details-review{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid #e8e0d3;padding-top:12px;margin-top:14px}
 #mqb33ArchivePanel[hidden]{display:none!important}
 @media(max-width:640px){.mqb33-stock-actions{justify-content:flex-start}.mqb33-review-card{padding:9px}.mqb33-review-filter>*{max-width:100%}}
+
+/* V40 order categories and date filtering: compact, responsive staff view. */
+.mqb40-order-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.mqb40-order-groups button{display:flex;justify-content:space-between;align-items:center;gap:5px;padding:10px 12px;border:1px solid #cbd6d0;border-radius:10px;background:#fff;color:#183c2a;font-size:12px;font-weight:750;min-width:0;cursor:pointer}
+.mqb40-order-groups button.mqb40-active{background:#184f35;color:#fff;border-color:#184f35}
+.mqb40-order-groups span{font-size:11px;border-radius:50px;padding:2px 6px;background:rgba(126,150,130,.18)}
+.mqb40-date-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:end}
+.mqb40-date-filters label{font-size:11px;font-weight:750;color:#254234;display:flex;flex-direction:column;gap:5px}
+.mqb40-date-filters input{min-width:0;width:100%;border:1px solid #cbd6d0;border-radius:9px;padding:9px;font-size:12px;background:white;color:#20372c}
+.mqb40-date-filters button{border:1px solid #cbd6d0;border-radius:9px;padding:9px 12px;background:#fff;font-size:12px;font-weight:750;grid-column:span 2}
+.mqb26-featured[hidden]{display:none!important}
+@media(min-width:700px){.mqb40-order-groups{grid-template-columns:repeat(3,minmax(0,1fr))}.mqb40-date-filters{grid-template-columns:repeat(2,minmax(0,220px)) auto;justify-content:start}.mqb40-date-filters button{grid-column:auto}}
+@media(min-width:1050px){.mqb40-order-groups{grid-template-columns:repeat(6,minmax(0,1fr))}}
