@@ -180,6 +180,12 @@
       }
     }
   }
+  let readinessAttempts = 0;
+  function retryReadiness() {
+    // Render free instances can take time to wake up. Only retry transport/server
+    // failures; NEVER make an unavailable or disabled payment backend look ready.
+    if (++readinessAttempts <= 6) setTimeout(ready, 10000);
+  }
   async function ready() {
     try {
       const controller = new AbortController();const timer = setTimeout(() => controller.abort(), 8000);
@@ -187,7 +193,7 @@
       try {response = await fetch(base + '/api/razorpay/status',{
         cache:'no-store',mode:'cors',credentials:'omit',redirect:'error',signal:controller.signal
       });} finally {clearTimeout(timer);}
-      if (!response.ok) return;
+      if (!response.ok) { if (response.status >= 500) retryReadiness(); return; }
       const data = await response.json();
       if (data?.mode !== 'live' || data.checkoutReady !== true ||
           data.paymentCreationEnabled !== true || data.webhookReady !== true ||
@@ -218,7 +224,7 @@
         if (node) new MutationObserver(attach).observe(node,{childList:true,subtree:true});
       }
       attach();
-    } catch { /* Fail closed — do not expose payment actions. */ }
+    } catch { retryReadiness(); /* Fail closed: controls remain hidden throughout retries. */ }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',ready,{once:true});
   else ready();
