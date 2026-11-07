@@ -29,7 +29,7 @@
   const summary = id => {
     const list=reviewList(id), count=list.length;
     const avg=count?list.reduce((s,r)=>s+Number(r.rating),0)/count:0;
-    return {count,avg,label:count?`★ ${avg.toFixed(1)} / 5 · ${count} review${count===1?'':'s'}`:'☆☆☆☆☆ No customer ratings yet'};
+    return {count,avg,label:count?`★ ${avg.toFixed(1)} / 5 · ${count} review${count===1?'':'s'}`:''};
   };
   function decorateCards(){
     if(typeof products==='undefined')return;
@@ -44,8 +44,9 @@
       [...grid.children].forEach((card,index)=>{
         const p=list[index];if(!p)return;
         let el=card.querySelector('.mqb33-card-rating');
+        const rating=summary(p.id);if(!rating.count){el?.remove();return;}
         if(!el){el=textEl('div','mqb33-card-rating');(card.querySelector('.p-3')||card).appendChild(el);}
-        el.textContent=summary(p.id).label;el.title='Approved customer feedback only';
+        el.textContent=rating.label;el.title='Approved customer feedback only';
       });
     }
     const featured=$('mqbV26Products');
@@ -55,8 +56,9 @@
       cards.forEach((card,i)=>{
         const p=list[i];if(!p)return;
         let el=card.querySelector('.mqb33-card-rating');
+        const rating=summary(p.id);if(!rating.count){el?.remove();return;}
         if(!el){el=textEl('div','mqb33-card-rating');(card.querySelector('.mqb26-productbody')||card).appendChild(el);}
-        el.textContent=summary(p.id).label;
+        el.textContent=rating.label;
       });
     }
   }
@@ -118,8 +120,8 @@
     [...tbody.querySelectorAll('tr')].forEach((row,i)=>{
       const p=products[i];if(!p)return;
       const cell=row.lastElementChild;if(!cell)return;
-      const meta=textEl('div','mqb33-stock-rating',summary(p.id).label);
-      const titleCell=row.firstElementChild;titleCell?.append(meta);
+      const rating=summary(p.id);
+      if(rating.count){const meta=textEl('div','mqb33-stock-rating',rating.label);row.firstElementChild?.append(meta);}
       const actions=textEl('div','mqb33-stock-actions');
       actions.append(btn('Reviews','mqb33-review-action',()=>{
         state.adminFilter=p.id;window.switchAdminTab?.('reviews');window.mqb33RenderAdminReviews?.();
@@ -254,7 +256,7 @@
       window.openProductDetails=function(productId){
         const r=previous.apply(this,arguments);
         const body=$('productDetailsContent');
-        if(body && typeof products!=='undefined' && products.some(p=>p.id===productId)){
+        if(body && typeof products!=='undefined' && products.some(p=>p.id===productId) && summary(productId).count){
           const foot=textEl('div','mqb33-details-review');
           foot.append(textEl('span','mqb33-stars',summary(productId).label+'  '));
           foot.append(textEl('span','mqb33-detail-hint','To write a review, use Customer Feedback in the menu.'));
