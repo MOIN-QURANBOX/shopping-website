@@ -78,7 +78,7 @@
     uid: null, verifiedAdmin: false, activeRole: null, staffRecords: {}, catalogPublished: false, db: null, auth: null,
     applying: false, settingsReady: false, lastSettings: '', saveTimer: null,
     unsubs: [], started: false, profiles: {}, cartActivity: {}, salesResetAt: 0, staffEvents: {}, adminControls: {},
-    orderNotes:{}, orderArchive:{},
+    orderNotes:{}, orderArchive:{}, publicFeaturedCollectionEnabled:false,
     guestMessage: 'No confirmed cloud catalog yet. Sample collection shown for preview only.',
     setStatus(message, state='waiting') {
       const el=$('liveSyncBanner'); if (!el) return;
@@ -146,6 +146,10 @@
         this.on('publicSettings', data => {
           if(!data || typeof data!=='object') return;
           for(const k of publicKeys) if(Object.prototype.hasOwnProperty.call(data,k)) config[k]=data[k];
+          this.publicFeaturedCollectionEnabled=data.featuredCollectionEnabled===true;
+          if(!config.featureToggles)config.featureToggles={};
+          config.featureToggles.featuredCollection=this.publicFeaturedCollectionEnabled;
+          renderAdminFeatureToggles();
           // Public social values win over an older administrator settings snapshot.
           this.publicSocial=Object.fromEntries(['whatsappPhone','instagramHandle','whatsappGreeting'].filter(k=>Object.prototype.hasOwnProperty.call(data,k)).map(k=>[k,data[k]]));
           // V29 public QR config: read-only to customers; authorized staff publish via Firebase rules.
@@ -288,14 +292,15 @@
           this.customerOrdersForAdmin=all;
           this.updateAdminOrders();
         });
+        // Read-only archive flags for verified Manager/Owner/Admin. Manager read access
+        // requires the accompanying narrowly scoped Firebase rules update.
+        this.on('adminData/orderArchive',record=>{this.orderArchive=record||{};renderAdminOrders();},error=>{
+          this.setStatus('Order archive flags could not be loaded: '+textError(error),'bad');
+        },{optionalRead:true});
         if(canEditStore()) {
-          // Private staff notes / archive flags: existing /adminData rules already restrict access
-          // to Super Admin and active Owner. No customer order fields are changed.
+          // Private staff notes remain limited to Super Admin and Owner.
           this.on('adminData/orderNotes',record=>{this.orderNotes=record||{};renderAdminOrders();},error=>{
             this.setStatus('Staff notes could not be loaded: '+textError(error),'bad');
-          },{optionalRead:true});
-          this.on('adminData/orderArchive',record=>{this.orderArchive=record||{};renderAdminOrders();},error=>{
-            this.setStatus('Order archive flags could not be loaded: '+textError(error),'bad');
           },{optionalRead:true});
           this.on('adminData/posSales', record=>{
             this.posSales=Object.entries(record||{}).filter(([,v])=>v?.status!=='PendingStock').map(([key,v])=>({...v,__key:key,channel:'Showroom POS'}));
@@ -319,13 +324,15 @@
               if(data.config) {
                 const publicCategories=Array.isArray(config.customCategories)?config.customCategories:[];
                 config={...config,...data.config,...(this.publicSocial||{}),featureToggles:{...config.featureToggles,...data.config.featureToggles},customCategories:publicCategories};
+                // Public Firebase flag overrides older staff settings snapshots.
+                config.featureToggles.featuredCollection=this.publicFeaturedCollectionEnabled===true;
                 // The historic second branch stays in prior Firebase records, but is not shown in the website.
                 config.branches=Array.isArray(config.branches)?config.branches.filter(b=>b && b.id==='branch-1'):[];
               }
               // Public category data is canonical. Do not overwrite it with old settings snapshots.
               if(Array.isArray(data.coupons)) coupons=data.coupons;
               this.applying=false;
-              syncLiveCmsUI();renderProducts();renderCouponsTable();
+              syncLiveCmsUI();renderProducts();renderCouponsTable();renderAdminFeatureToggles();
             }
             this.settingsReady=true;
             this.lastSettings=JSON.stringify(cleanSettings());
@@ -518,36 +525,8 @@
         desc:String(product.desc ?? product.description ?? '').slice(0,3000),
         color:String(product.color ?? product.colour ?? '').slice(0,120),
         updatedAt:firebase.database.ServerValue.TIMESTAMP};
-      // V39: An owner/admin's stale edit form must not recreate units already
-      // reserved by Razorpay. Use an RTDB transaction, rather than a blind
-      // catalog/{id}.update({stock}), to serialize against payment reservations.
-      // Product imports (new IDs) are create-only: never overwrite existing SKU.
-      const baseline=product.__mqb39StockBaseline;
-      let conflict='Product stock changed. Close and reopen the editor before saving.';
-      const outcome=await this.db.ref('catalog/'+id).transaction(current=>{
-        if(current!==null){
-          if(!Number.isInteger(baseline)||baseline<0||!Number.isInteger(current.stock)||current.stock!==baseline){
-            conflict='Product stock changed since you opened the editor. Reopen to avoid overwriting a Razorpay reservation.';
-            return;
-          }
-          const holds=current.mqbRazorpayHolds&&typeof current.mqbRazorpayHolds==='object'?
-            Object.values(current.mqbRazorpayHolds):[];
-          const pending=holds.some(h=>h&&h.state==='held');
-          const oldPrice=price(current.salePrice??current.price);
-          if(pending&&(clean.stock!==current.stock||clean.salePrice!==oldPrice)){
-            conflict='This product has a pending Razorpay stock hold. Stock and selling price cannot change until reconciled.';
-            return;
-          }
-          // Preserve opaque payment-hold metadata and any other existing fields.
-          return {...current,...clean};
-        }
-        if(baseline!==null){
-          conflict='The original product no longer exists. Reopen the inventory editor.';
-          return;
-        }
-        return clean;
-      },undefined,false);
-      if(!outcome.committed)throw Error(conflict);
+      // Patch only these edited fields, preserving any other existing product metadata.
+      await this.db.ref('catalog/'+id).update(clean);
       this.setStatus('✓ Product saved to Firebase. Devices updating…','ok');
     },
     async publishBrowserCatalog() {
@@ -967,8 +946,6 @@
       deliveryNote:[manualNote.slice(0,Math.max(0,240-(gpsLink?'Location pin: '.length+gpsLink.length+3:0))),gpsLink?'Location pin: '+gpsLink:''].filter(Boolean).join(' | ').slice(0,240)};
     if(!form.customerName||!form.customerPhone||!form.address||!form.postalCode) return alert('Please complete your shipping address.');
     if(contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail))return alert('Please enter a valid email, or leave it blank for guest checkout.');
-    if($('mqb34EmailOptIn')?.checked && !(live.auth?.currentUser?.email || contactEmail))return alert('Enter your email before selecting email order updates.');
-    form.orderUpdatesConsent={whatsapp:!!$('mqb34WaOptIn')?.checked,email:!!$('mqb34EmailOptIn')?.checked,sms:!!$('mqb352SmsOptIn')?.checked};
     const btn=e.target.querySelector('button[type=submit]');if(btn)btn.disabled=true;
     try {
       await ensureGuestIdentity();
@@ -1076,11 +1053,7 @@
     e.preventDefault();if(!ensureStoreEditor())return;
     const id=$('editProductId')?.value.trim()||live.db.ref('catalog').push().key;
     const before=products.find(p=>p.id===id);
-    const stockField=$('editProductStock');
-    const rawBase=stockField?.dataset.mqb39BaseStock;
-    const baseline=stockField?.dataset.mqb39BaseId===id && rawBase!==undefined && rawBase!==''?
-      Number(rawBase):null;
-    const input={...before,__mqb39StockBaseline:baseline,id,title:$('editProductTitle')?.value.trim(),
+    const input={...before,id,title:$('editProductTitle')?.value.trim(),
       category:$('editProductCategory')?.value,stock:Number($('editProductStock')?.value),
       salePrice:Number($('editProductSalePrice')?.value),
       image:window.MQBLocalProductMedia?.resolve('image',$('editProductImage')?.value.trim()||'',before?.image)||$('editProductImage')?.value.trim()||'',
@@ -1322,9 +1295,10 @@
     const o=orders.find(x=>x.__uid===uid&&x.__key===key);
     if(!o)return alert('Order not found. Refresh the dashboard.');
     if(restore){if(!mqb31Archived(o))return;}
-    else if(!mqb31Eligible(o))return alert('Only unpaid test orders or cancelled orders with no dispatch can be archived. Financial and customer records are never deleted.');
+    else if(!(mqb31Eligible(o) || (isSuperAdmin() && o.status==='Cancelled' && o.channel!=='Showroom POS')))
+      return alert('Only Super Admin can remove any cancelled order from the operational list. Owners can archive eligible unpaid test/cancelled orders.');
     const action=restore?'RESTORE':'ARCHIVE';
-    if(!confirm(action+' '+(o.orderId||key)+' from the staff order list?\n\nThis does not delete the order, invoice, customer record, or payment audit.'))return;
+    if(!confirm(action+' '+(o.orderId||key)+' from the staff order list?\n\nThis hides the record from active staff orders only. It NEVER deletes customer history, invoices, payment records or audit logs.'))return;
     const path='adminData/orderArchive/'+uid+'/'+key;
     try{
       if(restore)await live.db.ref(path).remove();
@@ -1339,11 +1313,34 @@
     if(!ensureAdmin())return;
     selectedAdminCustomerUID='';if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';
     for(const id of ['mqb31StatusFilter','mqb31PaymentFilter','mqb31TypeFilter'])if($(id))$(id).value='';
-    if($('mqb31ArchiveFilter'))$('mqb31ArchiveFilter').value='active';if($('mqb31SortFilter'))$('mqb31SortFilter').value='latest';renderAdminOrders();
+    if($('mqb31ArchiveFilter'))$('mqb31ArchiveFilter').value='active';if($('mqb31SortFilter'))$('mqb31SortFilter').value='latest';
+    mqb40OrderGroup='pending';for(const id of ['mqb40DateFrom','mqb40DateTo'])if($(id))$(id).value='';renderAdminOrders();
+  };
+  // V40: category and date filters operate on verified staff-visible orders only.
+  let mqb40OrderGroup='pending';
+  const mqb40GroupOf=o=>{
+    const s=String(o?.status||'Requested');
+    if(s==='Cancelled')return 'cancelled';
+    if(s==='Delivered')return 'delivered';
+    if(s==='Confirmed')return 'confirmed';
+    if(['Requested','Payment Pending'].includes(s))return 'pending';
+    return 'inprogress';
+  };
+  window.mqb40SetOrderGroup=group=>{
+    if(!ensureAdmin()||!['pending','confirmed','inprogress','delivered','cancelled','all'].includes(group))return;
+    mqb40OrderGroup=group;
+    if($('mqb31StatusFilter'))$('mqb31StatusFilter').value='';
+    renderAdminOrders();
+  };
+  window.mqb40StatusFilterChanged=()=>{if(!ensureAdmin())return;mqb40OrderGroup='all';renderAdminOrders();};
+  window.mqb40ClearDates=()=>{
+    if(!ensureAdmin())return;
+    for(const id of ['mqb40DateFrom','mqb40DateTo'])if($(id))$(id).value='';
+    renderAdminOrders();
   };
   window.showAdminCustomerOrders=uid=>{
     if(!ensureAdmin())return;
-    selectedAdminCustomerUID=uid;
+    selectedAdminCustomerUID=uid;mqb40OrderGroup='all';
     if($('adminOrderHistorySearch'))$('adminOrderHistorySearch').value='';
     switchAdminTab('orders');renderAdminOrders();
   };
@@ -1355,10 +1352,31 @@
     const paymentFilter=$('mqb31PaymentFilter')?.value||'';
     const typeFilter=$('mqb31TypeFilter')?.value||'';
     const archiveFilter=$('mqb31ArchiveFilter')?.value||'active';
-    visible=visible.filter(o=>(!statusFilter||String(o.status||'')===statusFilter) &&
+    // Date only, in the browser's local calendar. Invalid/missing dates are excluded if date filtering is active.
+    const from=$('mqb40DateFrom')?.value||'',to=$('mqb40DateTo')?.value||'';
+    const dateKey=o=>{
+      const parsed=new Date(o.date||0);
+      if(!o.date||Number.isNaN(parsed.getTime()))return '';
+      const y=parsed.getFullYear(),m=String(parsed.getMonth()+1).padStart(2,'0'),d=String(parsed.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    };
+    visible=visible.filter(o=>(mqb40OrderGroup==='all'||mqb40GroupOf(o)===mqb40OrderGroup) &&
+      (!from||dateKey(o)>=from)&&(!to||dateKey(o)<=to) &&
+      (!statusFilter||String(o.status||'')===statusFilter) &&
       (!paymentFilter||String(o.paymentStatus||'unverified')===paymentFilter) &&
       (!typeFilter||(typeFilter==='test'?mqb31IsTest(o):typeFilter==='cancelled'?o.status==='Cancelled':!mqb31IsTest(o)&&o.status!=='Cancelled')) &&
       (archiveFilter==='all'||(archiveFilter==='archived'?mqb31Archived(o):!mqb31Archived(o))));
+    const groupBox=$('mqb40OrderGroups');
+    if(groupBox){
+      const activeOrders=orders.filter(o=>archiveFilter==='archived'?mqb31Archived(o):archiveFilter==='all'||!mqb31Archived(o));
+      const counts={all:activeOrders.length,pending:0,confirmed:0,inprogress:0,delivered:0,cancelled:0};
+      for(const o of activeOrders)counts[mqb40GroupOf(o)]++;
+      groupBox.querySelectorAll('button[data-group]').forEach(btn=>{
+        const group=btn.dataset.group;btn.classList.toggle('mqb40-active',group===mqb40OrderGroup);
+        btn.setAttribute('aria-pressed',String(group===mqb40OrderGroup));
+        const count=btn.querySelector('[data-count]');if(count)count.textContent=String(counts[group]||0);
+      });
+    }
     visible.sort((a,b)=>($('mqb31SortFilter')?.value==='oldest'?1:-1)*String(a.date||'').localeCompare(String(b.date||'')));
     const selectedName=live.profiles?.[selectedAdminCustomerUID]?.name||selectedAdminCustomerUID;
     const selected=$('adminHistoryFilterStatus');if(selected) selected.textContent=selectedAdminCustomerUID?'Customer filter: '+selectedName:'';
@@ -1403,7 +1421,9 @@
           <label class="mqb31-note-label">Add a private update<textarea maxlength="600" rows="2" placeholder="Example: Called customer; delivery preference confirmed. No payment collected."></textarea></label>
           <button type="button" class="mqb31-save-note">Save staff note</button><p class="mqb31-note-message" role="status" aria-live="polite"></p>
         </details>`:o.__uid&&o.__key?'<p class="text-[11px] text-neutral-500">Private staff notes: available to Super Admin and Owner.</p>':''}
-        ${o.__uid&&o.__key&&canEditStore()?(mqb31Archived(o)?`<button type="button" class="mqb31-archive-toggle mqb31-restore">Restore to active staff orders</button>`:mqb31Eligible(o)?`<button type="button" class="mqb31-archive-toggle mqb31-archive">Archive test / cancelled order from staff list</button>`:''):''}
+        ${o.__uid&&o.__key&&canEditStore()?(mqb31Archived(o)?`<button type="button" class="mqb31-archive-toggle mqb31-restore">Restore to active staff orders</button>`:
+          o.status==='Cancelled'&&isSuperAdmin()?`<button type="button" class="mqb31-archive-toggle mqb31-archive">Remove cancelled order from list (keep records)</button>`:
+          mqb31Eligible(o)?`<button type="button" class="mqb31-archive-toggle mqb31-archive">Archive unpaid test / cancelled order</button>`:''):''}
         ${mqb31Archived(o)?'<p class="mqb31-archived-label">Archived from staff active orders — customer order and audit retained</p>':''}
         <p class="text-[10px] text-neutral-500">Non-tax order invoice, not payment proof. Courier booking and payment verification remain separate.</p>
       </article>`;
