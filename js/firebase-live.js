@@ -518,8 +518,36 @@
         desc:String(product.desc ?? product.description ?? '').slice(0,3000),
         color:String(product.color ?? product.colour ?? '').slice(0,120),
         updatedAt:firebase.database.ServerValue.TIMESTAMP};
-      // Patch only these edited fields, preserving any other existing product metadata.
-      await this.db.ref('catalog/'+id).update(clean);
+      // V39: An owner/admin's stale edit form must not recreate units already
+      // reserved by Razorpay. Use an RTDB transaction, rather than a blind
+      // catalog/{id}.update({stock}), to serialize against payment reservations.
+      // Product imports (new IDs) are create-only: never overwrite existing SKU.
+      const baseline=product.__mqb39StockBaseline;
+      let conflict='Product stock changed. Close and reopen the editor before saving.';
+      const outcome=await this.db.ref('catalog/'+id).transaction(current=>{
+        if(current!==null){
+          if(!Number.isInteger(baseline)||baseline<0||!Number.isInteger(current.stock)||current.stock!==baseline){
+            conflict='Product stock changed since you opened the editor. Reopen to avoid overwriting a Razorpay reservation.';
+            return;
+          }
+          const holds=current.mqbRazorpayHolds&&typeof current.mqbRazorpayHolds==='object'?
+            Object.values(current.mqbRazorpayHolds):[];
+          const pending=holds.some(h=>h&&h.state==='held');
+          const oldPrice=price(current.salePrice??current.price);
+          if(pending&&(clean.stock!==current.stock||clean.salePrice!==oldPrice)){
+            conflict='This product has a pending Razorpay stock hold. Stock and selling price cannot change until reconciled.';
+            return;
+          }
+          // Preserve opaque payment-hold metadata and any other existing fields.
+          return {...current,...clean};
+        }
+        if(baseline!==null){
+          conflict='The original product no longer exists. Reopen the inventory editor.';
+          return;
+        }
+        return clean;
+      },undefined,false);
+      if(!outcome.committed)throw Error(conflict);
       this.setStatus('✓ Product saved to Firebase. Devices updating…','ok');
     },
     async publishBrowserCatalog() {
@@ -1048,7 +1076,11 @@
     e.preventDefault();if(!ensureStoreEditor())return;
     const id=$('editProductId')?.value.trim()||live.db.ref('catalog').push().key;
     const before=products.find(p=>p.id===id);
-    const input={...before,id,title:$('editProductTitle')?.value.trim(),
+    const stockField=$('editProductStock');
+    const rawBase=stockField?.dataset.mqb39BaseStock;
+    const baseline=stockField?.dataset.mqb39BaseId===id && rawBase!==undefined && rawBase!==''?
+      Number(rawBase):null;
+    const input={...before,__mqb39StockBaseline:baseline,id,title:$('editProductTitle')?.value.trim(),
       category:$('editProductCategory')?.value,stock:Number($('editProductStock')?.value),
       salePrice:Number($('editProductSalePrice')?.value),
       image:window.MQBLocalProductMedia?.resolve('image',$('editProductImage')?.value.trim()||'',before?.image)||$('editProductImage')?.value.trim()||'',
