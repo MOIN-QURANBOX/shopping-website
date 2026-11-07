@@ -631,7 +631,7 @@
           <div><label for="shippingDeliveredDate" class="block font-bold mb-1">Delivered date (if delivered)</label><input type="date" id="shippingDeliveredDate" class="w-full border bg-brand-sand rounded p-2.5" /></div>
           <div><label for="shippingOrderStatus" class="block font-bold mb-1">Order / delivery status</label>
             <select id="shippingOrderStatus" class="w-full border bg-brand-sand rounded p-2.5">
-              <option>Requested</option><option>Confirmed</option><option>Processing</option><option>Packed</option><option>Shipped</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>Returned</option><option>Cancelled</option>
+              <option>Requested</option><option>Payment Pending</option><option>Confirmed</option><option>Processing</option><option>Packed</option><option>Shipped</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>Returned</option><option>Cancelled</option>
             </select>
           </div>
         </div>
@@ -788,15 +788,29 @@
               <input id="adminOrderHistorySearch" type="search" oninput="searchAdminOrderHistory()" placeholder="Search saved orders..." class="flex-1 min-w-[210px] border rounded-lg p-3 text-sm" autocomplete="off" />
               <button type="button" onclick="clearAdminOrderHistorySearch()" class="border rounded-lg px-3 py-2 text-xs font-bold">Clear filters</button>
             </div>
+            <!-- V40: status-group shortcuts and date-range filter. No payment state changes. -->
+            <div id="mqb40OrderGroups" class="mqb40-order-groups" role="group" aria-label="Order categories">
+              <button type="button" data-group="pending" class="mqb40-active" onclick="mqb40SetOrderGroup('pending')">Pending <span data-count="pending">0</span></button>
+              <button type="button" data-group="confirmed" onclick="mqb40SetOrderGroup('confirmed')">Confirmed <span data-count="confirmed">0</span></button>
+              <button type="button" data-group="inprogress" onclick="mqb40SetOrderGroup('inprogress')">In progress <span data-count="inprogress">0</span></button>
+              <button type="button" data-group="delivered" onclick="mqb40SetOrderGroup('delivered')">Delivered <span data-count="delivered">0</span></button>
+              <button type="button" data-group="cancelled" onclick="mqb40SetOrderGroup('cancelled')">Cancelled <span data-count="cancelled">0</span></button>
+              <button type="button" data-group="all" onclick="mqb40SetOrderGroup('all')">All <span data-count="all">0</span></button>
+            </div>
+            <div class="mqb40-date-filters">
+              <label>From date<input id="mqb40DateFrom" type="date" onchange="renderAdminOrders()"></label>
+              <label>To date<input id="mqb40DateTo" type="date" onchange="renderAdminOrders()"></label>
+              <button type="button" onclick="mqb40ClearDates()">Clear dates</button>
+            </div>
             <!-- V31: staff order filters; orders remain in Firebase, no permanent deletion -->
             <div class="mqb31-filters">
-              <label>Order status<select id="mqb31StatusFilter" onchange="renderAdminOrders()"><option value="">All statuses</option><option>Requested</option><option>Confirmed</option><option>Processing</option><option>Packed</option><option>Shipped</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>Cancelled</option><option>Returned</option></select></label>
+              <label>Order status<select id="mqb31StatusFilter" onchange="mqb40StatusFilterChanged()"><option value="">All statuses</option><option>Requested</option><option>Payment Pending</option><option>Confirmed</option><option>Processing</option><option>Packed</option><option>Shipped</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>Cancelled</option><option>Returned</option></select></label>
               <label>Payment<select id="mqb31PaymentFilter" onchange="renderAdminOrders()"><option value="">All payment states</option><option value="unverified">Unverified</option><option value="verified">Verified</option></select></label>
               <label>Order type<select id="mqb31TypeFilter" onchange="renderAdminOrders()"><option value="">All orders</option><option value="test">Test orders</option><option value="cancelled">Cancelled orders</option><option value="regular">Other orders</option></select></label>
               <label>Staff history<select id="mqb31ArchiveFilter" onchange="renderAdminOrders()"><option value="active">Active orders</option><option value="archived">Archived orders</option><option value="all">All orders</option></select></label>
               <label>Sort<select id="mqb31SortFilter" onchange="renderAdminOrders()"><option value="latest">Newest first</option><option value="oldest">Oldest first</option></select></label>
             </div>
-            <p class="mqb31-history-help">Staff notes are private to authorized Super Admin / Owner accounts. Archiving hides eligible unpaid test/cancelled orders from the staff's active list; it does not delete them from Firebase or customer history.</p>
+            <p class="mqb31-history-help">Use the category tabs and date range to view orders separately. Super Admin can remove cancelled orders from the active staff list; this safely archives them instead of erasing payments, customer history or invoices. Use Staff history → Archived orders to restore.</p>
             <p id="adminHistoryFilterStatus" class="text-xs font-bold text-emerald-800"></p>
             <p id="adminOrderHistoryCount" class="text-xs text-neutral-500" aria-live="polite"></p>
           </div>
@@ -1406,7 +1420,7 @@
           <div><label for="chkName" class="block text-xs font-semibold mb-1">Customer Full Name *</label><input id="chkName" type="text" required class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="name" /></div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label for="chkPhone" class="block text-xs font-semibold mb-1">WhatsApp Mobile *</label><input id="chkPhone" type="tel" required class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="tel" placeholder="10-digit mobile number" /></div>
-            <div><label for="chkEmail" class="block text-xs font-semibold mb-1">Email (optional)</label><input id="chkEmail" type="email" class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="email" placeholder="Optional for guest orders" /></div>
+            <div><label for="chkEmail" class="block text-xs font-semibold mb-1">Email (optional — leave blank if you do not have one)</label><input id="chkEmail" type="email" maxlength="254" class="w-full border rounded-lg p-3 bg-white text-base" autocomplete="email" placeholder="Not required for guest checkout" /></div>
           </div>
           <div><label for="mqb30HouseFlat" class="block text-xs font-semibold mb-1">House / flat / building <span class="font-normal text-brand-muted">(please complete for delivery)</span></label><input id="mqb30HouseFlat" type="text" maxlength="140" autocomplete="address-line1" class="w-full border rounded-lg p-3 bg-white text-base" placeholder="Example: Flat 202, Building B" /><p class="text-[11px] text-brand-muted mt-1">GPS cannot identify your flat or house number. Please enter it yourself.</p></div>
           <div><label for="chkAddress" class="block text-xs font-semibold mb-1">Street / area / city / state *</label><textarea id="chkAddress" rows="2" required class="w-full border rounded-lg p-3 bg-white text-base" placeholder="Street, colony, landmark, city and state" autocomplete="address-line2"></textarea></div>
@@ -1480,13 +1494,6 @@
           <div class="flex justify-between text-xs text-brand-muted"><span>Additional delivery fee</span><span>₹0 — included in item prices</span></div>
           <div id="mqb37CheckoutFootnote" class="border-t border-brand-border pt-2 text-xs text-amber-900">Final payable amount will be shared for approval. Payment remains unverified until the store checks it.</div>
         </section>
-        <fieldset class="mqb34-consent"><legend>Optional order updates</legend>
-          <label><input id="mqb34WaOptIn" type="checkbox"> I agree to receive order-related WhatsApp messages from MOIN QURAN BOX.</label>
-          <label><input id="mqb34EmailOptIn" type="checkbox"> I agree to receive order-related emails. Please provide a valid email above.</label>
-          <label><input id="mqb352SmsOptIn" type="checkbox"> I agree to receive order-related SMS on my mobile number after the SMS service is activated.</label>
-          <p class="text-xs text-neutral-600">Automatic SMS/email delivery is not yet active. It requires a configured sending provider and backend. Your existing order status page continues to work.</p>
-          <p>These preferences will be saved with this order. Automatic messages are not active; staff may send a prefilled message manually.</p>
-        </fieldset>
         <button type="submit" class="w-full py-4 bg-brand-darkgreen hover:bg-brand-forest text-white font-bold rounded-xl shadow-md text-base">Submit Order Request (No Payment)</button>
         <p class="text-center text-[11px] text-brand-muted pb-3">You can order without a password. Saving your Order ID helps us assist you later.</p>
       </form>
