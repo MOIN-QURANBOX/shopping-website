@@ -1125,6 +1125,8 @@ function openProductEditModal(id = null) {
   document.getElementById("productEditModal")?.classList.remove("hidden");
   
   const p = products.find(x => x.id === id);
+  const activeCheckbox=document.getElementById("editProductActive");
+  if(activeCheckbox) activeCheckbox.checked=p ? p.active!==false : true;
   refreshProductCategoryOptions(p?.category);
   if (p) {
     document.getElementById("editProductId").value = p.id;
