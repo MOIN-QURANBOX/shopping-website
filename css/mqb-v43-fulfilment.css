@@ -1,0 +1,8 @@
+/* V43 fulfilment features: restricted to the shipping and invoice surfaces. */
+.mqb43-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mqb43-filters label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:#254335}
+.mqb43-control{width:100%;min-height:42px;padding:9px 10px;border:1px solid #cad6ce;border-radius:9px;background:#fff;color:#193d2d;font-size:12px}
+.mqb43-invoice-option{display:flex;width:100%;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;border:1px solid #cad6ce;border-radius:10px;padding:12px;text-align:left;font-weight:700;background:#f7faf6;color:#1c3e2e}
+.mqb43-invoice-option small{display:block;color:#5a6b60;font-weight:400}
+.mqb43-track-action{display:inline-flex;align-items:center;gap:6px;border:1px solid #1e6349;color:#16583d;background:#fff;padding:8px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
+@media(max-width:700px){.mqb43-filters{grid-template-columns:1fr}}
