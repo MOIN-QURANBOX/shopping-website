@@ -1,6 +1,6 @@
 /* MOIN QURAN BOX V43 — customer-authorized invoice lookup and tracking UI.
- * No payment or database writes. Order ID is optional: mobile + India order date
- * are searched ONLY among records already authorized by current Firebase UID.
+ * No payment or database writes. Only phone is mandatory. Optional order ID / India order date narrow records
+ * already authorized by the current Firebase UID. Phone is NOT authentication.
  * Never enable database-wide phone/date searches in a public browser.
  */
 (() => {
@@ -34,18 +34,20 @@
     if(!uid)return error('Sign in, or return using the original guest browser session that placed your order. Mobile number alone cannot grant access to private invoices.');
     const mobile=digits($('lookupPhone')?.value),date=$('lookupOrderDate')?.value||'',id=String($('lookupOrderId')?.value||'').trim().toUpperCase();
     if(mobile.length<10||mobile.length>13)return error('Enter the mobile number used when placing your order (10 Indian digits).');
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return error('Please select the order placement date.');
+    if(date && !/^\d{4}-\d{2}-\d{2}$/.test(date))return error('Please enter a valid date, or leave the optional date blank.');
     const normalized=mobile.slice(-10);
     const candidates=records().filter(o=>o?.__uid===uid&&!!o?.__key &&
-      digits(o.customerPhone||'').slice(-10)===normalized && dateIST(o.date||o.createdAt)===date &&
+      digits(o.customerPhone||'').slice(-10)===normalized && (!date || dateIST(o.date||o.createdAt)===date) &&
       (!id||String(o.orderId||o.__key||'').trim().toUpperCase()===id));
-    if(!candidates.length)return error('No matching order was found in this authenticated account/session. Check the date and phone, or sign into the original account.');
+    if(!candidates.length)return error('No matching order was found in this authenticated account/session. Check the phone number or optional filters, or sign into the original account.');
     if(candidates.length===1)return window.downloadOrderInvoice?.(candidates[0].__uid,candidates[0].__key);
     const el=$('mqb43InvoiceMatches');if(!el)return error('Multiple orders match. Enter the optional Order ID to select one.');
-    const h=document.createElement('p');h.className='font-bold text-sm';h.textContent=candidates.length+' orders match this date. Choose which invoice to download:';el.append(h);
-    for(const o of candidates.slice(0,30)){
+    const sorted=candidates.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')));
+    const h=document.createElement('p');h.className='font-bold text-sm';h.textContent=candidates.length+' orders match this mobile number'+(date?' and date':'')+'. Choose the correct invoice:';el.append(h);
+    if(sorted.length>100){const note=document.createElement('p');note.textContent='Showing 100 most recent orders. Use the optional date or Order ID to find an earlier order.';el.append(note);}
+    for(const o of sorted.slice(0,100)){
       const btn=document.createElement('button');btn.type='button';btn.className='mqb43-invoice-option';
-      const left=document.createElement('span');left.textContent=String(o.orderId||o.__key);
+      const left=document.createElement('span');left.textContent=String(o.orderId||o.__key)+' · '+(dateIST(o.date||o.createdAt)||'Date unavailable');
       const small=document.createElement('small');small.textContent=(Array.isArray(o.items)?o.items:[]).map(i=>i.title||'Item').slice(0,2).join(', ').slice(0,120);
       left.append(small);const right=document.createElement('span');right.textContent='Download PDF';
       btn.append(left,right);
