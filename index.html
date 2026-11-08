@@ -49,6 +49,7 @@
   <link rel="stylesheet" href="css/storefront-v26.css" />
   <link rel="stylesheet" href="css/razorpay-v38-website.css" />
   <link rel="stylesheet" href="css/mqb-v42-operations.css" />
+  <link rel="stylesheet" href="css/mqb-v43-fulfilment.css" />
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
@@ -435,18 +436,24 @@
       <button onclick="closeInvoiceLookupModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
       <div class="text-center mb-5">
         <h3 class="serif-title text-lg font-bold text-brand-charcoal">Download Your Order Invoice (Non-Tax)</h3>
-        <p class="text-xs text-brand-muted mt-1">Sign in to your customer account first. Enter your own Order ID and phone number to download a non-tax order PDF. Payment is not verified by this document.</p>
+        <p class="text-xs text-brand-muted mt-1">Enter the mobile number and order date used at checkout. The Order ID is optional. For privacy, only orders in your current signed-in or original guest session can be found. This is a non-tax order statement.</p>
       </div>
       <form onsubmit="handlePublicInvoiceLookup(event)" class="space-y-3.5 text-xs">
         <div>
-          <label class="block font-bold mb-1">Order ID *</label>
-          <input type="text" id="lookupOrderId" required placeholder="e.g. MQB-2026-1082" class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5 font-mono uppercase" />
+          <label class="block font-bold mb-1">Order ID <span class="font-normal">(optional)</span></label>
+          <input type="text" id="lookupOrderId" maxlength="110" autocomplete="off" placeholder="Optional, helps when you placed multiple orders" class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5 font-mono uppercase" />
         </div>
         <div>
           <label class="block font-bold mb-1">Mobile Number *</label>
           <input type="tel" id="lookupPhone" required placeholder="10-digit mobile" class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5 font-mono" />
         </div>
-        <div id="lookupError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200"></div>
+        <div>
+          <label for="lookupOrderDate" class="block font-bold mb-1">Date order was placed *</label>
+          <input type="date" id="lookupOrderDate" required class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5" />
+          <p class="mt-1 text-neutral-500">Select the actual order date (India time).</p>
+        </div>
+        <div id="lookupError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200" role="alert"></div>
+        <div id="mqb43InvoiceMatches" class="hidden space-y-2" aria-live="polite"></div>
         <button type="submit" class="w-full py-3 bg-brand-darkgreen text-white font-bold uppercase rounded-lg">Download Invoice</button>
       </form>
     </div>
@@ -935,10 +942,28 @@
         <div id="adminTab-shipping" class="hidden space-y-5">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator (Thermal &amp; A4 Ready)</h4>
           <section id="mqb42BulkLabels" class="mqb42-panel" hidden>
-            <h5 class="font-bold text-sm">Print Pending &amp; Confirmed Orders — One PDF</h5>
-            <p class="text-xs">Creates one 4×6 inch page per order. Duplicates are removed by Firebase order key. Cancelled, shipped and delivered orders are excluded.</p>
-            <label class="text-xs flex gap-2 items-center"><input type="checkbox" id="mqb42IncludeUnpaid" /> Include unpaid Razorpay / Payment Pending orders (not recommended)</label>
-            <div class="flex flex-wrap gap-2"><button type="button" id="mqb42BulkDownload" class="mqb42-primary">Download All Labels (Single PDF)</button><span id="mqb42BulkCount" class="text-xs" role="status">Waiting for orders…</span></div>
+            <div>
+              <h5 class="font-bold text-sm">Bulk Shipping Labels — One-Click PDF</h5>
+              <p class="text-xs text-neutral-600 mt-1">Select status and order-date range; download one professional 4 × 6 inch label per eligible order in a single PDF. Only staff and administrators can use this tool.</p>
+            </div>
+            <div class="mqb43-filters">
+              <label>Status filter
+                <select id="mqb43LabelStatus" class="mqb43-control">
+                  <option value="all">All pending + confirmed (unshipped)</option>
+                  <option value="pending">Pending orders only</option>
+                  <option value="confirmed">Confirmed payment orders only (paid)</option>
+                </select>
+              </label>
+              <label>From date (optional)
+                <input type="date" id="mqb43LabelFrom" class="mqb43-control" />
+              </label>
+              <label>To date (optional)
+                <input type="date" id="mqb43LabelTo" class="mqb43-control" />
+              </label>
+            </div>
+            <label class="text-xs flex gap-2 items-center"><input type="checkbox" id="mqb42IncludeUnpaid" /> Also include unpaid Razorpay orders when selecting Pending / All (print with caution)</label>
+            <p class="text-xs text-neutral-600">Cancelled, returned, shipped and delivered orders are not included. Missing recipient details stop the download so that no incomplete labels are printed.</p>
+            <div class="flex flex-wrap items-center gap-3"><button type="button" id="mqb42BulkDownload" class="mqb42-primary">Download Filtered Labels — One PDF</button><span id="mqb42BulkCount" class="text-xs" role="status">Waiting for orders…</span></div>
           </section>
           <div class="bg-white p-5 rounded-xl border border-brand-border shadow-sm max-w-2xl text-xs space-y-3">
             <h5 class="font-bold uppercase text-brand-darkgreen">Create Manual Label (For Online &amp; Offline Orders)</h5>
@@ -1770,5 +1795,6 @@
   <script defer src="js/razorpay-v38-approved-orders.js"></script>
   <script defer src="js/mqb-v41-controls.js"></script>
   <script defer src="js/mqb-v42-operations.js"></script>
+  <script defer src="js/mqb-v43-fulfilment.js"></script>
 </body>
 </html>
