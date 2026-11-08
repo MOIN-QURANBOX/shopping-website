@@ -36,5 +36,5 @@ test('Shipping labels deduplicate UID/key and create 4x6 multipage PDF',()=>{
   const pdf=window.MQBShippingLabelPDF.buildMultiPdf(fields);
   assert.match(pdf,/\/Count 2/);assert.match(pdf,/\/MediaBox \[0 0 288 432\]/);
   assert.throws(()=>window.MQBShippingLabelPDF.buildMultiPdf([]));
-  assert.match(read('js/mqb-v42-operations.js'),/const key=o\.__uid\+'\/'\+o\.__key/);
+  assert.match(read('js/mqb-v42-operations.js'),/const key=String\(o\.__uid\)\+'\/'\+String\(o\.__key\)/);
 });
