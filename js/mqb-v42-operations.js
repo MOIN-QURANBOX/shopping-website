@@ -14,7 +14,7 @@
   const clean=s=>String(s??'').trim().slice(0,240);
   const button=(title,cb)=>{const el=document.createElement('button');el.type='button';el.className='mqb42-outline';el.textContent=title;el.addEventListener('click',cb);return el;};
   const text=(tag,value)=>{const el=document.createElement(tag);el.textContent=value;return el;};
-  const officialUrl='https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx';
+  const officialUrl='https://www.indiapost.gov.in/'; // verified official Track & Trace entry, no undocumented AWB query
   window.MQB42_INDIA_POST_URL=officialUrl;
   window.MQB42_COD_ENABLED=null; // fail closed until Firebase publicSettings is read
 
@@ -55,29 +55,60 @@
   }
 
   // PDF: deduplicate by actual Firebase UID/order key, NOT similar customer names.
+  // V43: all bulk labels come from authenticated Firebase orders only.
+  // One key => one label, regardless of repeated render/listener snapshots.
+  const orderDateIST=o=>{
+    const source=o?.date||o?.createdAt||o?.placedAt||'';
+    if(!source)return '';
+    if(typeof source==='string' && /^\d{4}-\d{2}-\d{2}$/.test(source))return source;
+    const d=new Date(typeof source==='number'?source:(/^\d+$/.test(String(source))?Number(source):source));
+    if(!Number.isFinite(d.getTime()))return '';
+    const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(d);
+    const part=t=>parts.find(x=>x.type===t)?.value||'';
+    return part('year')+'-'+part('month')+'-'+part('day');
+  };
+  const pendingStatus=new Set(['requested','pending','payment pending']);
+  const confirmedStatus=new Set(['confirmed','processing','packed']);
+  const rejectedStatus=new Set(['cancelled','canceled','returned','shipped','in transit','out for delivery','delivered']);
   function labelCandidates(){
+    const mode=$('mqb43LabelStatus')?.value||'all';
+    const from=$('mqb43LabelFrom')?.value||'',to=$('mqb43LabelTo')?.value||'';
     const includeUnpaid=$('mqb42IncludeUnpaid')?.checked===true;
     const seen=new Set(),result=[];
     for(const o of allOrders()){
-      if(!o?.__uid||!o?.__key)continue; // exclude non-cloud POS receipts
-      const key=o.__uid+'/'+o.__key;
+      if(!o?.__uid||!o?.__key)continue;
+      const key=String(o.__uid)+'/'+String(o.__key);
       if(seen.has(key))continue;seen.add(key);
-      if(!['Requested','Pending','Payment Pending','Confirmed','Processing','Packed'].includes(clean(o.status)))continue;
-      if(!includeUnpaid && o.paymentMethod==='Razorpay' && o.paymentStatus!=='verified')continue;
+      const state=clean(o.status).toLowerCase();
+      if(rejectedStatus.has(state))continue;
+      const paid=o.paymentStatus==='verified';
+      const pending=pendingStatus.has(state) && !paid;
+      const confirmed=confirmedStatus.has(state)||paid;
+      if(!(pending||confirmed))continue;
+      if(mode==='pending'&&!pending)continue;
+      if(mode==='confirmed'&&!paid)continue; // truly verified payment, not just a status label
+      if(!includeUnpaid && o.paymentMethod==='Razorpay' && !paid)continue;
+      const date=orderDateIST(o);
+      if((from||to)&&!date)continue; // cannot claim matching date without a stored order date
+      if(from && date<from)continue;
+      if(to && date>to)continue;
       const profile=live()?.profiles?.[o.__uid]||{};
-      result.push({order:o,shop:typeof config==='undefined'?{}:config,profile});
+      result.push({order:o,shop:typeof config==='undefined'?{}:config,profile,orderDate:date});
     }
-    return result;
+    return result.sort((a,b)=>a.orderDate.localeCompare(b.orderDate)||
+      String(a.order.orderId||a.order.__key).localeCompare(String(b.order.orderId||b.order.__key)));
   }
   function renderLabels(){
     const panel=$('mqb42BulkLabels');if(panel){panel.hidden=!staff();panel.style.display=staff()?'':'none';}
-    const list=labelCandidates();const el=$('mqb42BulkCount');if(el)el.textContent=list.length+' eligible unique order(s)';
+    const list=labelCandidates();const el=$('mqb42BulkCount');if(el)el.textContent=list.length+' unique eligible label(s) match the selected filters';
     const action=$('mqb42BulkDownload');if(action)action.disabled=!staff()||list.length===0;
   }
   function downloadLabels(){
     if(!staff())return alert('Verified staff access is required.');
     if(!window.MQBShippingLabelPDF?.downloadMany)return alert('Bulk label script not loaded.');
-    const list=labelCandidates();if(!list.length)return alert('There are no eligible orders.');
+    const from=$('mqb43LabelFrom')?.value||'',to=$('mqb43LabelTo')?.value||'';
+    if(from&&to&&from>to)return alert('From date cannot be after To date.');
+    const list=labelCandidates();if(!list.length)return alert('There are no eligible orders for this status/date selection.');
     if(list.length>2000)return alert('Please print labels in batches of at most 2,000.');
     const valid=[],errors=[];
     for(const o of list){const d=window.MQBShippingLabelPDF.fields(o);
@@ -264,6 +295,7 @@
     $('mqb42CodSwitch')?.addEventListener('change',e=>saveCod(e.target.checked));
     $('mqb42BulkDownload')?.addEventListener('click',downloadLabels);
     $('mqb42IncludeUnpaid')?.addEventListener('change',renderLabels);
+    for(const id of ['mqb43LabelStatus','mqb43LabelFrom','mqb43LabelTo'])$(id)?.addEventListener('change',renderLabels);
     $('mqb42GiftForm')?.addEventListener('submit',saveGift);
     const el=$('mqb42CheckoutGifts');if(!el){const payment=$('mqbV36PaymentOption');if(payment){const box=document.createElement('div');box.id='mqb42CheckoutGifts';box.className='mqb42-gift-checkout';box.hidden=true;payment.parentNode.insertBefore(box,payment.nextSibling);}}
     document.querySelectorAll('input[name="chkPaymentMethod"]').forEach(x=>x.addEventListener('change',renderCheckoutGift));
