@@ -53,7 +53,9 @@
   async function api(endpoint, body) {
     const jwt = await token();
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 18000);
+    // Render Free can spin down mid-checkout; do not abort an authenticated
+    // create/verify request before a typical cold start finishes.
+    const timer = setTimeout(() => controller.abort(), 90000);
     try {
       const response = await fetch(base + endpoint, {
         method: 'POST', mode: 'cors', redirect: 'error', credentials: 'omit', cache: 'no-store',
@@ -186,8 +188,10 @@
   let readinessAttempts = 0;
   let readinessInFlight = false;
   let nextAttempt = null;
-  const MAX_STARTUP_CHECKS = 10;
-  const READY_TIMEOUT_MS = 20000;
+  const MAX_STARTUP_CHECKS = 3;
+  // A Render Free cold start can exceed 20 seconds; a short client timeout
+  // aborted readiness before the server could return its signed-off LIVE status.
+  const READY_TIMEOUT_MS = 85000;
   const RETRY_DELAY_MS = 6500;
   const serverBadge = () => $('mqb38AvailabilityBadge');
   const serverCard = () => $('mqbV37ComingSoon');
