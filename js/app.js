@@ -140,18 +140,9 @@ async function loadInitialData() {
 
   localStorage.setItem(KEY_CONFIG, JSON.stringify(config));
 
-  const savedProducts = localStorage.getItem(KEY_PRODUCTS);
-  if (savedProducts) {
-    products = JSON.parse(savedProducts);
-  } else {
-    try {
-      const res = await fetch("data/products.json");
-      products = await res.json();
-    } catch {
-      products = [];
-    }
-    localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
-  }
+  // V42: production inventory is Firebase-only. Keep old local storage intact
+  // for emergency backup, but never paint stale/demo products during refresh.
+  products = [];
 
   // IMPORTANT: v19 local-password accounts have been retired.
   // Firebase Authentication now owns identities; no admin password is shipped in JS.
