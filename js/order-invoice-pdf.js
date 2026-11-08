@@ -1,4 +1,4 @@
-/* MOIN QURAN BOX V34 professional NON-TAX order invoice / order statement.
+/* MOIN QURAN BOX V43 professional NON-TAX invoice / verified-payment statement.
  * From Firebase-authorized orders only. No GST invoice or payment proof is implied.
  * Works offline without paid PDF libraries. */
 (() => {
@@ -19,8 +19,12 @@
      shop:trim(c.brandName||'MOIN QURAN BOX',80), proprietor:trim(c.proprietor||'Shaik Muneer Uddin',80),
      shopAddress:trim(c.address||'Madina Colony, Opposite Hafez Ustad Haleem, Falaknuma, Hyderabad 500053',250),
      phone:trim(c.phone1||'+91 7337464501',50),email:trim(c.email||'mquranbox@gmail.com',90),
-     orderId:trim(o.orderId||o.__key||'Unknown',100), date:trim(o.date||new Date().toISOString(),60),
+     orderId:trim(o.orderId||o.__key||'Unknown',100),
+     date:(()=>{const v=o.date||o.createdAt;const d=new Date(v||0);return Number.isFinite(d.getTime())&&d.getTime()>0?d.toLocaleString('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' IST':'Not recorded';})(),
      status:trim(o.status||'Requested',50),payment:trim(o.paymentStatus||'unverified',40),method:trim(o.paymentMethod||'Unspecified',40),
+     verifiedRazorpay:o.paymentMethod==='Razorpay'&&o.paymentStatus==='verified'&&Number(o.paymentVerification?.verifiedAmount)>0&&/^pay_[A-Za-z0-9_]+$/.test(String(o.paymentVerification?.razorpayPaymentId||'')),
+     paidAmount:Math.max(0,Number(o.paymentVerification?.verifiedAmount)||0),
+     paymentReference:trim(o.paymentVerification?.razorpayPaymentId||'',80),
      channel:trim(o.channel||'Website request',60),name:trim(o.customerName||p.name||'Customer',100),
      customerEmail:trim(o.customerEmail||o.email||p.email||'',120),customerPhone:trim(o.customerPhone||p.phone||'',45),
      address:trim([o.address,o.city,o.state,o.postalCode].filter(Boolean).join(', '),330),
@@ -39,7 +43,7 @@
    const rule=(at)=>{paint('0.83 0.86 0.82 RG 42 '+at+' m 553 '+at+' l S');};
    function footer(){
      rule(55);txt(42,40,'MOIN QURAN BOX  |  Hyderabad  |  '+d.phone,8,false,[.39,.44,.39]);
-     txt(42,27,'NON-TAX ORDER RECORD - not a GST tax invoice or proof of payment',8,true,[.55,.33,.16]);
+     txt(42,27,d.verifiedRazorpay?'NON-TAX RECORD - Razorpay capture verified; not a GST invoice':'NON-TAX RECORD - not a GST tax invoice or payment proof',8,true,[.55,.33,.16]);
      txt(527,27,String(page),8,false,[.3,.3,.3]);
    }
    function next(){
@@ -47,7 +51,7 @@
      cmds=[];page++;
      rect(0,745,W,97,.09,.21,.16);rect(0,742,W,3,.73,.56,.27);
      txt(42,793,d.shop,21,true,[1,1,1]);
-     txt(42,769,'ORDER SUMMARY  /  NON-TAX RECORD',10,true,[.91,.81,.60]);
+     txt(42,769,d.verifiedRazorpay?'PAID ORDER RECEIPT  /  NON-TAX RECORD':'ORDER STATEMENT  /  NON-TAX RECORD',10,true,[.91,.81,.60]);
      y=724;
    }
    function wrap(s,width=82){
@@ -60,13 +64,13 @@
    }
    function paragraph(label,value){
      const content=label?`${label}: ${value}`:String(value||'');const lines=wrap(content,101);
-     for(const line of lines){if(y<94)next();txt(43,y,line,9,false);y-=14;}
+     for(const line of lines){if(y<94)next();txt(43,y,line,9,false);y-=13;}
    }
-   function section(title){if(y<115)next();y-=15;rule(y+8);txt(43,y-5,title.toUpperCase(),10,true,[.08,.28,.18]);y-=27;}
+   function section(title){if(y<115)next();y-=10;rule(y+6);txt(43,y-6,title.toUpperCase(),10,true,[.08,.28,.18]);y-=22;}
    next();
    rect(42,y-70,511,66,.95,.97,.94);
    txt(52,y-20,'ORDER REFERENCE',8,true,[.34,.44,.37]);txt(52,y-38,d.orderId,12,true);
-   txt(330,y-20,'RECORDED ON',8,true,[.34,.44,.37]);txt(330,y-38,d.date.slice(0,19).replace('T',' '),10,true);
+   txt(330,y-20,'ORDER PLACED (INDIA)',8,true,[.34,.44,.37]);txt(330,y-38,d.date.slice(0,23),10,true);
    y-=88;
    section('Store information');
    paragraph('Seller',d.proprietor+'  |  '+d.shop);
@@ -79,7 +83,8 @@
    if(d.customerEmail)paragraph('Email',d.customerEmail);
    paragraph('Deliver to',d.address);
    section('Order & payment details');
-   paragraph('Order status',d.status+'  |  Payment: '+d.payment+'  |  '+d.method);
+   paragraph('Order status',d.status+'  |  Payment: '+(d.verifiedRazorpay?'Captured & server-verified':d.payment)+'  |  '+d.method);
+   if(d.verifiedRazorpay)paragraph('Verified Razorpay payment ID',d.paymentReference);
    paragraph('Order channel',d.channel);
    if(d.courier)paragraph('Courier',d.courier);
    if(d.awb)paragraph('Tracking / AWB',d.awb);
@@ -103,14 +108,16 @@
    const subtotal=d.items.reduce((acc,it)=>acc+it.qty*it.unit,0);
    y-=8;txt(45,y,'Item subtotal at recorded prices',10,false);txt(430,y,amt(subtotal),10,true);y-=23;
    txt(45,y,'Order estimate recorded',11,true);txt(430,y,amt(d.total),11,true);y-=23;
-   if(d.final>0){
-     rect(42,y-22,511,35,.90,.96,.91);txt(53,y,'Owner-approved payable amount',10,true);txt(424,y,amt(d.final),10,true);y-=49;
-   }else{paragraph('Additional delivery fee','INR 0.00 - included in item prices');y-=6;}
-   section('Important payment and tax information');
-   paragraph('', 'This document is a non-tax order summary, not a GST tax invoice.');
-   paragraph('', 'An approved payable amount does not mean that payment has been received.');
-   paragraph('', 'Payment remains unverified unless separately confirmed by the store.');
-   paragraph('', 'Product prices include delivery. Stock and dispatch are subject to store confirmation.');
+   if(d.verifiedRazorpay){
+     rect(42,y-22,511,35,.90,.96,.91);txt(53,y,'Razorpay received (server verified)',10,true);txt(424,y,amt(d.paidAmount),10,true);y-=49;
+   }else if(d.final>0){
+     rect(42,y-22,511,35,.95,.96,.92);txt(53,y,'Recorded payable estimate - NOT paid',10,true);txt(424,y,amt(d.final),10,true);y-=49;
+   }
+   paragraph('Additional delivery fee','INR 0.00 - included in item prices');y-=6;
+   section('Important payment information');
+   paragraph('', 'Non-tax order statement - not a GST tax invoice. Delivery charges included in listed prices.');
+   if(d.verifiedRazorpay)paragraph('', 'Captured Razorpay payment was server verified. Keep the payment ID for your records.');
+   else paragraph('', 'This is not a payment receipt. Check current order status before paying or retrying.');
    footer();streams.push(cmds.join('\n')+'\n');
    const objects=[null];const add=obj=>(objects.push(obj),objects.length-1);
    const pagesId=add('');const f1=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');const f2=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
