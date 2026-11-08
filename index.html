@@ -208,10 +208,6 @@
           <p class="text-[10px] text-brand-muted truncate">My Orders &amp; Account</p>
         </div>
       </div>
-      <button type="button" onclick="mqb33OpenFeedback()" id="mqb33DrawerFeedback" class="w-full text-left bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm hover:border-brand-gold transition">
-        <span class="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold">★</span>
-        <span><strong class="block text-xs">Customer Feedback</strong><span class="text-[10px] text-brand-muted">Rate products and read genuine reviews</span></span>
-      </button>
       <button type="button" onclick="openBulkCustomInquiry()" aria-label="Request a quote for bulk or personalized Quran gift orders" class="w-full text-left bg-white p-3 rounded-xl border border-brand-border flex items-center gap-2.5 cursor-pointer hover:shadow-sm hover:border-brand-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold transition">
         <div aria-hidden="true" class="w-9 h-9 shrink-0 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-base">🎁</div>
         <div class="min-w-0">
@@ -668,7 +664,6 @@
         <button onclick="switchAdminTab('expert')" id="adminTabBtn-expert" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🛠️ Expert Tools</button>
         <button onclick="switchAdminTab('orders')" id="adminTabBtn-orders" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🚚 Orders (<span id="adminOrdersCount">0</span>)</button>
         <button onclick="switchAdminTab('promotions')" id="adminTabBtn-promotions" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📣 Offers &amp; Messages</button>
-        <button onclick="switchAdminTab('reviews')" id="adminTabBtn-reviews" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">⭐ Customer Reviews</button>
         <button onclick="switchAdminTab('inventory')" id="adminTabBtn-inventory" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">📦 Stock</button>
         <button onclick="switchAdminTab('branches')" id="adminTabBtn-branches" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏢 Branch (1)</button>
         <button onclick="switchAdminTab('shipping')" id="adminTabBtn-shipping" class="px-4 py-3 border-b-2 border-transparent text-neutral-500 hover:text-black whitespace-nowrap">🏷️ Shipping Labels</button>
@@ -772,6 +767,12 @@
               <p class="text-xs text-brand-muted">Instantly activate or deactivate store modules, AI features, and staff permissions.</p>
             </div>
           </div>
+          <section id="mqb41ManualPaymentAdmin" class="bg-white rounded-xl border p-4 space-y-3" hidden>
+            <h5 class="font-bold text-base">Customer Payment Method Controls</h5>
+            <p class="text-xs text-neutral-600">Super Admin only. Disable Manual UPI / QR for new customer checkouts. COD and Razorpay remain separate options. Already-created UPI orders and their receipts remain accessible.</p>
+            <label class="flex items-center gap-3 font-semibold text-sm"><input id="mqb41ManualUPISwitch" type="checkbox" checked onchange="mqb41SetManualUpiEnabled(this.checked)" /> Show Manual UPI / QR at checkout</label>
+            <p id="mqb41ManualUPIStatus" class="text-xs" role="status" aria-live="polite"></p>
+          </section>
           <div class="bg-white rounded-xl border border-brand-border shadow-sm">
             <div id="adminTogglesContainer" class="divide-y divide-brand-border max-h-[60vh] overflow-y-auto"></div>
           </div>
@@ -857,6 +858,11 @@
               <tbody id="adminInventoryTableBody" class="divide-y divide-brand-border"></tbody>
             </table>
           </div>
+        <section id="mqb41VisibilityPanel" class="bg-white rounded-xl border p-4 space-y-3" hidden>
+          <h4 class="font-bold text-sm">Hidden Products — Staff Visibility Controls</h4>
+          <p class="text-xs text-neutral-600">Super Admin, Owner and Manager may hide or restore products. Prices and stock can only be edited by authorized store editors. Historical orders remain unchanged.</p>
+          <div id="mqb41HiddenProducts" class="space-y-2 text-xs"></div>
+        </section>
         <section id="mqb33ArchivePanel" class="bg-white rounded-xl border p-4 space-y-2" aria-label="Removed products" hidden>
           <div class="flex flex-wrap justify-between items-center gap-2">
             <h4 class="font-bold text-sm">Removed products (restorable)</h4>
@@ -893,17 +899,6 @@
           </div>
           <p class="mqb34-policy-note">Promotions and scores must be accurate and not mislead customers. Only real customer feedback contributes to the customer star rating.</p>
         </section>
-        <div id="adminTab-reviews" class="hidden space-y-3">
-          <div class="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Feedback &amp; Star Ratings</h4>
-              <p class="text-xs text-neutral-600">Review genuine customer submissions. Approve or hide reviews; staff may post transparent store replies without changing customer ratings or words.</p>
-            </div>
-            <button type="button" onclick="mqb33RenderAdminReviews()" class="border rounded px-3 py-2 text-xs font-bold">Refresh Reviews</button>
-          </div>
-          <div id="mqb33ReviewAdminStatus" class="text-xs" role="status"></div>
-          <div id="mqb33AdminReviewList" class="space-y-3"></div>
-        </div>
         <!-- TAB: BRANCHES (GRID VIEW) -->
         <div id="adminTab-branches" class="hidden space-y-4">
           <div class="flex justify-between items-center">
@@ -1355,6 +1350,8 @@
           <label class="block font-bold mb-1" for="editProductColor">Color / Finish (optional)</label>
           <input type="text" id="editProductColor" maxlength="120" placeholder="e.g. Maroon velvet, Walnut brown, Gold" class="w-full bg-brand-sand border rounded p-2" />
           <p class="text-[10px] text-neutral-500 mt-1">Describes the item's color or finish; stock is still tracked for the product as a whole.</p>
+          <label for="editProductActive" class="mt-3 flex items-center gap-2 border rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold"><input id="editProductActive" type="checkbox" checked /> Active — visible to customers</label>
+          <p class="text-xs text-neutral-500">Uncheck to hide this product from the storefront and new Razorpay orders without deleting purchase history. Staff can restore it from Hidden Products.</p>
         </div>
         <div>
           <label class="block font-bold mb-1" for="editProductDescription">Full Product Description (optional)</label>
@@ -1450,7 +1447,7 @@
         <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-3">
           <h4 class="font-extrabold text-base">Pay via</h4>
           <p id="mqb37PaymentPolicy" class="text-xs text-brand-muted">Select your preferred way to pay. This website submits a request only; it cannot collect money at this step.</p>
-          <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border-2 border-brand-darkgreen bg-emerald-50 cursor-pointer">
+          <label id="mqb41ManualUpiRow" class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border-2 border-brand-darkgreen bg-emerald-50 cursor-pointer">
             <input type="radio" name="chkPaymentMethod" value="Manual UPI" checked onchange="mqbUpdatePaymentDescription()" class="mt-1" />
             <span class="flex-1"><strong>UPI payment / QR after confirmation</strong><small class="block text-brand-muted mt-1">Google Pay, PhonePe, Paytm or any UPI app — after order confirmation</small></span><span class="text-xs font-semibold text-emerald-700">Manual</span>
           </label>
@@ -1718,43 +1715,6 @@
   <div id="invoicePrintSection" class="hidden"></div>
   <div id="shippingLabelPrintSection" class="hidden"></div>
 
-  <!-- V33 customer feedback: shown only when selected from the menu or product details -->
-  <div id="mqb33FeedbackModal" class="hidden fixed inset-0 z-[95] bg-black/60 p-3 sm:p-6 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="mqb33FeedbackTitle">
-    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl p-4 sm:p-6 space-y-4">
-      <div class="flex items-center justify-between gap-3">
-        <h3 id="mqb33FeedbackTitle" class="serif-title font-bold text-lg">Customer Feedback &amp; Ratings</h3>
-        <button type="button" onclick="mqb33CloseFeedback()" aria-label="Close customer feedback" class="border rounded-full w-9 h-9">✕</button>
-      </div>
-      <p class="text-xs text-neutral-600">Reviews shown to shoppers are approved customer submissions, not verified-purchase claims. Your rating and words are published only after staff review. Staff replies are labelled.</p>
-      <label class="block text-xs font-bold">Choose a product
-        <select id="mqb33FeedbackProduct" class="block w-full border rounded-lg p-3 mt-1 bg-white" onchange="mqb33ShowProductReviews()"></select>
-      </label>
-      <div id="mqb33RatingSummary" class="text-sm font-semibold" aria-live="polite"></div>
-      <div id="mqb33PublishedReviewList" class="space-y-2 max-h-56 overflow-y-auto"></div>
-      <form id="mqb33FeedbackForm" onsubmit="mqb33SubmitFeedback(event)" class="space-y-3 border-t pt-4">
-        <h4 class="font-bold text-sm">Share your experience</h4>
-        <label class="block text-xs font-semibold">Display name (public)
-          <input id="mqb33ReviewName" maxlength="80" required class="block w-full border rounded-lg p-2 mt-1" placeholder="Name to show publicly">
-        </label>
-        <label class="block text-xs font-semibold">Star rating
-          <select id="mqb33ReviewStars" class="block w-full border rounded-lg p-2 mt-1" required>
-            <option value="5">★★★★★ 5 — Excellent</option>
-            <option value="4">★★★★☆ 4 — Good</option>
-            <option value="3">★★★☆☆ 3 — Average</option>
-            <option value="2">★★☆☆☆ 2 — Fair</option>
-            <option value="1">★☆☆☆☆ 1 — Poor</option>
-          </select>
-        </label>
-        <label class="block text-xs font-semibold">Your review
-          <textarea id="mqb33ReviewComment" minlength="8" maxlength="800" required rows="3" class="block w-full border rounded-lg p-2 mt-1" placeholder="Tell us what you think about this product"></textarea>
-        </label>
-        <p class="text-[11px] text-neutral-600">One submission per signed-in or current guest account per product. Please do not include phone numbers or addresses in public reviews.</p>
-        <button type="submit" class="bg-emerald-900 text-white font-bold rounded-lg px-4 py-2 text-sm">Submit feedback for moderation</button>
-        <p id="mqb33FeedbackStatus" class="text-xs" role="status"></p>
-      </form>
-    </div>
-  </div>
-
   <!-- Firebase Authentication + Realtime Database (no server secret in browser) -->
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -1776,5 +1736,6 @@
        V39 payment is customer initiated, server verified and production locked by default. -->
   <script defer src="js/razorpay-v38-approved-config.js"></script>
   <script defer src="js/razorpay-v38-approved-orders.js"></script>
+  <script defer src="js/mqb-v41-controls.js"></script>
 </body>
 </html>
