@@ -133,9 +133,12 @@
               sku:v.sku || id
             }));
           } else {
-            // Static JSON remains visible in preview mode, but cannot be ordered.
-            this.setStatus(this.guestMessage,'waiting');
+            // Do not show cached/demo inventory when the cloud catalog is empty.
+            products=[];
+            this.setStatus('No published products are available.','waiting');
           }
+          document.documentElement.classList.add('mqb42-catalog-ready');
+          document.getElementById('mqb42CatalogLoading')?.remove();
           renderCategoryChips(); renderProducts();
           renderAdminInventory(); renderPosCatalog();
           window.mqb33RefreshArchived?.();
@@ -149,7 +152,13 @@
           this.publicFeaturedCollectionEnabled=data.featuredCollectionEnabled===true;
           // V41: public payment availability is controlled by Firebase, not local settings.
           window.MQB41_PAYMENT_FLAGS={manualUpiEnabled:data.manualUpiEnabled!==false};
+          window.MQB42_COD_ENABLED=data.codEnabled!==false;
+          window.MQB42_GIFT_OFFERS=data.giftOffers && typeof data.giftOffers==='object' ? data.giftOffers : null;
+          window.MQB42_ANALYTICS_ENABLED=data.visitorAnalyticsEnabled===true;
+          window.mqb42ConfigureVisitors?.();
           window.mqb41RenderPublicPaymentFlags?.();
+          window.mqb42RenderPaymentFlags?.();
+          window.mqb42RenderOffers?.();
           if(!config.featureToggles)config.featureToggles={};
           config.featureToggles.featuredCollection=this.publicFeaturedCollectionEnabled;
           renderAdminFeatureToggles();
@@ -567,6 +576,8 @@
       if(!['COD','Manual UPI','Razorpay'].includes(form.paymentMethod)) throw Error('Choose an available checkout payment method.');
       if(form.paymentMethod==='Manual UPI' && window.MQB41_PAYMENT_FLAGS?.manualUpiEnabled===false)
         throw Error('Manual UPI has been disabled by the store. Select Razorpay or Cash on Delivery.');
+      if(form.paymentMethod==='COD' && window.MQB42_COD_ENABLED!==true)
+        throw Error('Cash on delivery is unavailable. Please select Razorpay.');
       if(form.paymentMethod==='Razorpay' && window.mqb39RazorpayReady!==true)
         throw Error('Razorpay is not ready yet. Please choose COD or Manual UPI.');
       const cartItems=cart.map(item=>({id:item.id,qty:Math.max(1,Math.floor(Number(item.qty)||1))}));
@@ -1012,15 +1023,17 @@
   // Tracking uses only records already authorized by Firebase for the signed-in user.
   const shippingCard=o=>{
     const s=shipmentFor(o);
-    const tracking=s.trackingUrl;
+    const tracking=s.trackingUrl || (s.trackingNumber && /india post/i.test(s.carrier||o.courierName||'India Post') ? 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx' : '');
+    const eta=s.eta || window.mqb42DefaultEta?.(o) || '';
     return `<div class="mt-2 p-2 bg-emerald-50 border border-emerald-100 rounded-lg space-y-1">
       <p><strong>Courier:</strong> ${esc(s.carrier||'Not assigned')}</p>
       <p><strong>AWB / Tracking:</strong> ${esc(s.trackingNumber||'Awaiting dispatch')}</p>
       ${s.dispatchDate?`<p><strong>Dispatched:</strong> ${esc(s.dispatchDate)}</p>`:''}
-      ${s.eta?`<p><strong>Expected delivery:</strong> ${esc(s.eta)}</p>`:''}
+      ${eta?`<p><strong>Target delivery date:</strong> ${esc(eta)}</p>`:''}
+      <p><strong>Delivery target:</strong> Within 7 calendar days after confirmation, subject to India Post serviceability.</p>
       ${s.deliveredDate?`<p><strong>Delivered:</strong> ${esc(s.deliveredDate)}</p>`:''}
       ${s.notes?`<p><strong>Shipping note:</strong> ${esc(s.notes)}</p>`:''}
-      ${tracking?`<p><a href="${esc(tracking)}" target="_blank" rel="noopener noreferrer" class="text-emerald-800 font-bold underline underline-offset-2">Track on courier website ↗</a></p>`:''}
+      ${tracking && s.trackingNumber?`<p><a href="${esc(tracking)}" target="_blank" rel="noopener noreferrer" class="text-emerald-800 font-bold underline underline-offset-2">Track on official courier website ↗</a> · Consignment: <strong>${esc(s.trackingNumber)}</strong></p>`:''}
     </div>`;
   };
   window.trackOrderById=()=>{
@@ -1108,9 +1121,9 @@
     editingShippingRef={uid,key};
     const s=shipmentFor(record);
     $('shippingOrderSummary').textContent='Order '+(record.orderId||key)+' · '+(record.customerName||'Customer');
-    for(const [field,val] of Object.entries({shippingCarrier:s.carrier==='Not assigned'?'':s.carrier,
-      shippingAwb:s.trackingNumber,shippingTrackingUrl:s.trackingUrl,
-      shippingDispatchDate:s.dispatchDate,shippingEta:s.eta,shippingDeliveredDate:s.deliveredDate,shippingNotes:s.notes})){
+    for(const [field,val] of Object.entries({shippingCarrier:s.carrier&&s.carrier!=='Not assigned'?s.carrier:'India Post',
+      shippingAwb:s.trackingNumber,shippingTrackingUrl:s.trackingUrl||window.MQB42_INDIA_POST_URL||'',
+      shippingDispatchDate:s.dispatchDate,shippingEta:s.eta||window.mqb42DefaultEta?.(record)||'',shippingDeliveredDate:s.deliveredDate,shippingNotes:s.notes})){
       const input=$(field);if(input)input.value=val;
     }
     const status=$('shippingOrderStatus');if(status){
@@ -1131,7 +1144,9 @@
     if(!ensureAdmin()||!editingShippingRef)return;
     const {uid,key}=editingShippingRef;
     if(!orders.some(o=>o.__uid===uid&&o.__key===key)) return statusNotice('Order not found or no longer available.',true);
-    const rawUrl=$('shippingTrackingUrl')?.value.trim()||'';
+    const requestedCarrier=$('shippingCarrier')?.value.trim()||'India Post';
+    const isIndiaPost=/^india post$/i.test(requestedCarrier);
+    const rawUrl=isIndiaPost ? String(window.MQB42_INDIA_POST_URL||'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx') : ($('shippingTrackingUrl')?.value.trim()||'');
     const trackingUrl=safeTrackingUrl(rawUrl);
     if(rawUrl&&!trackingUrl)return statusNotice('Enter a valid HTTPS link from the courier website.',true);
     const newStatus=$('shippingOrderStatus')?.value||'Requested';
@@ -1141,13 +1156,13 @@
       return statusNotice('Manual UPI payment is not verified. Confirm bank credit before dispatching.',true);
     if(!SHIP_STATUSES.includes(newStatus) && !orders.some(o=>o.__uid===uid&&o.__key===key&&o.status===newStatus))
       return statusNotice('Select a valid order status.',true);
-    const carrier=$('shippingCarrier')?.value.trim().slice(0,100)||'';
+    const carrier=requestedCarrier.slice(0,100);
     const trackingNumber=$('shippingAwb')?.value.trim().slice(0,120)||'';
     if(/[\r\n\x00-\x1f]/.test(carrier+trackingNumber)) return statusNotice('Remove line breaks or special control characters.',true);
     const date=(id)=>{const value=$(id)?.value||'';return /^\d{4}-\d{2}-\d{2}$/.test(value)?value:'';};
     const shipping={
       carrier,trackingNumber,trackingUrl,
-      dispatchDate:date('shippingDispatchDate'),eta:date('shippingEta'),
+      dispatchDate:date('shippingDispatchDate'),eta:date('shippingEta')||window.mqb42DefaultEta?.(existing)||'',
       deliveredDate:date('shippingDeliveredDate'),notes:($('shippingNotes')?.value||'').trim().slice(0,500),
       updatedAt:firebase.database.ServerValue.TIMESTAMP,
       updatedBy:live.uid
@@ -1412,7 +1427,7 @@
         <div class="bg-brand-sand border rounded p-2 space-y-1">
           <p><strong>Courier:</strong> ${esc(s.carrier||'Not assigned')} · <strong>AWB:</strong> ${esc(s.trackingNumber||'Not assigned')}</p>
           ${s.dispatchDate?`<p>Dispatched: ${esc(s.dispatchDate)}</p>`:''}
-          ${s.eta?`<p>ETA: ${esc(s.eta)}</p>`:''}
+          ${(s.eta||window.mqb42DefaultEta?.(o))?`<p>7-day target: ${esc(s.eta||window.mqb42DefaultEta(o))}</p>`:''}
           ${s.trackingUrl?`<a href="${esc(s.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="underline font-bold text-emerald-800">Open courier tracking</a>`:''}
         </div>
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
