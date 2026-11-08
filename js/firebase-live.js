@@ -147,6 +147,9 @@
           if(!data || typeof data!=='object') return;
           for(const k of publicKeys) if(Object.prototype.hasOwnProperty.call(data,k)) config[k]=data[k];
           this.publicFeaturedCollectionEnabled=data.featuredCollectionEnabled===true;
+          // V41: public payment availability is controlled by Firebase, not local settings.
+          window.MQB41_PAYMENT_FLAGS={manualUpiEnabled:data.manualUpiEnabled!==false};
+          window.mqb41RenderPublicPaymentFlags?.();
           if(!config.featureToggles)config.featureToggles={};
           config.featureToggles.featuredCollection=this.publicFeaturedCollectionEnabled;
           renderAdminFeatureToggles();
@@ -524,6 +527,7 @@
         image:photo,image2:photo2,gifUrl:gif,
         desc:String(product.desc ?? product.description ?? '').slice(0,3000),
         color:String(product.color ?? product.colour ?? '').slice(0,120),
+        active:product.active!==false,
         updatedAt:firebase.database.ServerValue.TIMESTAMP};
       // Patch only these edited fields, preserving any other existing product metadata.
       await this.db.ref('catalog/'+id).update(clean);
@@ -561,6 +565,8 @@
       if(!this.uid || !['customer','guest'].includes(currentUser?.role)) throw Error('Please use customer login or guest checkout to send an order request.');
       if(!this.catalogPublished) throw Error('No live cloud catalog has been published.');
       if(!['COD','Manual UPI','Razorpay'].includes(form.paymentMethod)) throw Error('Choose an available checkout payment method.');
+      if(form.paymentMethod==='Manual UPI' && window.MQB41_PAYMENT_FLAGS?.manualUpiEnabled===false)
+        throw Error('Manual UPI has been disabled by the store. Select Razorpay or Cash on Delivery.');
       if(form.paymentMethod==='Razorpay' && window.mqb39RazorpayReady!==true)
         throw Error('Razorpay is not ready yet. Please choose COD or Manual UPI.');
       const cartItems=cart.map(item=>({id:item.id,qty:Math.max(1,Math.floor(Number(item.qty)||1))}));
@@ -571,7 +577,7 @@
       const summary=[]; let estimate=0;
       for(const item of cartItems) {
         const p=all[item.id];
-        if(!p || price(p.salePrice??p.price)<=0 || Number(p.stock)<item.qty) throw Error('Product stock or price changed. Update your cart before continuing.');
+        if(!p || p.active===false || price(p.salePrice??p.price)<=0 || Number(p.stock)<item.qty) throw Error('Product unavailable, hidden, or out of stock. Update your cart before continuing.');
         const unit=price(p.salePrice??p.price);
         summary.push({id:item.id, title:String(p.title).slice(0,120), salePrice:unit,qty:item.qty});
         estimate+=unit*item.qty;
@@ -1039,6 +1045,7 @@
         ${o.paymentStatus==='verified'?`<p class="text-emerald-800">Verified payment: INR ${price(o.paymentVerification?.verifiedAmount).toLocaleString('en-IN')} — ${esc(o.paymentVerification?.method||'manual')}</p>`:''}
         ${shippingCard(o)}
         ${o.paymentMethod==='Manual UPI'&&price(o.paymentRequest?.amount)>0&&o.paymentStatus!=='verified'&&live.publicPayment?.qrImage?`<button type="button" class="mqb29-pay-order bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold w-full">UPI Pay Now / Scan QR · Submit payment details</button>`:''}
+        ${o.paymentMethod==='Razorpay' && o.paymentStatus==='verified' && o.__key?`<a class="inline-block border border-emerald-800 text-emerald-900 rounded-lg px-3 py-2 font-bold" href="payment-success.html?orderKey=${esc(encodeURIComponent(o.__key))}">View secure Razorpay payment receipt</a>`:''}
         <button type="button" class="customer-invoice-download px-3 py-2 bg-brand-darkgreen text-white font-bold rounded-lg">Download Order Invoice (PDF)</button>
       </article>`;
     }).join(''):'<p class="text-xs text-neutral-500">No previous orders in this account yet.</p>';
@@ -1059,7 +1066,8 @@
       image:window.MQBLocalProductMedia?.resolve('image',$('editProductImage')?.value.trim()||'',before?.image)||$('editProductImage')?.value.trim()||'',
       color:$('editProductColor')?.value.trim()||'',desc:$('editProductDescription')?.value.trim()||'',
       image2:window.MQBLocalProductMedia?.resolve('image2',$('editProductImage2')?.value.trim()||'',before?.image2)||$('editProductImage2')?.value.trim()||'',
-      gifUrl:$('editProductGifUrl')?.value.trim()||''};
+      gifUrl:$('editProductGifUrl')?.value.trim()||'',
+      active:$('editProductActive')?.checked!==false};
     try { await live.saveProduct(input);closeProductEditModal();alert('Product saved and synchronized across devices.'); }
     catch(err) {alert('Product NOT saved: '+textError(err));}
   };
@@ -1069,7 +1077,7 @@
     if(!o?.__uid||!o?.__key) return alert('This order cannot be modified from the cloud dashboard.');
     if(blockPendingRazorpayStatus(o,status))return alert('Razorpay order is Payment Pending. Only the verified payment backend can confirm it.');
     if(REQUIRES_DISPATCH_PAYMENT.includes(status)&&needsUpiVerification(o))return alert('Manual UPI receipt is not verified. Do not dispatch this order before bank confirmation.');
-    try {await live.db.ref('orderRequests/'+o.__uid+'/'+o.__key+'/status').set(status);live.setStatus('✓ Order status saved to Firebase','ok');logStaffActivity('order_status','Order '+String(orderId).slice(0,70)+' to '+String(status).slice(0,35));}
+    try {await live.db.ref('orderRequests/'+o.__uid+'/'+o.__key+'/status').set(status);live.setStatus('✓ Order status saved to Firebase','ok');logStaffActivity('order_status','Order '+String(orderId).slice(0,70)+' to '+String(status).slice(0,35));window.mqb41OfferWhatsAppStatus?.({...o,status});}
     catch(err){alert('Order status NOT saved: '+textError(err));}
   };
   window.resetAllSalesToZero=async()=>{
@@ -1408,7 +1416,7 @@
           ${s.trackingUrl?`<a href="${esc(s.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="underline font-bold text-emerald-800">Open courier tracking</a>`:''}
         </div>
         <button type="button" class="cloud-download-invoice border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full" ${o.__key?'':'disabled'}>Download Order Invoice (PDF)</button>
-        ${o.__uid&&o.__key?`<div class="mqb34-staff-message-actions"><button type="button" class="mqb34-send-whatsapp" title="Opens WhatsApp with an order summary; you must press Send">💬 Compose WhatsApp order update</button><button type="button" class="mqb34-send-email" title="Opens your email app; you must press Send">✉️ Compose email order update</button></div>`:''}
+        ${o.__uid&&o.__key?`<div class="mqb34-staff-message-actions"><button type="button" class="mqb34-send-whatsapp" title="Opens WhatsApp with an order summary; you must press Send">💬 Send order details / status via WhatsApp</button><button type="button" class="mqb34-send-email" title="Opens your email app; you must press Send">✉️ Compose email order update</button></div>`:''}
         ${o.__uid&&o.__key?`<button type="button" class="cloud-download-shipping-label border border-teal-800 text-teal-900 px-4 py-2 rounded-lg font-bold w-full">Download Shipping Label (PDF · 4×6)</button>`:''}
         ${isSuperAdmin()&&o.__uid&&o.__key&&o.paymentMethod!=='Razorpay'?`<button type="button" class="cloud-verify-payment border border-blue-700 text-blue-900 px-4 py-2 rounded-lg font-bold w-full">Verify / Edit Manual Payment</button>`:''}
         ${canEditStore()&&o.__uid&&o.__key&&o.paymentMethod==='Manual UPI'?`<button type="button" class="mqb29-approve-amount border border-emerald-700 text-emerald-900 px-4 py-2 rounded-lg font-bold w-full">Confirm final UPI amount ${price(o.paymentRequest?.amount)?'(₹'+esc(price(o.paymentRequest.amount).toFixed(2))+')':''}</button>`:''}
@@ -1447,7 +1455,8 @@
         if(REQUIRES_DISPATCH_PAYMENT.includes(el.value) && needsUpiVerification(record)){alert('Manual UPI receipt is not verified. Confirm bank credit first.');renderAdminOrders();return;}
         try {const before=record.status;await live.db.ref('orderRequests/'+record.__uid+'/'+record.__key+'/status').set(el.value);
           mqb31BestEffortNote(record.__uid,record.__key,'Status change',String(before||'Requested')+' → '+el.value);
-          logStaffActivity('order_status','Order '+(record.orderId||record.__key)+' to '+el.value);} 
+          logStaffActivity('order_status','Order '+(record.orderId||record.__key)+' to '+el.value);
+          window.mqb41OfferWhatsAppStatus?.({...record,status:el.value});} 
         catch(err){alert('Order status not saved: '+textError(err));renderAdminOrders();}
       });
     });
@@ -2169,7 +2178,7 @@
     const heading=document.createElement('div');heading.className='mqb30-tracking-heading';
     const title=document.createElement('strong');title.textContent='Order progress';heading.appendChild(title);
     const tag=document.createElement('span');tag.className='mqb30-payment-tag';
-    tag.textContent=order?.paymentStatus==='verified'?'Payment manually verified':'Payment pending verification';
+    tag.textContent=order?.paymentStatus==='verified'?(order.paymentMethod==='Razorpay'?'Razorpay payment verified':'Payment manually verified'):'Payment pending verification';
     heading.appendChild(tag);list.appendChild(heading);
     if(cancelled){
       const notice=document.createElement('p');notice.className='mqb30-cancel-notice';notice.textContent='Order '+current+'. Contact the store for assistance.';list.appendChild(notice);
@@ -2199,6 +2208,12 @@
     const after=node.querySelector('.mqb29-pay-order');
     const progress=mqb30ProgressFor(o);
     if(after)node.insertBefore(progress,after);else node.appendChild(progress);
+    // A customer may reopen their own verified Razorpay receipt later from Order Tracking.
+    if(o.paymentMethod==='Razorpay' && o.paymentStatus==='verified' && o.__uid===live.uid && o.__key && !node.querySelector('.mqb41-receipt-link')){
+      const link=document.createElement('a');link.className='mqb41-receipt-link inline-block border border-emerald-700 rounded p-2 mt-2 font-bold text-emerald-900';
+      link.href='payment-success.html?orderKey='+encodeURIComponent(o.__key);
+      link.textContent='View secure Razorpay payment receipt';node.appendChild(link);
+    }
   };
   const mqb30PreviousOrders=window.renderCustProfileOrders;
   window.renderCustProfileOrders=()=>{
