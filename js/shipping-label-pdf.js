@@ -23,10 +23,11 @@
       payment:clip(o.paymentMethod||'Not recorded',50),
       paymentStatus:clip(o.paymentStatus||'unverified',35),
       itemCount:Array.isArray(o.items)?o.items.reduce((n,i)=>n+Math.max(0,Number(i.qty)||0),0):0,
+      gifts:clip((window.mqb42OfferGiftsForOrder?.(o)||[]).join(', '),160),
       total:Number(o.paymentVerification?.verifiedAmount)||0
     };
   }
-  function buildPdf(d){
+  function pageStream(d){
     // 288 x 432 points = 4 x 6 inches, scalable to A4 via print settings.
     const c=[];const pt=(x,y,s,v,bold=false)=>{
       c.push('0.08 0.12 0.11 rg BT /'+(bold?'B':'R')+' '+s+' Tf '+x+' '+y+' Td ('+e(v)+') Tj ET');
@@ -54,19 +55,28 @@
     pt(13,y,9,'COURIER: '+d.carrier,true);y-=15;
     for(const l of wrap('AWB: '+d.awb,43,2)){pt(13,y,9,l);y-=14;}
     pt(13,y,9,'PARCEL ITEMS: '+d.itemCount);y-=15;
+    if(d.gifts){for(const giftLine of wrap('FREE GIFTS: '+d.gifts,48,2)){pt(13,y,7,giftLine,true);y-=11;}}
     pt(13,y,9,'PAYMENT: '+d.payment);y-=14;
     pt(13,y,8,'STATUS: '+d.paymentStatus);y-=13;
     // No collection figure without a securely confirmed amount; never print customer estimated total as COD due.
     rule(Math.max(39,y-2));
     pt(13,27,7,'Verify courier booking, COD amount and AWB before dispatch.');
     pt(13,16,7,'This label is NOT a courier-issued waybill or proof of payment.');
-    const stream=c.join('\n')+'\n';
+    return c.join('\n')+'\n';
+  }
+  function buildMultiPdf(dataset){
+    if(!Array.isArray(dataset) || !dataset.length || dataset.length>2000)throw Error('Choose 1–2,000 shipping labels per PDF.');
     const objs=[null];const add=x=>(objs.push(x),objs.length-1);
     const pages=add('');const regular=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
     const bold=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
-    const content=add('<< /Length '+stream.length+' >>\nstream\n'+stream+'endstream');
-    const page=add('<< /Type /Page /Parent '+pages+' 0 R /MediaBox [0 0 288 432] /Resources << /Font << /R '+regular+' 0 R /B '+bold+' 0 R >> >> /Contents '+content+' 0 R >>');
-    objs[pages]='<< /Type /Pages /Kids ['+page+' 0 R] /Count 1 >>';
+    const kids=[];
+    for(const d of dataset){
+      const stream=pageStream(d);
+      const content=add('<< /Length '+stream.length+' >>\nstream\n'+stream+'endstream');
+      const page=add('<< /Type /Page /Parent '+pages+' 0 R /MediaBox [0 0 288 432] /Resources << /Font << /R '+regular+' 0 R /B '+bold+' 0 R >> >> /Contents '+content+' 0 R >>');
+      kids.push(page+' 0 R');
+    }
+    objs[pages]='<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >>';
     const root=add('<< /Type /Catalog /Pages '+pages+' 0 R >>');
     let pdf='%PDF-1.4\n';const offsets=[0];
     for(let i=1;i<objs.length;i++){offsets.push(pdf.length);pdf+=i+' 0 obj\n'+objs[i]+'\nendobj\n';}
@@ -75,11 +85,28 @@
     pdf+='trailer\n<< /Size '+objs.length+' /Root '+root+' 0 R >>\nstartxref\n'+start+'\n%%EOF\n';
     return pdf;
   }
+  function buildPdf(d){return buildMultiPdf([d]);}
+  function downloadMany(records){
+    if(!Array.isArray(records) || !records.length) throw Error('No shipping labels selected.');
+    const valid=records.map(fields);
+    const unique=new Set();
+    for(const d of valid){
+      if(!d.name||!d.phone||!d.address||!/^[0-9]{6}$/.test(d.pin))throw Error('Missing shipping address on order '+d.order);
+      if(unique.has(d.order))throw Error('Duplicate order ID '+d.order+' in bulk label request.');
+      unique.add(d.order);
+    }
+    const pdf=buildMultiPdf(valid);
+    const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));
+    const link=document.createElement('a');link.href=url;
+    link.download='MQB-Bulk-Shipping-Labels-'+new Date().toISOString().slice(0,10)+'-'+valid.length+'-Orders.pdf';
+    document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
+    return {count:valid.length,filename:link.download};
+  }
   function download(data){const d=fields(data);if(!d.name||!d.phone||!d.address||!/^[0-9]{6}$/.test(d.pin))throw Error('Missing recipient address information');
     const blob=new Blob([buildPdf(d)],{type:'application/pdf'});const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download='MQB-Shipping-Label-'+d.order.replace(/[^A-Za-z0-9_-]/g,'_')+'.pdf';
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
     return a.download;
   }
-  window.MQBShippingLabelPDF={fields,buildPdf,download};
+  window.MQBShippingLabelPDF={fields,buildPdf,buildMultiPdf,download,downloadMany};
 })();
