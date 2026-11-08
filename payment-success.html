@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin">
+<title>MOIN QURAN BOX · Secure Order Receipt</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:#16372d;background:#f5f4ef;line-height:1.5}*{box-sizing:border-box}
+body{margin:0}header{background:#123b2e;color:white;padding:19px 22px;text-align:center}header strong{font-family:Georgia,serif;font-size:1.5rem;letter-spacing:.07em}header small{display:block;color:#e2c99e;letter-spacing:.15em;font-size:.7rem}
+main{max-width:830px;margin:28px auto;padding:0 16px}section{background:white;padding:22px;border:1px solid #e1e2d9;border-radius:16px;box-shadow:0 10px 30px #123b2e0d;margin-bottom:16px}
+h1{font-size:1.5rem;margin:0 0 10px;font-family:Georgia,serif}.muted{color:#58665e;font-size:.9rem;margin:6px 0 0}.good{color:#16794e}.warn{color:#8b5720}
+.amount{font-size:2.25rem;font-weight:800;letter-spacing:-.03em;margin:12px 0}.pill{display:inline-block;border-radius:99px;padding:5px 11px;background:#e5f6ec;color:#14583b;font-size:.8rem;font-weight:700}
+.pairs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.pair{overflow-wrap:anywhere}.pair label{display:block;color:#68776d;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em}.pair div{font-weight:650;margin-top:4px}.heading{font-family:Georgia,serif;font-weight:700;margin:0 0 14px;font-size:1.15rem}
+.item{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px solid #eee;padding:12px 0}.item:last-child{border:0}.item small{color:#68776d;display:block}.total{display:flex;justify-content:space-between;border-top:2px solid #e5e9e2;padding-top:15px;margin-top:12px;font-weight:750}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:25px 0}.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;border:1px solid #1c553d;border-radius:10px;background:#174d38;padding:12px 18px;color:white;font-size:.9rem;font-weight:700}.btn.secondary{background:white;color:#174d38}
+#receipt{display:none}.error{border-color:#edc7a6;background:#fff8f2}.break{overflow-wrap:anywhere}footer{text-align:center;font-size:.8rem;color:#69796f;padding:4px 18px 22px}
+@media(max-width:580px){.pairs{grid-template-columns:1fr}section{padding:17px}main{margin:15px auto}.amount{font-size:1.9rem}}
+@media print{header{background:white;color:#153c2c;border-bottom:2px solid #193e2d}header small{color:#64502e}body{background:white}section{box-shadow:none;break-inside:avoid}.actions,#notice{display:none!important}main{margin:10px auto}}
+</style>
+</head><body>
+<header><strong>MOIN QURAN BOX</strong><small>MADINA COLONY · FALAKNUMA · HYDERABAD</small></header>
+<main>
+<section id="notice" role="status" aria-live="polite"><h1>Checking your payment receipt…</h1><p class="muted" id="loadingText">Connecting securely to your order in Firebase.</p></section>
+<div id="receipt">
+<section><span class="pill" id="paymentBadge">Payment verified</span><h1 style="margin-top:12px">Thank you for your order</h1><p class="muted">Your Razorpay payment has been verified by the store's secure payment server.</p><div class="amount" id="paidAmount"></div><p class="muted">This is a payment acknowledgment and order summary, not a GST tax invoice.</p></section>
+<section><h2 class="heading">Order information</h2><div class="pairs">
+<div class="pair"><label>Store order ID</label><div id="orderId" class="break"></div></div>
+<div class="pair"><label>Order status</label><div id="orderStatus"></div></div>
+<div class="pair"><label>Placed on</label><div id="orderDate"></div></div>
+<div class="pair"><label>Payment method</label><div id="paymentMethod"></div></div>
+</div></section>
+<section><h2 class="heading">Products and amount</h2><div id="items"></div><div class="item"><span>Additional delivery</span><strong>₹0 — included</strong></div><div class="total"><span>Payment verified</span><strong id="totalAmount"></strong></div></section>
+<section><h2 class="heading">Razorpay payment details</h2><div class="pairs">
+<div class="pair"><label>Payment status</label><div id="paymentStatus"></div></div>
+<div class="pair"><label>Verified amount</label><div id="verifiedAmount"></div></div>
+<div class="pair"><label>Razorpay payment reference</label><div id="razorpayPaymentId" class="break"></div></div>
+<div class="pair"><label>Razorpay order reference</label><div id="razorpayOrderId" class="break"></div></div>
+<div class="pair"><label>Payment verified at</label><div id="verifiedAt"></div></div>
+<div class="pair"><label>Currency</label><div>INR</div></div>
+</div></section>
+<section><h2 class="heading">Delivery details</h2><div class="pairs">
+<div class="pair"><label>Customer</label><div id="customerName"></div></div>
+<div class="pair"><label>Delivery contact</label><div id="customerPhone"></div></div>
+<div class="pair"><label>Delivery address</label><div id="deliveryAddress"></div></div>
+<div class="pair"><label>Shipping status</label><div id="shippingStatus"></div></div>
+</div></section>
+<div class="actions"><button class="btn" onclick="window.print()">Print / Save receipt as PDF</button><a class="btn secondary" href="./">Return to store</a></div>
+</div>
+</main><footer>For order assistance: +91 7337464501 · mquranbox@gmail.com</footer>
+<script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script defer src="js/mqb-v41-receipt.js"></script>
+</body></html>
