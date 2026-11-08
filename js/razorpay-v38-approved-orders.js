@@ -180,20 +180,94 @@
       }
     }
   }
+  // V41.1 — Render Free can sleep while customers browse. Keep payment FAIL-CLOSED,
+  // but do not leave an active LIVE integration labelled "Coming soon" forever.
+  // Retry cold starts, recheck whenever checkout opens, and offer manual retry.
   let readinessAttempts = 0;
-  function retryReadiness() {
-    // Render free instances can take time to wake up. Only retry transport/server
-    // failures; NEVER make an unavailable or disabled payment backend look ready.
-    if (++readinessAttempts <= 6) setTimeout(ready, 10000);
+  let readinessInFlight = false;
+  let nextAttempt = null;
+  const MAX_STARTUP_CHECKS = 10;
+  const READY_TIMEOUT_MS = 20000;
+  const RETRY_DELAY_MS = 6500;
+  const serverBadge = () => $('mqb38AvailabilityBadge');
+  const serverCard = () => $('mqbV37ComingSoon');
+
+  function presentConnectionState(state) {
+    if (active) return;
+    const badge = serverBadge();
+    if (badge) badge.textContent = state === 'waiting' ? 'Connecting…' :
+      state === 'offline' ? 'Try again' : 'Unavailable';
+    const card = serverCard();
+    const warning = card?.querySelector?.('.mqb38-method-warning');
+    if (warning) warning.textContent = state === 'waiting'
+      ? 'Connecting to the secure Razorpay payment server. This can take longer when the free hosting service wakes up. Do not retry a payment if funds were debited.'
+      : 'Secure Razorpay checkout is temporarily unavailable. Please use Cash on Delivery if suitable, or tap Recheck connection. Never pay twice for the same order.';
+    const policy = $('mqb37PaymentPolicy');
+    if (policy) policy.textContent = state === 'waiting'
+      ? 'Checking secure online payment availability…'
+      : 'Secure online payment is currently unavailable. You can recheck the connection without creating an order.';
+    const button = $('mqb41RazorpayRecheck');
+    if (button) {
+      button.disabled = readinessInFlight;
+      button.textContent = readinessInFlight ? 'Checking connection…' : 'Recheck Razorpay connection';
+    }
   }
+
+  function setupRetryControl() {
+    const card = serverCard();
+    const target = card?.querySelector?.('.mqb38-method-copy');
+    if (target && !$('mqb41RazorpayRecheck')) {
+      const button = document.createElement('button');
+      button.id = 'mqb41RazorpayRecheck';
+      button.type = 'button';
+      button.className = 'mt-3 border rounded-md px-3 py-2 text-xs font-bold bg-white text-emerald-900';
+      button.textContent = 'Recheck Razorpay connection';
+      button.addEventListener('click', () => manualRecheck());
+      target.appendChild(button);
+    }
+    const modal = $('checkoutModal');
+    if (modal && typeof MutationObserver === 'function') {
+      new MutationObserver(() => {
+        if (!modal.classList.contains('hidden') && !active) manualRecheck();
+      }).observe(modal, {attributes:true, attributeFilter:['class']});
+    }
+  }
+
+  function queueRetry() {
+    if (active || nextAttempt !== null || readinessAttempts >= MAX_STARTUP_CHECKS) return;
+    nextAttempt = setTimeout(() => {
+      nextAttempt = null;
+      ready();
+    }, RETRY_DELAY_MS);
+  }
+
+  function manualRecheck() {
+    if (active || readinessInFlight) return;
+    if (nextAttempt !== null) { clearTimeout(nextAttempt); nextAttempt = null; }
+    readinessAttempts = 0;
+    ready();
+  }
+  window.mqb39RetryReadiness = manualRecheck;
+
   async function ready() {
+    if (active || readinessInFlight) return;
+    readinessInFlight = true;
+    readinessAttempts += 1;
+    presentConnectionState('waiting');
+    let shouldRetry = true;
     try {
-      const controller = new AbortController();const timer = setTimeout(() => controller.abort(), 8000);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), READY_TIMEOUT_MS);
       let response;
-      try {response = await fetch(base + '/api/razorpay/status',{
-        cache:'no-store',mode:'cors',credentials:'omit',redirect:'error',signal:controller.signal
-      });} finally {clearTimeout(timer);}
-      if (!response.ok) { if (response.status >= 500) retryReadiness(); return; }
+      try {
+        response = await fetch(base + '/api/razorpay/status', {
+          cache:'no-store', mode:'cors', credentials:'omit', redirect:'error', signal:controller.signal
+        });
+      } finally { clearTimeout(timer); }
+      if (!response.ok) {
+        if (response.status < 500) shouldRetry = false;
+        return;
+      }
       const data = await response.json();
       if (data?.mode !== 'live' || data.checkoutReady !== true ||
           data.paymentCreationEnabled !== true || data.webhookReady !== true ||
@@ -202,9 +276,14 @@
           data.autoConfirmWithoutStaff !== true || data.retryUsesSameProviderOrder !== true ||
           data.paymentModel !== 'customer-auto-confirm-v39' ||
           data.additionalDeliveryPaise !== 0 || data.testPaymentsEnabled !== false ||
-          data.firebaseProjectId !== cfg.expectedFirebaseProjectId) return;
+          data.firebaseProjectId !== cfg.expectedFirebaseProjectId) {
+        // Explicitly disabled or incompatible backend: NEVER show a payment option.
+        shouldRetry = false;
+        return;
+      }
       active = true;
       window.mqb39RazorpayReady = true;
+      if (nextAttempt !== null) {clearTimeout(nextAttempt);nextAttempt = null;}
       const option = $('mqbV36PaymentOption');
       if (option) {
         option.hidden = false;
@@ -212,7 +291,7 @@
         const radio = option.querySelector('input[name="chkPaymentMethod"]');
         if (radio) radio.disabled = false;
       }
-      const card = $('mqbV37ComingSoon');
+      const card = serverCard();
       if (card) card.hidden = true;
       const message = $('mqb37PaymentPolicy');
       if (message) message.textContent = 'Choose Razorpay to pay online now. Your order will be confirmed automatically after the server verifies payment capture. Failed payments remain Payment Pending, with Retry available in order history.';
@@ -221,11 +300,30 @@
       if (footnote) footnote.textContent = 'For Razorpay, the server securely checks the current item total. When captured payment is verified, the order is confirmed automatically. No additional delivery fee.';
       for (const id of ['adminOrdersContainer','custOrderList','trackingResultBox']) {
         const node = $(id);
-        if (node) new MutationObserver(attach).observe(node,{childList:true,subtree:true});
+        if (node) new MutationObserver(attach).observe(node, {childList:true,subtree:true});
       }
       attach();
-    } catch { retryReadiness(); /* Fail closed: controls remain hidden throughout retries. */ }
+    } catch {
+      // A missing connection must never bypass readiness or create a payment.
+    } finally {
+      readinessInFlight = false;
+      if (!active) {
+        presentConnectionState(shouldRetry && readinessAttempts < MAX_STARTUP_CHECKS ? 'waiting' : 'offline');
+        if (shouldRetry) queueRetry();
+      }
+    }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',ready,{once:true});
-  else ready();
+  function begin() {
+    setupRetryControl();
+    ready();
+    if (typeof window.addEventListener === 'function') {
+      window.addEventListener('online', manualRecheck);
+      window.addEventListener('pageshow', () => {if (!active) manualRecheck();});
+      window.addEventListener('focus', () => {
+        if (!active && document.visibilityState !== 'hidden') manualRecheck();
+      });
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', begin, {once:true});
+  else begin();
 })();
