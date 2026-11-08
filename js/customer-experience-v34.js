@@ -175,7 +175,12 @@
   // Order information comes from the authorized staff order list, not a public ID lookup.
   const orderMessage=o=>{
     const items=(Array.isArray(o.items)?o.items:[]).slice(0,15).map(x=>`• ${String(x.title||'Item').slice(0,90)} × ${Math.max(1,Number(x.qty)||1)} — ${fmt((Number(x.salePrice)||0)*(Number(x.qty)||1))}`).join('\n');
-    return `Assalamu Alaikum, ${String(o.customerName||'Customer').slice(0,80)}.\nMOIN QURAN BOX order update\nOrder: ${String(o.orderId||'').slice(0,80)}\nStatus: ${String(o.status||'Requested').slice(0,50)}\n${items}\nRecorded estimate: ${fmt(o.total)}\nPayment: ${o.paymentStatus==='verified'?'Verified by store':'Not verified'}\nShipping/final total confirmed separately.\nPlease contact +91 7337464501 for assistance.`;
+    const online=o.paymentMethod==='Razorpay';
+    const paid=online&&o.paymentStatus==='verified';
+    const amount=paid?Number(o.paymentVerification?.verifiedAmount||o.total):Number(o.total);
+    const payment=paid?'Razorpay payment verified / paid':online?'Razorpay payment pending':String(o.paymentMethod||'Manual payment')+(o.paymentStatus==='verified'?' — verified':' — not verified');
+    const shipping=o.shipping||{};const tracking=String(shipping.trackingNumber||o.awb||'').slice(0,90);
+    return `Assalamu Alaikum, ${String(o.customerName||'Customer').slice(0,80)}.\nMOIN QURAN BOX order update\nOrder: ${String(o.orderId||'').slice(0,80)}\nCurrent status: ${String(o.status||'Requested').slice(0,50)}\n${items}\n${paid?'Paid total':'Recorded order total'}: ${fmt(amount)}\nPayment: ${payment}${tracking?'\nTracking / AWB: '+tracking:''}\nFor assistance: +91 7337464501. Please do not make a second payment for the same order.`;
   };
   window.mqb34ComposeOrderUpdate=(order,channel)=>{
     if(!isStaff()||!order)return alert('Staff access required.');
