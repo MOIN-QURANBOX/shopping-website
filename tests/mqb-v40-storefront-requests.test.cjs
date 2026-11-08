@@ -44,7 +44,7 @@ test('staff order categories, dates and server-data-safe cancelled archive',()=>
  assert.match(live,/This hides the record from active staff orders only/);
  assert.doesNotMatch(live,/\.ref\('orderRequests\/.*\)\.remove\(\)/);
 });
-test('no production Razorpay activation in this patch',()=>{
+test('v41 keeps current LIVE Razorpay website setting intact',()=>{
  const config=read('js/razorpay-v38-approved-config.js');
- assert.match(config,/enabled:\s*false/);
+ assert.match(config,/enabled:\s*true/);
 });
