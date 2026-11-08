@@ -25,3 +25,7 @@
  .mqb38-method-badge {margin-left:1.9rem;max-width:none;}
 }
 @media (prefers-reduced-motion: reduce) {.mqb38-method-card {scroll-behavior:auto;}}
+
+/* V40 LIVE checkout: prevent the default flex card styling from overriding
+   the HTML hidden attribute when the trusted backend reports ready. */
+#mqbV37ComingSoon[hidden] { display: none !important; }
