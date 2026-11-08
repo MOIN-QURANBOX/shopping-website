@@ -48,6 +48,8 @@
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/storefront-v26.css" />
   <link rel="stylesheet" href="css/razorpay-v38-website.css" />
+  <link rel="stylesheet" href="css/mqb-v42-operations.css" />
+  <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
 
@@ -166,6 +168,7 @@
 
   <!-- ================= MAIN STOREFRONT ================= -->
   <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-6 sm:py-8">
+    <p id="mqb42CatalogLoading" class="mqb42-loading" role="status">Loading current products from our secure catalog…</p>
     <!-- Hero Banner -->
     <div id="heroSection" class="mb-8 bg-gradient-to-r from-[#1c3026] via-[#15251e] to-[#0e1914] rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl border border-[#2a493a]">
       <div class="relative z-10 max-w-xl">
@@ -608,7 +611,7 @@
       <form id="shippingDetailsForm" onsubmit="saveShippingDetails(event)" class="space-y-3">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><label for="shippingCarrier" class="block font-bold mb-1">Shipping carrier / courier</label>
-            <input id="shippingCarrier" type="text" maxlength="100" list="courierSuggestions" placeholder="e.g. India Post, DTDC" class="w-full border bg-brand-sand rounded p-2.5" />
+            <input id="shippingCarrier" type="text" maxlength="100" list="courierSuggestions" value="India Post" placeholder="India Post" class="w-full border bg-brand-sand rounded p-2.5" />
             <datalist id="courierSuggestions"><option value="India Post"><option value="Blue Dart"><option value="DTDC"><option value="Delhivery"><option value="Ecom Express"><option value="Xpressbees"><option value="Shadowfax"><option value="Other / Local courier"></datalist>
           </div>
           <div><label for="shippingAwb" class="block font-bold mb-1">AWB / Tracking number</label>
@@ -616,8 +619,8 @@
           </div>
         </div>
         <div><label for="shippingTrackingUrl" class="block font-bold mb-1">Courier tracking website URL (HTTPS)</label>
-          <input id="shippingTrackingUrl" type="url" maxlength="1200" placeholder="https://courier.example/track/…" class="w-full border bg-brand-sand rounded p-2.5" />
-          <p class="text-neutral-500 mt-1">Use the courier's official tracking link. Customers can open it from My Orders.</p>
+          <input id="shippingTrackingUrl" type="url" maxlength="1200" placeholder="India Post official tracking page" class="w-full border bg-brand-sand rounded p-2.5" />
+          <p class="text-neutral-500 mt-1">Use the courier's official tracking link. India Post requires the consignment number on its official tracking page; it may request a CAPTCHA. We will provide customers a one-click tracking page link and their saved number.</p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><label for="shippingDispatchDate" class="block font-bold mb-1">Dispatch date</label><input type="date" id="shippingDispatchDate" class="w-full border bg-brand-sand rounded p-2.5" /></div>
@@ -767,6 +770,11 @@
               <p class="text-xs text-brand-muted">Instantly activate or deactivate store modules, AI features, and staff permissions.</p>
             </div>
           </div>
+          <section id="mqb42CodControl" class="bg-white rounded-xl border p-4 space-y-3" hidden>
+            <h5 class="font-bold text-base">Cash on Delivery — Customer Checkout</h5>
+            <label class="flex gap-3 items-center font-semibold text-sm"><input type="checkbox" id="mqb42CodSwitch" checked /> Enable Cash on Delivery for new orders</label>
+            <p id="mqb42CodMessage" class="text-xs" role="status"></p>
+          </section>
           <section id="mqb41ManualPaymentAdmin" class="bg-white rounded-xl border p-4 space-y-3" hidden>
             <h5 class="font-bold text-base">Customer Payment Method Controls</h5>
             <p class="text-xs text-neutral-600">Super Admin only. Disable Manual UPI / QR for new customer checkouts. COD and Razorpay remain separate options. Already-created UPI orders and their receipts remain accessible.</p>
@@ -783,6 +791,18 @@
           <div class="flex justify-between items-center">
             <h4 class="serif-title text-base font-bold text-brand-charcoal">Customer Orders &amp; Dispatch Ledger</h4>
           </div>
+          <section id="mqb42GiftsAdmin" class="mqb42-panel" hidden>
+            <h4 class="font-bold text-sm">Product Gifts &amp; Offers</h4>
+            <p class="text-xs">Offers are shown to customers; complimentary items are fulfilled only for qualifying, verified Razorpay-paid orders. No automatic stock deduction.</p>
+            <div id="mqb42GiftsList" class="space-y-2"></div>
+            <form id="mqb42GiftForm" class="space-y-2">
+              <select id="mqb42GiftProduct" class="border rounded p-2 w-full" required aria-label="Product"></select>
+              <input id="mqb42GiftNames" class="border rounded p-2 w-full" maxlength="240" required placeholder="Free gift names, separated by commas" />
+              <label class="flex gap-2 text-xs items-center"><input id="mqb42GiftEnabled" type="checkbox" checked /> Show offer on product (Razorpay-paid orders only)</label>
+              <button type="submit" class="mqb42-primary">Save Offer for Selected Product</button>
+            </form>
+            <p id="mqb42GiftStatus" role="status" class="text-xs"></p>
+          </section>
           <div class="bg-white border border-brand-border rounded-xl p-3 space-y-2">
             <label for="adminOrderHistorySearch" class="block text-xs font-bold">Search all order history (order ID, customer name, email, phone or customer ID)</label>
             <div class="flex flex-wrap gap-2">
@@ -910,9 +930,16 @@
           <div id="adminBranchesList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
+        <!-- V42: bulk labels use only authenticated Firebase order records. -->
         <!-- TAB: SHIPPING LABELS -->
         <div id="adminTab-shipping" class="hidden space-y-5">
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator (Thermal &amp; A4 Ready)</h4>
+          <section id="mqb42BulkLabels" class="mqb42-panel" hidden>
+            <h5 class="font-bold text-sm">Print Pending &amp; Confirmed Orders — One PDF</h5>
+            <p class="text-xs">Creates one 4×6 inch page per order. Duplicates are removed by Firebase order key. Cancelled, shipped and delivered orders are excluded.</p>
+            <label class="text-xs flex gap-2 items-center"><input type="checkbox" id="mqb42IncludeUnpaid" /> Include unpaid Razorpay / Payment Pending orders (not recommended)</label>
+            <div class="flex flex-wrap gap-2"><button type="button" id="mqb42BulkDownload" class="mqb42-primary">Download All Labels (Single PDF)</button><span id="mqb42BulkCount" class="text-xs" role="status">Waiting for orders…</span></div>
+          </section>
           <div class="bg-white p-5 rounded-xl border border-brand-border shadow-sm max-w-2xl text-xs space-y-3">
             <h5 class="font-bold uppercase text-brand-darkgreen">Create Manual Label (For Online &amp; Offline Orders)</h5>
             <form onsubmit="handleManualShippingLabelPrint(event)" class="space-y-3">
@@ -1019,6 +1046,11 @@
 
         <!-- TAB 4: ANALYTICS (GRID VIEW) -->
         <div id="adminTab-analytics" class="hidden space-y-4">
+          <section id="mqb42Visitors" class="mqb42-panel" hidden>
+            <h4 class="font-bold text-sm">Website Visitors (Live)</h4>
+            <div class="mqb42-kpis"><div><small>Online now</small><strong id="mqb42OnlineVisits">—</strong></div><div><small>Total page visits</small><strong id="mqb42TotalVisits">—</strong></div></div>
+            <p id="mqb42VisitorsNote" class="text-xs" role="status">Secure analytics permission setup required.</p>
+          </section>
           <h4 class="serif-title text-base font-bold text-brand-charcoal">Omnichannel Sales Analytics</h4>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-xl border shadow-sm">
@@ -1442,7 +1474,7 @@
             <p class="text-[11px] text-brand-muted">One-time location lookup only with your permission. Your coordinates are shared with the address lookup provider. Enter your house/flat and confirm your 6-digit PIN. Address data © OpenStreetMap contributors.</p>
           </div>
           <div><label for="chkDeliveryNote" class="block text-xs font-semibold mb-1">Delivery note (optional)</label><input id="chkDeliveryNote" maxlength="240" class="w-full border rounded-lg p-3 bg-white" placeholder="Landmark or delivery instructions" /></div>
-          <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery included in product prices</strong><p>There is no additional delivery fee. We confirm address serviceability and stock before dispatch.</p></div>
+          <div class="border border-amber-200 bg-amber-50 rounded-xl p-3 text-xs text-amber-900"><strong>Delivery included in product prices</strong><p>There is no additional delivery fee. We confirm address serviceability and stock before dispatch. Standard delivery target: within 7 calendar days after order confirmation, subject to India Post serviceability.</p></div>
         </section>
         <section class="rounded-2xl bg-white shadow-sm border border-brand-border p-4 space-y-3">
           <h4 class="font-extrabold text-base">Pay via</h4>
@@ -1468,7 +1500,7 @@
             <span class="flex-1"><strong>Pay online securely with Razorpay</strong><small class="block text-brand-muted mt-1">Payment confirms the order automatically after secure server verification; failed payments remain pending and can be retried.</small></span>
           </label>
           <p id="mqbV36Feedback" class="hidden text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3" role="status" aria-live="polite"></p>
-          <label class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
+          <label id="mqb42CodRow" hidden style="display:none" class="mqb-pay-row flex items-start gap-3 p-3 rounded-xl border border-brand-border bg-white cursor-pointer">
             <input type="radio" name="chkPaymentMethod" value="COD" onchange="mqbUpdatePaymentDescription()" class="mt-1" />
             <span class="flex-1"><strong>Cash on delivery</strong><small class="block text-brand-muted mt-1">Pay when your eligible parcel arrives; subject to courier serviceability</small></span>
           </label>
@@ -1737,5 +1769,6 @@
   <script defer src="js/razorpay-v38-approved-config.js"></script>
   <script defer src="js/razorpay-v38-approved-orders.js"></script>
   <script defer src="js/mqb-v41-controls.js"></script>
+  <script defer src="js/mqb-v42-operations.js"></script>
 </body>
 </html>
