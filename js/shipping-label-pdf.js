@@ -1,80 +1,122 @@
-/* MOIN QURAN BOX V25.5 — store-prepared shipping label, 4 x 6 inches.
- * NOT a carrier-issued AWB or proof of a booked shipment.
- * PDF generated locally on the staff device, never uploaded to public hosting.
+/* MOIN QURAN BOX V43 — professional 4 × 6 inch store-prepared parcel label.
+ * Customer and destination are FIRST, with clear large type and landmark.
+ * Shipper appears below. Large blank India Post courier-sticker zone is reserved.
+ * This is NOT an India Post-issued waybill or proof of courier acceptance.
+ * Downloaded locally by an authenticated staff user's existing dashboard only.
  */
 (() => {
   'use strict';
-  const clean=v=>String(v??'').normalize('NFKD').replace(/[\u2010-\u2015]/g,'-')
-    .replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"')
-    .replace(/[^\x20-\x7E]/g,' ').replace(/\s+/g,' ').trim();
-  const e=v=>clean(v).replace(/[\\()]/g,'\\$&');
-  const clip=(v,n=200)=>clean(v).slice(0,n);
+  const clean=v=>String(v??'').normalize('NFKD').replace(/\u20B9/g,'INR ')
+    .replace(/[\u2010-\u2015]/g,'-').replace(/[\u2018\u2019]/g,"'")
+    .replace(/[\u201C\u201D]/g,'"').replace(/[^\x20-\x7E]/g,' ')
+    .replace(/\s+/g,' ').trim();
+  const pdfEscape=v=>clean(v).replace(/[\\()]/g,'\\$&');
+  const take=(v,n=900)=>clean(v).slice(0,n);
+  const originDefault='Madina Colony, Opposite Hafez Ustad Haleem, Falaknuma, Hyderabad, Telangana 500053';
   function fields({order:o={},shop:s={},profile:p={}}){
     const sh=(o.shipping&&typeof o.shipping==='object')?o.shipping:{};
+    const note=take(o.landmark||o.deliveryLandmark||o.deliveryNote||'',250)
+      .split(/\s*\|\s*Location pin:/i)[0].replace(/\bLocation pin:\s*https?:\/\/\S+/ig,'').trim();
+    const landmark=note.replace(/^\s*(?:landmark|delivery note)\s*:\s*/i,'');
+    const pin=take(o.postalCode||o.pinCode||o.pincode||'',12);
     return {
-      brand:clip(s.brandName||'MOIN QURAN BOX',70),origin:clip(s.address||'Falaknuma, Hyderabad, Telangana 500012',230),
-      originPhone:clip(s.phone1||'',32),
-      name:clip(o.customerName||p.name||'',80),phone:clip(o.customerPhone||p.phone||'',32),
-      address:clip([o.address,o.city,o.state].filter(Boolean).join(', '),320),
-      pin:clip(o.postalCode||'',10),
-      order:clip(o.orderId||o.__key||'NOT PROVIDED',75),
-      carrier:clip(sh.carrier||o.courierName||'Not assigned',65),
-      awb:clip(sh.trackingNumber||o.awb||'Pending courier allocation',85),
-      payment:clip(o.paymentMethod||'Not recorded',50),
-      paymentStatus:clip(o.paymentStatus||'unverified',35),
-      itemCount:Array.isArray(o.items)?o.items.reduce((n,i)=>n+Math.max(0,Number(i.qty)||0),0):0,
-      gifts:clip((window.mqb42OfferGiftsForOrder?.(o)||[]).join(', '),160),
-      total:Number(o.paymentVerification?.verifiedAmount)||0
+      brand:take(s.brandName||'MOIN QURAN BOX',85),
+      origin:take(s.address||originDefault,450),
+      originPhone:take(s.phone1||'+91 7337464501',32),
+      name:take(o.customerName||p.name||'',120),
+      phone:take(o.customerPhone||p.phone||'',36),
+      address:take([o.address,o.city,o.state].filter(Boolean).join(', '),900),
+      landmark:take(landmark,240),pin,
+      order:take(o.orderId||o.__key||'NOT PROVIDED',100),
+      carrier:take(sh.carrier||o.courierName||'India Post',60),
+      awb:take(sh.trackingNumber||o.awb||'',100),
+      payment:take(o.paymentMethod||'Not recorded',45),
+      paymentStatus:take(o.paymentStatus||'unverified',40),
+      itemCount:Array.isArray(o.items)?o.items.reduce((n,i)=>n+Math.max(0,Math.floor(Number(i.qty)||0)),0):0,
+      gifts:take((window.mqb42OfferGiftsForOrder?.(o)||[]).join(', '),190)
     };
   }
+  function widthPt(value,size,bold=false){
+    // Conservative widths for PDF Helvetica. Keep a 6pt safe margin on wrap.
+    let n=0;
+    for(const ch of clean(value)){
+      if('ilI1.,:;!| '.includes(ch))n+=.30;
+      else if('MW@#%&'.includes(ch))n+=.92;
+      else if(/[A-Z]/.test(ch))n+=.71;
+      else n+=.55;
+    }
+    return n*size*(bold?1.07:1.04);
+  }
+  function wrap(value,maxWidth,size=10,bold=false,maxLines=8){
+    const words=clean(value).split(' ').filter(Boolean),lines=[];
+    let line='';
+    for(let word of words){
+      while(word && widthPt(word,size,bold)>maxWidth){
+        if(line){lines.push(line);line='';}
+        let cut=1;while(cut<word.length && widthPt(word.slice(0,cut+1),size,bold)<=maxWidth)cut++;
+        lines.push(word.slice(0,cut));word=word.slice(cut);
+      }
+      if(!word)continue;
+      if(line && widthPt(line+' '+word,size,bold)>maxWidth){lines.push(line);line=word;}
+      else line+=(line?' ':'')+word;
+    }
+    if(line)lines.push(line);
+    if(lines.length>maxLines)throw Error('Address/name is too long for a readable 4x6 label. Please shorten delivery text without omitting vital details.');
+    return lines.length?lines:[''];
+  }
   function pageStream(d){
-    // 288 x 432 points = 4 x 6 inches, scalable to A4 via print settings.
-    const c=[];const pt=(x,y,s,v,bold=false)=>{
-      c.push('0.08 0.12 0.11 rg BT /'+(bold?'B':'R')+' '+s+' Tf '+x+' '+y+' Td ('+e(v)+') Tj ET');
-    };
-    const rule=(y)=>c.push('0.72 0.76 0.74 RG 13 '+y+' m 275 '+y+' l S');
-    const box=(x,y,w,h)=>c.push('0.12 0.23 0.18 RG '+x+' '+y+' '+w+' '+h+' re S');
-    const wrap=(v,cap,max)=>{const words=clean(v).split(' '),lines=[];let line='';
-      for(const w of words){if(!w)continue;if((line+' '+w).trim().length>cap){if(line)lines.push(line);line=w;}else line=(line+' '+w).trim();}
-      if(line)lines.push(line);return lines.slice(0,max);
-    };
-    c.push('0.09 0.20 0.15 rg 0 386 288 46 re f');
-    c.push('1 1 1 rg BT /B 16 Tf 13 412 Td ('+e(d.brand).slice(0,72)+') Tj ET');
-    c.push('1 1 1 rg BT /R 8 Tf 13 396 Td (STORE PREPARED SHIPPING LABEL) Tj ET');
-    pt(13,370,8,'ORDER: '+d.order,true);rule(360);
-    pt(13,345,8,'FROM / SHIPPER',true);
-    let y=331;for(const line of wrap(d.origin,53,3)){pt(13,y,8,line);y-=11;}
-    if(d.originPhone){pt(13,y,8,'Contact: '+d.originPhone);y-=11;}
-    rule(y-6);y-=23;
-    pt(13,y,9,'SHIP TO / RECIPIENT',true);y-=17;
-    pt(13,y,11,d.name.slice(0,37),true);y-=17;
-    for(const line of wrap(d.address,47,5)){pt(13,y,9,line);y-=13;}
-    pt(13,y-1,13,'PIN: '+d.pin,true);y-=19;
-    pt(13,y,9,'PHONE: '+d.phone,true);y-=18;
-    rule(y);y-=16;
-    pt(13,y,9,'COURIER: '+d.carrier,true);y-=15;
-    for(const l of wrap('AWB: '+d.awb,43,2)){pt(13,y,9,l);y-=14;}
-    pt(13,y,9,'PARCEL ITEMS: '+d.itemCount);y-=15;
-    if(d.gifts){for(const giftLine of wrap('FREE GIFTS: '+d.gifts,48,2)){pt(13,y,7,giftLine,true);y-=11;}}
-    pt(13,y,9,'PAYMENT: '+d.payment);y-=14;
-    pt(13,y,8,'STATUS: '+d.paymentStatus);y-=13;
-    // No collection figure without a securely confirmed amount; never print customer estimated total as COD due.
-    rule(Math.max(39,y-2));
-    pt(13,27,7,'Verify courier booking, COD amount and AWB before dispatch.');
-    pt(13,16,7,'This label is NOT a courier-issued waybill or proof of payment.');
+    if(!d.name||!d.phone||!d.address||!/^\d{6}$/.test(d.pin))throw Error('Recipient name, phone, complete address and 6-digit PIN are required for '+d.order);
+    const c=['1 w'];
+    const ink=(r=.09,g=.15,b=.12)=>c.push(`${r} ${g} ${b} rg`);
+    const txt=(x,y,size,value,bold=false)=>{ink();c.push(`BT /${bold?'B':'R'} ${size} Tf ${x} ${y} Td (${pdfEscape(value)}) Tj ET`);};
+    const rule=(y)=>c.push(`0.35 0.45 0.38 RG 12 ${y} m 276 ${y} l S`);
+    const box=(x,y,w,h)=>c.push(`0.4 0.48 0.43 RG ${x} ${y} ${w} ${h} re S`);
+    box(7,7,274,418);
+    // 1. Destination: highest priority, large clear text; never truncate silently.
+    c.push('0.09 0.23 0.16 rg 8 406 272 18 re f');
+    c.push('1 1 1 rg BT /B 9 Tf 15 411 Td (DELIVER TO - CUSTOMER ADDRESS) Tj ET');
+    const recipient=wrap(d.name.toUpperCase(),252,13.5,true,2);
+    recipient.forEach((line,i)=>txt(15,386-i*16,13.5,line,true));
+    const addr=wrap(d.address,253,10.5,false,6);
+    txt(15,351,8,'HOUSE / STREET / AREA / CITY / STATE',true);
+    addr.forEach((line,i)=>txt(15,335-i*12,10.5,line,false));
+    if(d.landmark){
+      const lm=wrap('LANDMARK: '+d.landmark,252,9.5,true,2);
+      lm.forEach((line,i)=>txt(15,263-i*11,9.5,line,true));
+    }
+    txt(15,230,17,'PIN: '+d.pin,true);
+    const digits=d.phone.replace(/\D/g,'');
+    txt(15,213,10.5,'MOBILE: '+d.phone,true);
+    rule(205);
+    // 2. Sender / return information follows destination.
+    txt(15,193,8,'FROM / RETURN TO',true);
+    const brand=wrap(d.brand.toUpperCase(),250,10.5,true,1);
+    txt(15,180,10.5,brand[0],true);
+    const origin=wrap(d.origin,251,8.3,false,3);
+    origin.forEach((line,i)=>txt(15,169-i*10,8.3,line));
+    txt(15,137,8.3,'PHONE: '+d.originPhone);
+    // 3. Blank sticker area, NO simulated barcode / no invented AWB.
+    box(14,39,260,91);
+    txt(32,88,9,'SPACE FOR INDIA POST COURIER STICKER',true);
+    txt(43,75,8,'Paste official AWB / barcode label here');
+    txt(15,28,8,'ORDER: '+d.order,true);
+    const method=/cod/i.test(d.payment)?'COD':d.paymentStatus==='verified'?'PAID / VERIFIED':'UNPAID - VERIFY BEFORE DISPATCH';
+    txt(15,16,8,'PAYMENT: '+method+'   |   PIECES: '+d.itemCount);
+    // The AWB is printed only if the official sticker is not yet on the parcel.
+    if(d.awb && widthPt('ORDER: '+d.order,8,true)<145 && widthPt('AWB: '+d.awb,7,true)<103)txt(166,28,7,'AWB: '+d.awb,true);
     return c.join('\n')+'\n';
   }
   function buildMultiPdf(dataset){
-    if(!Array.isArray(dataset) || !dataset.length || dataset.length>2000)throw Error('Choose 1–2,000 shipping labels per PDF.');
+    if(!Array.isArray(dataset)||!dataset.length||dataset.length>2000)throw Error('Choose 1 to 2,000 shipping labels per PDF.');
     const objs=[null];const add=x=>(objs.push(x),objs.length-1);
-    const pages=add('');const regular=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+    const pages=add('');
+    const regular=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
     const bold=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
     const kids=[];
     for(const d of dataset){
       const stream=pageStream(d);
       const content=add('<< /Length '+stream.length+' >>\nstream\n'+stream+'endstream');
-      const page=add('<< /Type /Page /Parent '+pages+' 0 R /MediaBox [0 0 288 432] /Resources << /Font << /R '+regular+' 0 R /B '+bold+' 0 R >> >> /Contents '+content+' 0 R >>');
-      kids.push(page+' 0 R');
+      kids.push(add('<< /Type /Page /Parent '+pages+' 0 R /MediaBox [0 0 288 432] /Resources << /Font << /R '+regular+' 0 R /B '+bold+' 0 R >> >> /Contents '+content+' 0 R >>')+' 0 R');
     }
     objs[pages]='<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >>';
     const root=add('<< /Type /Catalog /Pages '+pages+' 0 R >>');
@@ -85,27 +127,25 @@
     pdf+='trailer\n<< /Size '+objs.length+' /Root '+root+' 0 R >>\nstartxref\n'+start+'\n%%EOF\n';
     return pdf;
   }
-  function buildPdf(d){return buildMultiPdf([d]);}
+  const buildPdf=d=>buildMultiPdf([d]);
   function downloadMany(records){
-    if(!Array.isArray(records) || !records.length) throw Error('No shipping labels selected.');
-    const valid=records.map(fields);
-    const unique=new Set();
-    for(const d of valid){
-      if(!d.name||!d.phone||!d.address||!/^[0-9]{6}$/.test(d.pin))throw Error('Missing shipping address on order '+d.order);
-      if(unique.has(d.order))throw Error('Duplicate order ID '+d.order+' in bulk label request.');
-      unique.add(d.order);
+    if(!Array.isArray(records)||!records.length)throw Error('No shipping labels selected.');
+    const d=records.map(fields),seen=new Set();
+    for(const x of d){
+      if(!x.name||!x.phone||!x.address||!/^\d{6}$/.test(x.pin))throw Error('Missing recipient address on '+x.order);
+      if(seen.has(x.order))throw Error('Duplicate order ID '+x.order+' in batch. No PDF downloaded.');
+      seen.add(x.order);
     }
-    const pdf=buildMultiPdf(valid);
-    const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));
-    const link=document.createElement('a');link.href=url;
-    link.download='MQB-Bulk-Shipping-Labels-'+new Date().toISOString().slice(0,10)+'-'+valid.length+'-Orders.pdf';
-    document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
-    return {count:valid.length,filename:link.download};
+    const pdf=buildMultiPdf(d);
+    const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'})),a=document.createElement('a');
+    a.href=url;a.download='MQB-Shipping-Labels-'+new Date().toISOString().slice(0,10)+'-'+d.length+'-orders.pdf';
+    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
+    return {count:d.length,filename:a.download};
   }
-  function download(data){const d=fields(data);if(!d.name||!d.phone||!d.address||!/^[0-9]{6}$/.test(d.pin))throw Error('Missing recipient address information');
-    const blob=new Blob([buildPdf(d)],{type:'application/pdf'});const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='MQB-Shipping-Label-'+d.order.replace(/[^A-Za-z0-9_-]/g,'_')+'.pdf';
-    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
+  function download(data){const d=fields(data);const pdf=buildPdf(d);
+    const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'})),a=document.createElement('a');
+    a.href=url;a.download='MQB-Shipping-Label-'+d.order.replace(/[^A-Za-z0-9_-]/g,'_')+'.pdf';
+    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
     return a.download;
   }
   window.MQBShippingLabelPDF={fields,buildPdf,buildMultiPdf,download,downloadMany};
