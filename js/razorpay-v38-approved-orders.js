@@ -119,7 +119,7 @@
             if (result?.confirmed === true && result.orderPersisted === true &&
                 result.paymentStatus === 'captured' && result.orderStatus === 'Confirmed' &&
                 result.orderId === session.orderId)
-              notice('Payment successful! Order ' + session.orderId + ' is automatically confirmed. No owner approval is needed.');
+              window.location.assign('payment-success.html?orderKey=' + encodeURIComponent(session.orderKey));
             else notice('Payment verification pending. If money was debited, do not retry; contact the store.');
           } catch {
             notice('Payment may have succeeded; the server has not confirmed the order yet. If money was debited, do not retry. Contact the store.');
