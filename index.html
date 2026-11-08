@@ -50,6 +50,7 @@
   <link rel="stylesheet" href="css/razorpay-v38-website.css" />
   <link rel="stylesheet" href="css/mqb-v42-operations.css" />
   <link rel="stylesheet" href="css/mqb-v43-fulfilment.css" />
+  <link rel="stylesheet" href="css/mqb-v45-top-selling.css" />
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
@@ -436,7 +437,7 @@
       <button onclick="closeInvoiceLookupModal()" class="absolute right-4 top-4 text-neutral-400">✕</button>
       <div class="text-center mb-5">
         <h3 class="serif-title text-lg font-bold text-brand-charcoal">Download Your Order Invoice (Non-Tax)</h3>
-        <p class="text-xs text-brand-muted mt-1">Enter the mobile number and order date used at checkout. The Order ID is optional. For privacy, only orders in your current signed-in or original guest session can be found. This is a non-tax order statement.</p>
+        <p class="text-xs text-brand-muted mt-1">Enter the mobile number used at checkout. Order ID and order date are optional. For privacy, only orders in your current signed-in or original guest session can be found. This is a non-tax order statement.</p>
       </div>
       <form onsubmit="handlePublicInvoiceLookup(event)" class="space-y-3.5 text-xs">
         <div>
@@ -448,9 +449,9 @@
           <input type="tel" id="lookupPhone" required placeholder="10-digit mobile" class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5 font-mono" />
         </div>
         <div>
-          <label for="lookupOrderDate" class="block font-bold mb-1">Date order was placed *</label>
-          <input type="date" id="lookupOrderDate" required class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5" />
-          <p class="mt-1 text-neutral-500">Select the actual order date (India time).</p>
+          <label for="lookupOrderDate" class="block font-bold mb-1">Date order was placed <span class="font-normal">(optional)</span></label>
+          <input type="date" id="lookupOrderDate" class="w-full bg-brand-sand border rounded-lg px-3.5 py-2.5" />
+          <p class="mt-1 text-neutral-500">Leave blank to see your matching orders, or choose a date to narrow the results.</p>
         </div>
         <div id="lookupError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200" role="alert"></div>
         <div id="mqb43InvoiceMatches" class="hidden space-y-2" aria-live="polite"></div>
@@ -885,6 +886,19 @@
               <tbody id="adminInventoryTableBody" class="divide-y divide-brand-border"></tbody>
             </table>
           </div>
+        <section id="mqb45TopSellingPanel" class="mqb45-panel" hidden aria-label="Top Selling product pins">
+          <h4>★ Top Selling Products — Pin to Storefront</h4>
+          <p>Verified Super Admin, Owner and Manager may mark a <strong>genuinely top-selling</strong> product. Pinned items appear first within their category with a Top Selling badge. Unpin to restore normal sorting. This does not edit price, stock or product visibility.</p>
+          <div class="mqb45-controls">
+            <label for="mqb45ProductSelect">Choose an active product
+              <select id="mqb45ProductSelect" aria-label="Select product to mark Top Selling"></select>
+            </label>
+            <button id="mqb45PinBtn" type="button" disabled>★ Pin Top Selling</button>
+            <button id="mqb45UnpinBtn" type="button" class="mqb45-secondary" disabled>Remove Pin</button>
+          </div>
+          <p id="mqb45PinStatus" role="status" aria-live="polite">Waiting for Firebase settings…</p>
+          <div id="mqb45PinnedList" aria-label="Pinned products"></div>
+        </section>
         <section id="mqb41VisibilityPanel" class="bg-white rounded-xl border p-4 space-y-3" hidden>
           <h4 class="font-bold text-sm">Hidden Products — Staff Visibility Controls</h4>
           <p class="text-xs text-neutral-600">Super Admin, Owner and Manager may hide or restore products. Prices and stock can only be edited by authorized store editors. Historical orders remain unchanged.</p>
@@ -1796,5 +1810,6 @@
   <script defer src="js/mqb-v41-controls.js"></script>
   <script defer src="js/mqb-v42-operations.js"></script>
   <script defer src="js/mqb-v43-fulfilment.js"></script>
+  <script defer src="js/mqb-v45-top-selling.js"></script>
 </body>
 </html>
