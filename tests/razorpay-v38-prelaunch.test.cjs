@@ -16,7 +16,7 @@ const ready={mode:'live',checkoutReady:true,paymentCreationEnabled:true,webhookR
  additionalDeliveryPaise:0,testPaymentsEnabled:false,firebaseProjectId:'moin-quran-box'};
 function fixture({enabled=false,status=ready,role='customer',records=[valid],cards=[valid],
    proof=false,confirmed=true,trackingId=''}={}){
- const calls=[],notices=[],created=[],widgets=[];
+ const calls=[],notices=[],created=[],widgets=[],navigations=[];
  const makeCard=r=>({data:r,children:[],
   getAttribute(k){return k==='data-mqb38-uid'?r.__uid:k==='data-mqb38-key'?r.__key:null;},
   querySelector(selector){return this.children.find(x=>x.className.includes(selector.slice(1)))||null;},
@@ -40,7 +40,7 @@ function fixture({enabled=false,status=ready,role='customer',records=[valid],car
   db:{ref(x){return {async once(){calls.push({url:'FIREBASE:'+x});return {exists:()=>proof}}};}}};
  const web={MQB_V38_APPROVED_PAYMENT:{enabled,expectedFirebaseProjectId:'moin-quran-box',
    backendUrl:'https://mqb-v38-payment-gateway.onrender.com/',approvedBackendHost:'mqb-v38-payment-gateway.onrender.com'},
-  mqbLive:live,alert:t=>notices.push(t),confirm:()=>true};
+  mqbLive:live,alert:t=>notices.push(t),confirm:()=>true,location:{assign:url=>navigations.push(url)}};
  web.Razorpay=function Razorpay(options){const widget={options,events:{},on(name,fn){this.events[name]=fn;},open(){this.opened=true;}};widgets.push(widget);return widget;};
  const fetch=async(u,opts)=>{
   calls.push({url:u,opts});const isStatus=u.endsWith('/api/razorpay/status');
@@ -52,11 +52,11 @@ function fixture({enabled=false,status=ready,role='customer',records=[valid],car
  };
  vm.runInNewContext(source,{window:web,document:doc,fetch,orders:records,URL,AbortController,
   setTimeout,clearTimeout,MutationObserver:class{observe(){}},console});
- return {web,content,tracking,calls,notices,created,option,card,widgets,
+ return {web,content,tracking,calls,notices,created,option,card,widgets,navigations,
   settle:()=>new Promise(resolve=>setImmediate(resolve))};
 }
-test('shipped configuration keeps production Razorpay disabled',()=>{
- assert.match(config,/enabled:\s*false/);
+test('shipped configuration enables vetted LIVE Razorpay only after server readiness',()=>{
+ assert.match(config,/enabled:\s*true/);
  assert.match(markup,/id="mqbV36PaymentOption" hidden/);
  assert.match(markup,/value="Razorpay"[^>]*disabled/);
  assert.doesNotMatch(markup,/<script defer src="js\/razorpay-v37\.js"/);
@@ -76,14 +76,16 @@ test('ready backend exposes Razorpay option with no staff approval',async()=>{
  assert.match(h.content[0].children[0].textContent,/Pay \/ Retry/);
  assert.equal(h.calls.filter(x=>x.url.includes('/staff/approve')).length,0);
 });
-test('successful captured callback shows automatically confirmed order',async()=>{
+test('successful captured callback navigates to private receipt page',async()=>{
  const h=fixture({enabled:true});await h.settle();
  await h.content[0].children[0].onclick();await h.settle();
  assert.equal(h.calls.filter(x=>x.url.endsWith('/api/razorpay/create')).length,1);
  assert.equal(h.widgets.length,1);
  await h.widgets[0].options.handler({razorpay_order_id:'order_ABC1234567890',
    razorpay_payment_id:'pay_ABC1234567890',razorpay_signature:'a'.repeat(64)});
- assert.match(h.notices.join(' '),/automatically confirmed/);
+ assert.equal(h.navigations.length,1);
+ assert.match(h.navigations[0],/^payment-success\.html\?orderKey=/);
+ assert.match(h.navigations[0],/-NprodOrder_1234567/);
 });
 test('failed then dismissed checkout can retry on same order',async()=>{
  const h=fixture({enabled:true});await h.settle();
