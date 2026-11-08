@@ -259,7 +259,6 @@
         if(body && typeof products!=='undefined' && products.some(p=>p.id===productId) && summary(productId).count){
           const foot=textEl('div','mqb33-details-review');
           foot.append(textEl('span','mqb33-stars',summary(productId).label+'  '));
-          foot.append(textEl('span','mqb33-detail-hint','To write a review, use Customer Feedback in the menu.'));
           body.append(foot);
         }
         return r;
