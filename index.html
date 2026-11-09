@@ -51,6 +51,7 @@
   <link rel="stylesheet" href="css/mqb-v42-operations.css" />
   <link rel="stylesheet" href="css/mqb-v43-fulfilment.css" />
   <link rel="stylesheet" href="css/mqb-v45-top-selling.css" />
+  <link rel="stylesheet" href="css/mqb-v47-home-promotion.css" />
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
@@ -171,6 +172,31 @@
   <!-- ================= MAIN STOREFRONT ================= -->
   <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-6 sm:py-8">
     <p id="mqb42CatalogLoading" class="mqb42-loading" role="status">Loading current products from our secure catalog…</p>
+    <!-- V47: staff-selectable top selling promotional hero, reads live Firebase catalog -->
+    <section id="mqb47HomePromo" aria-label="Top selling product and current offers" hidden>
+      <div class="mqb47-hero-ribbon"><span>★ MOIN QURAN BOX · TOP SELLING</span><span>Exclusive online-payment gift offers</span></div>
+      <div class="mqb47-feature-layout">
+        <div class="mqb47-product-visual">
+          <img id="mqb47ProductImage" src="" alt="" loading="eager" hidden />
+          <div id="mqb47ImageFallback" class="mqb47-promo-fallback" hidden>THE HOLY QURAN<br />COLLECTION</div>
+        </div>
+        <div class="mqb47-promo-copy">
+          <p id="mqb47Eyebrow" class="mqb47-eyebrow">★ TOP SELLING</p>
+          <p id="mqb47Category"></p>
+          <h2 id="mqb47Title"></h2>
+          <p id="mqb47Subtitle"></p>
+          <div class="mqb47-price-row"><strong id="mqb47Price"></strong><span id="mqb47OldPrice" hidden></span><span id="mqb47Discount" hidden></span></div>
+          <div id="mqb47GiftPanel" hidden>
+            <p class="mqb47-gift-heading">🎁 Complimentary gifts with this product</p>
+            <ul id="mqb47GiftList" class="mqb47-gift-list"></ul>
+          </div>
+          <p id="mqb47GiftCondition" hidden>Gift offer valid only when this item is purchased via Razorpay and payment is successfully verified. Not applicable to COD or unpaid orders.</p>
+          <div class="mqb47-hero-actions"><button type="button" id="mqb47ShopBtn">Explore featured product</button><button type="button" id="mqb47ViewBtn">View details</button></div>
+          <p id="mqb47ExtraNote"></p>
+        </div>
+      </div>
+    </section>
+
     <!-- Hero Banner -->
     <div id="heroSection" class="mb-8 bg-gradient-to-r from-[#1c3026] via-[#15251e] to-[#0e1914] rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl border border-[#2a493a]">
       <div class="relative z-10 max-w-xl">
@@ -886,6 +912,25 @@
               <tbody id="adminInventoryTableBody" class="divide-y divide-brand-border"></tbody>
             </table>
           </div>
+        <section id="mqb47AdminPanel" hidden aria-label="Manage homepage top selling promotion">
+          <h4>★ Homepage Top Selling Banner — V47</h4>
+          <p>Choose the product to feature in the large homepage banner. The live catalog supplies its picture, name and price; existing V42 Gifts &amp; Offers supply any eligible complimentary gifts. Only one product is shown at a time. Product records, payments and orders are not changed.</p>
+          <div class="mqb47-admin-grid">
+            <label for="mqb47AdminSelect">Featured product
+              <select id="mqb47AdminSelect" aria-label="Choose product for homepage promotion"></select>
+            </label>
+            <label for="mqb47AdminSubtitle">Optional short banner subtitle
+              <input id="mqb47AdminSubtitle" type="text" maxlength="110" placeholder="Specially selected for you" />
+            </label>
+          </div>
+          <div class="mqb47-admin-actions">
+            <button id="mqb47AdminSave" type="button" disabled>★ Feature selected product</button>
+            <button id="mqb47AdminDisable" class="mqb47-disable" type="button" disabled>Hide homepage banner</button>
+          </div>
+          <p id="mqb47AdminCurrent">Connecting to Firebase promotion settings…</p>
+          <p id="mqb47AdminStatus" role="status" aria-live="polite"></p>
+          <p>To change the free gift names for a product, use the existing Gifts &amp; Offers controls. The banner will display the enabled gifts only when applicable to verified Razorpay orders.</p>
+        </section>
         <section id="mqb45TopSellingPanel" class="mqb45-panel" hidden aria-label="Top Selling product pins">
           <h4>★ Top Selling Products — Pin to Storefront</h4>
           <p>Verified Super Admin, Owner and Manager may mark a <strong>genuinely top-selling</strong> product. Pinned items appear first within their category with a Top Selling badge. Unpin to restore normal sorting. This does not edit price, stock or product visibility.</p>
@@ -1812,5 +1857,6 @@
   <script defer src="js/mqb-v43-fulfilment.js"></script>
   <script defer src="js/mqb-v45-top-selling.js"></script>
   <script defer src="js/mqb-v46-order-consent.js"></script>
+  <script defer src="js/mqb-v47-home-promotion.js"></script>
 </body>
 </html>
