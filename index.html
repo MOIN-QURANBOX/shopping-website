@@ -52,6 +52,50 @@
   <link rel="stylesheet" href="css/mqb-v43-fulfilment.css" />
   <link rel="stylesheet" href="css/mqb-v45-top-selling.css" />
   <link rel="stylesheet" href="css/mqb-v47-home-promotion.css" />
+  <!-- V47.1: green brand hero first; compact mobile sizing. Does not affect V47 product promotion. -->
+  <style id="mqb47-1-hero-compact">
+    #heroSection {
+      padding: 24px 28px;
+      margin-bottom: 18px;
+    }
+    #heroSection h1 { font-size: clamp(25px, 3vw, 34px); line-height: 1.17; }
+    #heroSection .font-arabic { font-size: 20px; }
+    #heroSection .relative.z-10 > p.text-xs { margin-bottom: 16px; }
+    @media (max-width: 640px) {
+      #heroSection {
+        padding: 15px 15px 16px;
+        margin-bottom: 14px;
+        border-radius: 14px;
+      }
+      #heroSection .relative.z-10 { max-width: 100%; }
+      #heroSection .relative.z-10 > span {
+        font-size: 9px;
+        letter-spacing: .05em;
+        padding: 4px 8px;
+        margin-bottom: 8px;
+      }
+      #heroSection h1 {
+        font-size: clamp(19px, 5.6vw, 23px);
+        line-height: 1.23;
+        margin-bottom: 6px;
+      }
+      #heroSection .font-arabic { font-size: 17px; margin-bottom: 6px; }
+      #heroSection .relative.z-10 > p.text-xs {
+        font-size: 11px;
+        line-height: 1.45;
+        margin-bottom: 12px;
+      }
+      #heroSection .flex.flex-wrap { gap: 6px; }
+      #heroSection button,
+      #heroSection a[id^="hero"] {
+        padding: 7px 9px;
+        font-size: 9px;
+        line-height: 1.2;
+        letter-spacing: .02em;
+        border-radius: 7px;
+      }
+    }
+  </style>
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
@@ -172,6 +216,25 @@
   <!-- ================= MAIN STOREFRONT ================= -->
   <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-6 sm:py-8">
     <p id="mqb42CatalogLoading" class="mqb42-loading" role="status">Loading current products from our secure catalog…</p>
+    <!-- Hero Banner -->
+    <div id="heroSection" class="mb-8 bg-gradient-to-r from-[#1c3026] via-[#15251e] to-[#0e1914] rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl border border-[#2a493a]">
+      <div class="relative z-10 max-w-xl">
+        <span class="inline-block bg-brand-gold/20 text-amber-300 text-[11px] px-3 py-1 rounded-full uppercase tracking-widest font-bold mb-3 border border-amber-400/30">Direct Manufacturer &amp; Wholesale</span>
+        <h1 class="serif-title text-2xl sm:text-4xl font-bold leading-tight mb-2">Preserving The Divine Word With Sacred Grace</h1>
+        <p class="font-arabic text-xl sm:text-2xl text-amber-200 mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+        <p class="text-xs sm:text-sm text-neutral-300 mb-6 leading-relaxed">
+          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Falaknuma, Hyderabad.
+        </p>
+        <div class="flex flex-wrap gap-2.5">
+          <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Shop Collection</button>
+          <button onclick="openTrackingModal()" class="bg-transparent border border-white/60 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition">Track Courier</button>
+          <button onclick="openInvoiceLookupModal()" class="bg-amber-400/20 border border-amber-400/40 text-amber-300 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-amber-400/30 transition">Download Invoice</button>
+          <a id="heroCallLink" href="tel:+917337464501" class="bg-white/10 border border-white/30 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/20 transition">📞 Call Us</a>
+          <a id="heroWhatsAppLink" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="bg-emerald-700 border border-emerald-600 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-emerald-600 transition">💬 WhatsApp</a>
+        </div>
+      </div>
+    </div>
+
     <!-- V47: staff-selectable top selling promotional hero, reads live Firebase catalog -->
     <section id="mqb47HomePromo" aria-label="Top selling product and current offers" hidden>
       <div class="mqb47-hero-ribbon"><span>★ MOIN QURAN BOX · TOP SELLING</span><span>Exclusive online-payment gift offers</span></div>
@@ -196,25 +259,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Hero Banner -->
-    <div id="heroSection" class="mb-8 bg-gradient-to-r from-[#1c3026] via-[#15251e] to-[#0e1914] rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl border border-[#2a493a]">
-      <div class="relative z-10 max-w-xl">
-        <span class="inline-block bg-brand-gold/20 text-amber-300 text-[11px] px-3 py-1 rounded-full uppercase tracking-widest font-bold mb-3 border border-amber-400/30">Direct Manufacturer &amp; Wholesale</span>
-        <h1 class="serif-title text-2xl sm:text-4xl font-bold leading-tight mb-2">Preserving The Divine Word With Sacred Grace</h1>
-        <p class="font-arabic text-xl sm:text-2xl text-amber-200 mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-        <p class="text-xs sm:text-sm text-neutral-300 mb-6 leading-relaxed">
-          Specializing in Holy Quran-E-Majeed, handcrafted wooden velvet boxes, customized Rehal, Turkish prayer rugs, and Islamic books in Falaknuma, Hyderabad.
-        </p>
-        <div class="flex flex-wrap gap-2.5">
-          <button onclick="scrollToProducts()" class="bg-white text-brand-charcoal px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-100 transition shadow">Shop Collection</button>
-          <button onclick="openTrackingModal()" class="bg-transparent border border-white/60 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition">Track Courier</button>
-          <button onclick="openInvoiceLookupModal()" class="bg-amber-400/20 border border-amber-400/40 text-amber-300 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-amber-400/30 transition">Download Invoice</button>
-          <a id="heroCallLink" href="tel:+917337464501" class="bg-white/10 border border-white/30 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-white/20 transition">📞 Call Us</a>
-          <a id="heroWhatsAppLink" href="https://wa.me/917337464501" target="_blank" rel="noopener noreferrer" class="bg-emerald-700 border border-emerald-600 text-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-emerald-600 transition">💬 WhatsApp</a>
-        </div>
-      </div>
-    </div>
 
     <!-- Quick Services Bar -->
     <div class="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
