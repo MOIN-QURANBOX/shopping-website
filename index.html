@@ -100,6 +100,7 @@
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
   <link rel="stylesheet" href="css/mqb-v49-analytics.css" />
   <link rel="stylesheet" href="css/mqb-v50-storefront.css" />
+  <link rel="stylesheet" href="css/mqb-v51-tools.css" />
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
 
@@ -1094,96 +1095,36 @@
           <div id="adminBranchesList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- V42: bulk labels use only authenticated Firebase order records. -->
-        <!-- TAB: SHIPPING LABELS -->
+        <!-- V51: authenticated one-click label batch KPIs; source orders are never modified -->
         <div id="adminTab-shipping" class="hidden space-y-5">
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator (Thermal &amp; A4 Ready)</h4>
-          <section id="mqb42BulkLabels" class="mqb42-panel" hidden>
-            <div>
-              <h5 class="font-bold text-sm">Bulk Shipping Labels — One-Click PDF</h5>
-              <p class="text-xs text-neutral-600 mt-1">Select status and order-date range; download one professional 4 × 6 inch label per eligible order in a single PDF. Only staff and administrators can use this tool.</p>
+          <div class="mqb51-row" style="align-items:flex-start;flex-wrap:wrap">
+            <div><h4 class="serif-title text-base font-bold text-brand-charcoal">Shipping Label Generator — Order KPIs</h4>
+              <p class="mqb51-intro">One professional 4 × 6-inch parcel label per eligible order, combined into one PDF. PDF generator and staff authentication retained.</p>
             </div>
-            <div class="mqb43-filters">
-              <label>Status filter
-                <select id="mqb43LabelStatus" class="mqb43-control">
-                  <option value="all">All pending + confirmed (unshipped)</option>
-                  <option value="pending">Pending orders only</option>
-                  <option value="confirmed">Confirmed payment orders only (paid)</option>
-                </select>
-              </label>
-              <label>From date (optional)
-                <input type="date" id="mqb43LabelFrom" class="mqb43-control" />
-              </label>
-              <label>To date (optional)
-                <input type="date" id="mqb43LabelTo" class="mqb43-control" />
-              </label>
-            </div>
-            <label class="text-xs flex gap-2 items-center"><input type="checkbox" id="mqb42IncludeUnpaid" /> Also include unpaid Razorpay orders when selecting Pending / All (print with caution)</label>
-            <p class="text-xs text-neutral-600">Cancelled, returned, shipped and delivered orders are not included. Missing recipient details stop the download so that no incomplete labels are printed.</p>
-            <div class="flex flex-wrap items-center gap-3"><button type="button" id="mqb42BulkDownload" class="mqb42-primary">Download Filtered Labels — One PDF</button><span id="mqb42BulkCount" class="text-xs" role="status">Waiting for orders…</span></div>
-          </section>
-          <div class="bg-white p-5 rounded-xl border border-brand-border shadow-sm max-w-2xl text-xs space-y-3">
-            <h5 class="font-bold uppercase text-brand-darkgreen">Create Manual Label (For Online &amp; Offline Orders)</h5>
-            <form onsubmit="handleManualShippingLabelPrint(event)" class="space-y-3">
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block font-semibold mb-0.5">Order ID</label>
-                  <input type="text" id="lblOrderId" placeholder="MQB-MAN-01" class="w-full bg-brand-sand border rounded p-2" />
-                </div>
-                <div>
-                  <label class="block font-semibold mb-0.5">Recipient Name *</label>
-                  <input type="text" id="lblCustomerName" required placeholder="Customer Full Name" class="w-full bg-brand-sand border rounded p-2" />
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block font-semibold mb-0.5">Mobile Phone *</label>
-                  <input type="tel" id="lblCustomerPhone" required placeholder="10-digit mobile" class="w-full bg-brand-sand border rounded p-2" />
-                </div>
-                <div>
-                  <label class="block font-semibold mb-0.5">Email Address</label>
-                  <input type="email" id="lblCustomerEmail" placeholder="name@example.com" class="w-full bg-brand-sand border rounded p-2" />
-                </div>
-              </div>
-              <div>
-                <label class="block font-semibold mb-0.5">Complete Address *</label>
-                <textarea id="lblAddress" rows="2" required placeholder="House No, Landmark, Area, City" class="w-full bg-brand-sand border rounded p-2"></textarea>
-              </div>
-              <div class="grid grid-cols-3 gap-2">
-                <div>
-                  <label class="block font-semibold mb-0.5">Postal Code *</label>
-                  <input type="text" id="lblPostalCode" required placeholder="500053" class="w-full bg-brand-sand border rounded p-2 font-mono font-bold" />
-                </div>
-                <div>
-                  <label class="block font-semibold mb-0.5">Payment Type *</label>
-                  <select id="lblPaymentType" class="w-full bg-brand-sand border rounded p-2 font-bold">
-                    <option value="Prepaid Online">Prepaid Online</option>
-                    <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block font-semibold mb-0.5">Amount (₹)</label>
-                  <input type="number" id="lblAmount" placeholder="999" class="w-full bg-brand-sand border rounded p-2" />
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block font-semibold mb-0.5">Channel</label>
-                  <select id="lblChannel" class="w-full bg-brand-sand border rounded p-2">
-                    <option value="Online Order">Online Order</option>
-                    <option value="Offline Store Dispatch">Offline Store Dispatch</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block font-semibold mb-0.5">Items/Pieces</label>
-                  <input type="number" id="lblPackagePieces" value="1" class="w-full bg-brand-sand border rounded p-2" />
-                </div>
-              </div>
-              <button type="submit" class="w-full py-2.5 bg-brand-charcoal text-white font-bold uppercase rounded shadow">
-                🖨️ Generate &amp; Print Shipping Label
-              </button>
-            </form>
           </div>
+          <section id="mqb51LabelPanel" hidden aria-label="Bulk shipping label KPIs">
+            <div class="mqb51-safety"><strong>Payment safety:</strong> Online-paid labels require verified payment. Unpaid online orders are excluded by default. A generated label is not a courier AWB, dispatch confirmation, or proof of payment.</div>
+            <div class="mqb51-toolbar">
+              <label>From date (optional)<input id="mqb51LabelFrom" type="date" /></label>
+              <label>To date (optional)<input id="mqb51LabelTo" type="date" /></label>
+              <button type="button" class="mqb51-btn" id="mqb51ClearDates">Clear dates</button>
+              <label class="mqb51-row" style="font-weight:500;max-width:315px;align-items:center"><input type="checkbox" id="mqb51AllowUnpaid" style="min-width:auto" /> Include unverified online orders (with extra warning)</label>
+            </div>
+            <div id="mqb51LabelCards" class="mqb51-kpis" aria-label="Label category shortcuts"></div>
+            <div class="mqb51-table-wrap">
+              <div class="mqb51-row" style="flex-wrap:wrap;margin-bottom:12px">
+                <div><h5 id="mqb51LabelSelected" class="font-bold text-base">Pending orders</h5>
+                  <p id="mqb51SelectedCount" class="mqb51-fine"></p></div>
+                <button class="mqb51-btn" type="button" id="mqb51DownloadAgain">↓ Re-download previously generated — One PDF</button>
+              </div>
+              <div style="overflow-x:auto"><table class="mqb51-table" aria-label="Selected orders and label download history">
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Payment / status</th><th>Download history</th><th>Action</th></tr></thead>
+                <tbody id="mqb51LabelRows"></tbody>
+              </table></div>
+            </div>
+            <p id="mqb51LabelStatus" class="mqb51-message" role="status" aria-live="polite"></p>
+            <p class="mqb51-fine">“Downloaded already” indicates a PDF download was initiated and recorded for this order; the browser cannot confirm that the file was saved. Old label downloads made before V51 are not retroactively detectable. Re-downloads do not change order or shipment status.</p>
+          </section>
         </div>
 
         <!-- TAB 3: SHOWROOM POS BILLING -->
@@ -1629,6 +1570,7 @@
         <div class="p-3 bg-brand-sand border rounded-lg space-y-2">
           <label class="block font-bold">Product Photo</label>
           <label for="mqb353MainImageFile" class="block text-[11px] font-semibold">Upload main product photo (JPG, PNG, WebP)</label>
+          <p class="mqb51-fine">NEW: Choose a file to adjust crop, zoom and placement. The preview is the exact square composition saved for product cards. Use “Fit entire photo” to keep all edges.</p>
           <input id="mqb353MainImageFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="handlePhotoFileInput(event)" class="w-full text-[11px]" />
           <p id="mqb353MainStatus" class="mqb353-upload-status" role="status" aria-live="polite">Choose a photo; it will be compressed and stored with this product in Firebase Realtime Database.</p>
           <p class="text-[10px] text-neutral-500">Alternatively, enter an HTTPS image URL:</p>
@@ -1639,6 +1581,7 @@
         <fieldset class="mqb35-editor-media">
           <legend>Product photo gallery <span class="mqb35-optional">Optional</span></legend>
           <label for="mqb353SecondImageFile">Upload second product photo (JPG, PNG, WebP)</label>
+          <p class="mqb51-fine">The same crop and Fit entire photo options apply to your gallery photo.</p>
           <input id="mqb353SecondImageFile" type="file" accept="image/jpeg,image/png,image/webp" />
           <p id="mqb353SecondStatus" class="mqb353-upload-status" role="status" aria-live="polite">Optional second photo. Existing images remain unchanged unless replaced or removed.</p>
           <div class="mqb353-upload-preview"><img id="mqb353SecondPreview" src="" alt="Second product photo preview" class="w-20 h-20 object-contain rounded border hidden" /><button type="button" id="mqb353ClearSecond" class="mqb353-clear-photo">Remove second photo</button></div>
@@ -1654,6 +1597,19 @@
 
         <button type="submit" class="w-full py-2 bg-brand-charcoal text-white font-bold uppercase rounded mt-2">Save Product</button>
       </form>
+    </div>
+  </div>
+
+  <!-- V51: before-upload local photo crop; does not overwrite product until Save Product -->
+  <div id="mqb51CropModal" hidden role="dialog" aria-modal="true" aria-labelledby="mqb51CropTitle">
+    <div class="mqb51-crop-card">
+      <div class="mqb51-row mqb51-crop-head"><h3 id="mqb51CropTitle">Adjust product photo</h3><button type="button" id="mqb51CropClose" class="mqb51-btn" aria-label="Close crop">✕</button></div>
+      <p class="mqb51-hint"><strong id="mqb51CropTarget">Product photo</strong> · Drag to reposition, use the zoom slider, then save the exact preview. White padding ensures the whole photo remains visible if you choose Fit entire photo.</p>
+      <canvas id="mqb51CropCanvas" width="680" height="680" aria-label="Square product photo crop preview. Drag with mouse or touch to reposition."></canvas>
+      <label class="mqb51-slider" for="mqb51Zoom"><strong>Zoom</strong><input id="mqb51Zoom" type="range" min="100" max="300" step="5" value="100" /><span id="mqb51ZoomText">100%</span></label>
+      <div class="mqb51-actions"><button type="button" id="mqb51CropFit" class="mqb51-btn">Fit entire photo</button><button type="button" id="mqb51CropCancel" class="mqb51-btn">Cancel</button><button type="button" id="mqb51CropSave" class="mqb51-btn mqb51-btn-primary">✓ Use this crop</button></div>
+      <p id="mqb51CropStatus" role="status" class="mqb51-hint"></p>
+      <p class="mqb51-fine">Cropping happens in your browser. Your existing Firebase product image is not changed until you save the product. Only uploaded image files are supported; hosted image URLs remain unchanged.</p>
     </div>
   </div>
 
@@ -2039,5 +1995,7 @@
   <script defer src="js/mqb-v48-cancel-request.js"></script>
   <script defer src="js/mqb-v49-analytics.js"></script>
   <script defer src="js/mqb-v50-storefront.js"></script>
+  <script defer src="js/mqb-v51-image-crop.js"></script>
+  <script defer src="js/mqb-v51-label-kpis.js"></script>
 </body>
 </html>
