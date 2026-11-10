@@ -598,6 +598,9 @@
         status:form.paymentMethod==='Razorpay'?'Payment Pending':'Requested',
         paymentStatus:form.paymentMethod==='Razorpay'?'pending':'unverified',
         date:new Date().toISOString(),
+        // V48.2: Firebase resolves this value server-side on order creation.
+        // COD cancellation rejects orders lacking this trusted timestamp.
+        ...(form.paymentMethod==='COD'?{serverCreatedAtMs:firebase.database.ServerValue.TIMESTAMP}:{}),
         channel:'Website request',courierName:'Not assigned',awb:'',
         note:form.paymentMethod==='Razorpay'
           ?'Razorpay online payment pending. Automatically confirmed only after verified captured payment.'
