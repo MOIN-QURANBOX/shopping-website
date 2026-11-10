@@ -98,6 +98,7 @@
     }
   </style>
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
+  <link rel="stylesheet" href="css/mqb-v49-analytics.css" />
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
 
@@ -1176,12 +1177,63 @@
 
         <!-- TAB 4: ANALYTICS (GRID VIEW) -->
         <div id="adminTab-analytics" class="hidden space-y-4">
+          <!-- V49 operational dashboard: aggregated from existing private orders; no payment/order mutations -->
+          <section id="mqb49Dashboard" class="space-y-3">
+            <div class="mqb49-toolbar">
+              <div>
+                <h4 class="serif-title text-lg font-bold">Sales &amp; Orders Performance</h4>
+                <p class="mqb49-note">Tap any KPI to view the matching orders. India Standard Time (IST).</p>
+              </div>
+              <label class="text-xs font-bold">Order status period
+                <select id="mqb49Period" class="mqb49-input block mt-1" aria-label="Order KPI time period">
+                  <option value="all">All history</option><option value="day">Today</option><option value="week">This week</option><option value="month">This month</option>
+                </select>
+              </label>
+            </div>
+            <div id="mqb49Kpis" class="mqb49-tiles" aria-label="Clickable sales and order KPIs">
+              <button type="button" data-mqb49-id="sales-day" class="mqb49-tile"><span class="mqb49-label">Gross sales · Today</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View paid orders →</span></button>
+              <button type="button" data-mqb49-id="sales-week" class="mqb49-tile"><span class="mqb49-label">Gross sales · This week</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View paid orders →</span></button>
+              <button type="button" data-mqb49-id="sales-month" class="mqb49-tile"><span class="mqb49-label">Gross sales · This month</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View paid orders →</span></button>
+              <button type="button" data-mqb49-id="pending" class="mqb49-tile"><span class="mqb49-label">Pending orders</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View order details →</span></button>
+              <button type="button" data-mqb49-id="confirmed" class="mqb49-tile"><span class="mqb49-label">Confirmed orders</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View order details →</span></button>
+              <button type="button" data-mqb49-id="processing" class="mqb49-tile"><span class="mqb49-label">Processing / packed</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View order details →</span></button>
+              <button type="button" data-mqb49-id="shipping" class="mqb49-tile"><span class="mqb49-label">Dispatched / transit</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View order details →</span></button>
+              <button type="button" data-mqb49-id="delivered" class="mqb49-tile"><span class="mqb49-label">Delivered orders</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View order details →</span></button>
+              <button type="button" data-mqb49-id="cancelled" class="mqb49-tile"><span class="mqb49-label">Cancelled orders</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View order details →</span></button>
+              <button type="button" data-mqb49-id="all" class="mqb49-tile"><span class="mqb49-label">Total orders</span><strong data-mqb49-number class="mqb49-value">—</strong><span class="mqb49-open">View all details →</span></button>
+            </div>
+            <p id="mqb49SummaryNote" class="mqb49-note" role="status"></p>
+            <section class="pt-3" aria-label="Anonymous live website visits">
+              <div class="mqb49-toolbar"><h4 class="mqb49-subtitle">Live Website Visitors</h4><button id="mqb49EnableVisits" type="button" class="mqb49-action">Enable anonymous page-view counter (Admin)</button></div>
+              <div class="mqb49-visitor-stats">
+                <div class="mqb49-visitor-stat"><small>Approx. online visitors</small><strong id="mqb49OnlineNow">—</strong></div>
+                <div class="mqb49-visitor-stat"><small>Active browser tabs</small><strong id="mqb49OnlineTabs">—</strong></div>
+                <div class="mqb49-visitor-stat"><small>Total page views (since enabled)</small><strong id="mqb49PageViews">—</strong></div>
+              </div>
+              <p class="mqb49-note" id="mqb49VisitorNote">Waiting for secure Firebase visitor permissions.</p>
+              <div id="mqb49VisitorList" class="mqb49-visitor-list" aria-live="polite"><p class="mqb49-empty">Visitor details appear after permissions are published.</p></div>
+            </section>
+            <section id="mqb49ResetArea" class="mqb49-danger" hidden>
+              <h4 class="font-bold text-sm">Super Admin — Archive &amp; Reset Historical KPIs</h4>
+              <p><strong>Warning:</strong> Reset makes previous sales and order counts appear as zero in this dashboard and archives older orders from Owner/Manager views. It does <strong>not permanently delete</strong> customer orders, invoices, payment audits, or Firebase records. Permanent financial-record deletion needs a separate server-side review.</p>
+              <button id="mqb49ResetStart" type="button" class="mqb49-action mt-2">Prepare archive &amp; reset</button>
+              <div id="mqb49ResetConfirm" hidden>
+                <form id="mqb49ResetForm" class="mqb49-reset-form">
+                  <label class="mqb49-warning"><input id="mqb49ResetAck" type="checkbox" required /> I understand this resets dashboard history and hides older staff-view orders; underlying records remain stored.</label>
+                  <label class="text-xs font-bold">Type <strong>ARCHIVE OLD HISTORY</strong> to confirm
+                    <input id="mqb49ResetPhrase" class="mqb49-input block w-full mt-1" autocomplete="off" required /></label>
+                  <div class="flex flex-wrap gap-2"><button id="mqb49ResetSubmit" class="bg-red-700 text-white font-bold rounded-lg px-4 py-2 text-xs" type="submit">Archive old KPI history &amp; reset to zero</button><button id="mqb49ResetCancel" type="button" class="mqb49-action">Cancel</button></div>
+                </form>
+              </div>
+            </section>
+          </section>
+          <details class="border rounded-xl bg-white p-3 text-xs"><summary class="cursor-pointer font-bold">Legacy V42 visitor and POS-only counters (preserved)</summary>
           <section id="mqb42Visitors" class="mqb42-panel" hidden>
             <h4 class="font-bold text-sm">Website Visitors (Live)</h4>
             <div class="mqb42-kpis"><div><small>Online now</small><strong id="mqb42OnlineVisits">—</strong></div><div><small>Total page visits</small><strong id="mqb42TotalVisits">—</strong></div></div>
             <p id="mqb42VisitorsNote" class="text-xs" role="status">Secure analytics permission setup required.</p>
           </section>
-          <h4 class="serif-title text-base font-bold text-brand-charcoal">Omnichannel Sales Analytics</h4>
+          <h4 class="serif-title text-base font-bold text-brand-charcoal mt-3">Omnichannel Sales Analytics</h4>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-xl border shadow-sm">
               <p class="text-[11px] font-bold text-brand-muted uppercase">Gross Revenue</p>
@@ -1192,6 +1244,7 @@
               <h3 id="anaTotalOrders" class="text-xl font-bold font-mono text-brand-charcoal mt-1">0</h3>
             </div>
           </div>
+          </details>
         </div>
 
         <!-- TAB 5: COUPONS & DISCOUNTS -->
@@ -1891,6 +1944,16 @@
     </div>
   </div>
 
+  <!-- V49 clickable KPI detail view; visible only after verified staff authorization -->
+  <div id="mqb49DetailsModal" hidden role="dialog" aria-modal="true" aria-labelledby="mqb49DetailsTitle">
+    <div class="mqb49-modal-content">
+      <div class="mqb49-modal-top">
+        <div><h3 id="mqb49DetailsTitle" class="text-lg font-bold">Order details</h3><p id="mqb49DetailsCount" class="text-xs text-neutral-600 mt-1"></p></div>
+        <button id="mqb49DetailsClose" type="button" class="mqb49-close" aria-label="Close order details">✕ Close</button>
+      </div>
+      <div id="mqb49DetailsList"></div>
+    </div>
+  </div>
   <div id="invoicePrintSection" class="hidden"></div>
   <div id="shippingLabelPrintSection" class="hidden"></div>
 
@@ -1923,5 +1986,6 @@
   <script defer src="js/mqb-v47-home-promotion.js"></script>
   <script defer src="js/mqb-v48-product-links.js"></script>
   <script defer src="js/mqb-v48-cancel-request.js"></script>
+  <script defer src="js/mqb-v49-analytics.js"></script>
 </body>
 </html>
