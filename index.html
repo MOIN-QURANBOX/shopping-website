@@ -1701,15 +1701,15 @@
   <div id="mqb48CancelModal" class="mqb48-cancel-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="mqb48CancelTitle">
     <div class="mqb48-cancel-dialog">
       <div style="display:flex;justify-content:space-between;gap:15px;align-items:start"><h2 id="mqb48CancelTitle">Cancel Your Order</h2><button type="button" aria-label="Close cancellation" onclick="mqb48CloseCancel()" style="font-size:22px;color:#445;">✕</button></div>
-      <p>Request cancellation within 24 hours of placing your order, before dispatch. For your security, you must use the original customer account or checkout browser session.</p>
+      <p>Cancel an eligible Cash on Delivery (COD) order within 12 hours of placement and before dispatch. For security, use the original customer account or checkout browser session.</p>
       <form id="mqb48CancelForm">
         <label for="mqb48CancelOrderId">Order ID</label>
         <input id="mqb48CancelOrderId" maxlength="120" autocomplete="off" placeholder="MQB-REQ-…" required />
         <label for="mqb48CancelPhone">Checkout mobile number</label>
         <input id="mqb48CancelPhone" type="tel" inputmode="numeric" maxlength="14" placeholder="10-digit number" required autocomplete="tel" />
-        <button id="mqb48CancelSubmit" type="submit">Submit Cancellation Request</button>
+        <button id="mqb48CancelSubmit" type="submit">Cancel My COD Order</button>
       </form>
-      <div id="mqb48CancelStatus" role="status" aria-live="polite">COD orders have no online refund. For verified Razorpay payments, refunds go back to the original payment method after secure processing; they are not instantaneous.</div>
+      <div id="mqb48CancelStatus" role="status" aria-live="polite">COD orders only: cancellation is available within 12 hours of placement, before dispatch. No online payment was collected, so no refund is due. Razorpay order cancellations are managed separately.</div>
       <p style="margin-top:12px;font-size:11px">If the order was placed using another guest browser or has already been dispatched, contact MOIN QURAN BOX for assistance. No payment data is modified by this form.</p>
     </div>
   </div>
