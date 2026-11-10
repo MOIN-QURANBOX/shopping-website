@@ -1,0 +1,23 @@
+/* V51: scoped product-cropping and warehouse label KPIs. */
+#mqb51CropModal[hidden],#mqb51LabelPanel[hidden]{display:none!important}
+body.mqb51-crop-open{overflow:hidden}
+#mqb51CropModal{position:fixed;inset:0;z-index:220;background:rgba(12,30,20,.8);display:flex;align-items:center;justify-content:center;padding:12px;overflow-y:auto}
+.mqb51-crop-card{width:min(565px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;background:#fffdf9;border:1px solid #dacdb6;border-radius:17px;box-shadow:0 25px 65px #0006;padding:clamp(14px,3vw,24px);font:14px/1.5 'Plus Jakarta Sans',Arial,sans-serif;color:#213b2c}
+.mqb51-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.mqb51-crop-head h3{font:600 23px Georgia,serif;margin:0}.mqb51-hint{font-size:12px;color:#556d5b;margin:7px 0 12px;line-height:1.6}
+#mqb51CropCanvas{display:block;width:min(100%,360px);aspect-ratio:1;height:auto;border:2px solid #b5cdbd;border-radius:8px;margin:10px auto;background:white;cursor:grab;touch-action:none;box-shadow:0 0 0 8px #eef2ec}
+#mqb51CropCanvas:active{cursor:grabbing}.mqb51-slider{display:flex;align-items:center;gap:14px;margin:15px 0}.mqb51-slider input{flex:1;accent-color:#27533c;min-width:60px}
+.mqb51-btn{border:1px solid #bfcbbf;border-radius:8px;padding:10px 14px;font:700 12px 'Plus Jakarta Sans',Arial,sans-serif;cursor:pointer;background:#fff;color:#294934;min-height:41px}
+.mqb51-btn-primary{background:#1d4a34;border-color:#1d4a34;color:#fff}.mqb51-btn:disabled{opacity:.55;cursor:default}
+.mqb51-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.mqb51-fine{font-size:11px;color:#69776c}
+#mqb51LabelPanel{display:grid;gap:15px}.mqb51-intro{font-size:12px;line-height:1.65;color:#5d6c60}.mqb51-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mqb51-kpi{background:#fff;border:1px solid #dce6dd;border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:9px;min-width:0;box-shadow:0 1px 8px #1027190c}
+.mqb51-kpi.selected{border-color:#2b6a45;box-shadow:0 0 0 2px #2b6a4518}.mqb51-kpi-name{font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;color:#49624e}.mqb51-kpi-amount{font:700 clamp(26px,3.1vw,35px)/1.15 Georgia,serif;color:#163a2b}.mqb51-kpi-meta{font-size:11px;color:#697b6a}
+.mqb51-kpi-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}.mqb51-kpi-actions button{padding:8px 9px;font-size:11px;border-radius:6px;flex:1;border:1px solid #cbd9cd;background:#eff6f0;color:#1b4b32;cursor:pointer;font-weight:700}
+.mqb51-kpi-actions button.mqb51-download{background:#1d4a34;color:#fff;border-color:#1d4a34}.mqb51-kpi-actions button:disabled{opacity:.45;cursor:not-allowed}
+.mqb51-toolbar,.mqb51-table-wrap{background:white;border:1px solid #e1e9e1;border-radius:12px;padding:15px}.mqb51-toolbar{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}.mqb51-toolbar label{display:grid;gap:5px;font-size:12px;font-weight:700;color:#31503d}.mqb51-toolbar input{border:1px solid #cad5ca;padding:8px 10px;border-radius:7px;min-width:0;max-width:180px}
+.mqb51-table{width:100%;border-collapse:collapse;font-size:12px}.mqb51-table th,.mqb51-table td{text-align:left;padding:10px 8px;border-bottom:1px solid #eff0ed;vertical-align:top}.mqb51-table th{color:#526b56;font-size:11px}.mqb51-table td button{background:white;border:1px solid #bed0c0;border-radius:7px;padding:7px 9px;font-size:11px;font-weight:700;color:#1f5434;cursor:pointer}
+.mqb51-badge{display:inline-block;background:#e7f4e8;color:#17613b;border:1px solid #bcd9c0;border-radius:100px;padding:4px 8px;font-size:10px;font-weight:700}.mqb51-new{background:#f5f2e9;color:#675b43;border-color:#e6decd}
+.mqb51-message{font-size:12px;color:#31513b;line-height:1.5;min-height:16px}.mqb51-safety{padding:10px 12px;background:#fff8e8;border:1px solid #f1dfad;color:#735012;border-radius:8px;font-size:12px;line-height:1.6}
+@media(max-width:880px){.mqb51-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:530px){.mqb51-kpis{grid-template-columns:minmax(0,1fr)}.mqb51-table{min-width:670px}.mqb51-table-wrap{overflow-x:auto}#mqb51CropCanvas{width:min(100%,300px)}}
+@media(prefers-reduced-motion:reduce){#mqb51CropModal *,#mqb51LabelPanel *{animation:none!important;transition:none!important}}
+.mqb51-toolbar label.mqb51-row{display:flex;justify-content:flex-start;gap:9px;line-height:1.4}
