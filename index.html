@@ -52,6 +52,7 @@
   <link rel="stylesheet" href="css/mqb-v43-fulfilment.css" />
   <link rel="stylesheet" href="css/mqb-v45-top-selling.css" />
   <link rel="stylesheet" href="css/mqb-v47-home-promotion.css" />
+  <link rel="stylesheet" href="css/mqb-v48-customer-controls.css" />
   <!-- V47.1: green brand hero first; compact mobile sizing. Does not affect V47 product promotion. -->
   <style id="mqb47-1-hero-compact">
     #heroSection {
@@ -117,6 +118,7 @@
           <button id="staffLoginNavBtn" type="button" onclick="openStaffPortal()" class="text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition border border-amber-400/40">🔐 Staff Login</button>
           <button id="staffDashboardNavBtn" type="button" onclick="openStaffPortal()" class="hidden text-[10px] sm:text-[11px] font-bold text-amber-300 bg-[#234234] hover:bg-neutral-800 px-2.5 py-1 rounded transition border border-amber-400/40">🏪 Staff Dashboard</button>
           <button id="staffLogoutNavBtn" type="button" onclick="confirmStaffLogout()" class="hidden text-[10px] sm:text-[11px] font-bold text-white bg-red-800 hover:bg-red-700 px-2.5 py-1 rounded transition border border-red-300/30">Log Out</button>
+          <button type="button" onclick="mqb48OpenCancel()" id="mqb48CancelNav" hidden class="text-[10px] sm:text-[11px] font-semibold text-amber-300 hover:text-white transition underline whitespace-nowrap">Cancel Order</button>
           <button onclick="openInvoiceLookupModal()" class="text-[10px] sm:text-[11px] font-semibold text-neutral-300 hover:text-white transition underline whitespace-nowrap">
             📄 Invoice
           </button>
@@ -1695,6 +1697,23 @@
     </div>
   </div>
 
+  <!-- V48: customer cancellation is server-authorized; order ID + phone are NOT sufficient on their own. -->
+  <div id="mqb48CancelModal" class="mqb48-cancel-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="mqb48CancelTitle">
+    <div class="mqb48-cancel-dialog">
+      <div style="display:flex;justify-content:space-between;gap:15px;align-items:start"><h2 id="mqb48CancelTitle">Cancel Your Order</h2><button type="button" aria-label="Close cancellation" onclick="mqb48CloseCancel()" style="font-size:22px;color:#445;">✕</button></div>
+      <p>Request cancellation within 24 hours of placing your order, before dispatch. For your security, you must use the original customer account or checkout browser session.</p>
+      <form id="mqb48CancelForm">
+        <label for="mqb48CancelOrderId">Order ID</label>
+        <input id="mqb48CancelOrderId" maxlength="120" autocomplete="off" placeholder="MQB-REQ-…" required />
+        <label for="mqb48CancelPhone">Checkout mobile number</label>
+        <input id="mqb48CancelPhone" type="tel" inputmode="numeric" maxlength="14" placeholder="10-digit number" required autocomplete="tel" />
+        <button id="mqb48CancelSubmit" type="submit">Submit Cancellation Request</button>
+      </form>
+      <div id="mqb48CancelStatus" role="status" aria-live="polite">COD orders have no online refund. For verified Razorpay payments, refunds go back to the original payment method after secure processing; they are not instantaneous.</div>
+      <p style="margin-top:12px;font-size:11px">If the order was placed using another guest browser or has already been dispatched, contact MOIN QURAN BOX for assistance. No payment data is modified by this form.</p>
+    </div>
+  </div>
+
   <!-- ================= CONTACT MODAL ================= -->
   <div id="contactModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white border border-brand-border rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-xs space-y-3">
@@ -1902,5 +1921,7 @@
   <script defer src="js/mqb-v45-top-selling.js"></script>
   <script defer src="js/mqb-v46-order-consent.js"></script>
   <script defer src="js/mqb-v47-home-promotion.js"></script>
+  <script defer src="js/mqb-v48-product-links.js"></script>
+  <script defer src="js/mqb-v48-cancel-request.js"></script>
 </body>
 </html>
