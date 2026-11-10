@@ -1,0 +1,59 @@
+/* MQB V50 — scoped product-detail, welcome and staff controls only. */
+#mqb50GreetingOverlay[hidden],#mqb50GreetingAdmin[hidden],#mqb50LowStockPanel[hidden]{display:none!important}
+#mqb50GreetingOverlay{position:fixed;inset:0;z-index:115;display:grid;place-items:center;padding:16px;background:rgba(9,28,19,.83);backdrop-filter:blur(7px);overflow:auto;animation:mqb50fade .3s both}
+.mqb50-greeting-panel{width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:clamp(24px,5vw,44px);text-align:center;background:linear-gradient(155deg,#fffefa,#f7f2e8);border:1px solid #d8c49d;border-radius:20px;box-shadow:0 30px 95px #0004;color:#253128;animation:mqb50up .4s both}
+.mqb50-greeting-emblem{width:54px;height:54px;border:1px solid #dacb9c;background:#f8f1e0;color:#ab8c44;border-radius:50%;display:grid;place-items:center;font-size:28px;margin:0 auto 15px}
+.mqb50-greeting-kicker{font:700 11px 'Plus Jakarta Sans',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#957b43;margin-bottom:15px}
+.mqb50-greeting-arabic{font:400 clamp(22px,3.6vw,30px)/1.7 Amiri,serif;color:#446049;margin-bottom:10px}
+#mqb50GreetingTitle{font:400 clamp(24px,4vw,34px)/1.25 Georgia,serif;margin:0 auto 18px}
+.mqb50-greeting-message{font:400 15px/1.9 'Plus Jakarta Sans',sans-serif;color:#5d655d;margin-bottom:15px;white-space:pre-wrap}
+.mqb50-greeting-jazak{font:600 14px/1.65 Georgia,serif;color:#456149;margin-bottom:26px}
+.mqb50-enter{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:15px;border:0;border-radius:8px;background:#203f31;color:white;font:700 14px 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:transform .2s,background .2s}
+.mqb50-enter:hover,.mqb50-enter:focus-visible{background:#305843;transform:translateY(-2px)}
+.mqb50-skip{border:0;background:none;color:#647064;padding:14px 10px 0;font:600 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+body.mqb50-greeting-open{overflow:hidden}
+/* Product detail inspired by the supplied reference, retaining existing buttons and gallery handlers. */
+#productDetailsModal{padding:8px!important}
+#productDetailsScroll{width:min(1120px,100%)!important;max-width:1120px!important;max-height:calc(100dvh - 22px)!important;border-radius:14px!important;border:1px solid #e6e0d7!important;background:#fffdfa!important;box-shadow:0 30px 100px #16271b55!important}
+#productDetailsContent{padding:clamp(12px,3vw,30px)!important}
+#productDetailsContent>.grid{display:grid;grid-template-columns:minmax(0,1.14fr) minmax(0,.86fr);gap:clamp(18px,4vw,48px);animation:mqb50up .35s both}
+#productDetailsContent>.grid>div:first-child{min-width:0}
+#productDetailsContent>.grid>div:first-child .aspect-square{border-radius:5px!important;background:#faf9f7!important;border-color:#e9e6df!important}
+#productDetailsContent>.grid>div:first-child img{object-fit:contain!important;transition:transform .5s ease}
+#productDetailsContent>.grid>div:first-child .aspect-square:hover img{transform:scale(1.035)}
+#productDetailsContent>.grid>div:nth-child(2)>span:first-child{letter-spacing:.14em;color:#9c834e}
+#productDetailsContent>.grid>div:nth-child(2)>h2{font:400 clamp(26px,3.6vw,43px)/1.24 Georgia,'Times New Roman',serif!important;color:#242b27!important}
+#productDetailsContent>.grid>div:nth-child(2)>div.flex.flex-wrap.gap-2.items-end>span:first-child{font:600 clamp(23px,3vw,32px)/1.2 Georgia,serif;color:#233c30!important}
+#productDetailsContent>.grid>div:nth-child(2)>div.flex.flex-wrap.gap-2.items-end>span.line-through{font:400 15px Georgia,serif;color:#838784!important}
+#productDetailsContent>.grid>div:nth-child(2)>p{line-height:1.7}
+#productDetailsContent button[onclick^="productDetails"]{min-height:48px;border-radius:7px!important;transition:transform .2s,box-shadow .2s}
+#productDetailsContent button[onclick^="productDetails"]:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 7px 16px #19362530}
+#productDescriptionInDetails{background:#fdfbf7;border-radius:10px;padding:21px 24px!important}
+#productDescriptionInDetails>h3{font:400 25px Georgia,serif!important}
+.mqb50-benefits{display:grid;gap:12px;margin:10px 0 6px;padding:14px 0;border-top:1px solid #ece8e0;border-bottom:1px solid #ece8e0}
+.mqb50-benefit{display:flex;gap:12px;align-items:center;font:400 14px/1.5 Georgia,serif;color:#3d483f}
+.mqb50-benefit-icon{width:25px;height:25px;display:grid;place-items:center;flex-shrink:0;border-radius:6px;background:#f0f1e8;color:#3a5840;font:700 15px system-ui}
+.mqb50-statusbar{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:6px 0 0}
+.mqb50-sale-chip{font:700 11px 'Plus Jakarta Sans',sans-serif;background:#eff1e8;color:#3e6144;padding:6px 10px;border-radius:4px}
+.mqb50-low-chip{font:700 11px 'Plus Jakarta Sans',sans-serif;background:#fff1e4;color:#9c420d;border:1px solid #fed2ac;padding:6px 10px;border-radius:4px}
+#productGrid>*,.mqb26-product{transition:transform .22s,box-shadow .22s!important}
+#productGrid>*:hover,.mqb26-product:hover{transform:translateY(-3px)}
+/* Existing stock and feature panels, not admin portal overrides */
+.mqb50-staff-panel{background:#fff;border:1px solid #e2e9df;padding:20px;border-radius:14px;box-shadow:0 2px 12px #0f22180b;display:grid;gap:12px}
+.mqb50-staff-panel h4{font:600 19px Georgia,serif;color:#1e392a}
+.mqb50-staff-panel>p{font:400 12px/1.7 'Plus Jakarta Sans',sans-serif;color:#5f6b63}
+.mqb50-admin-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+.mqb50-field{font:700 12px/1.5 'Plus Jakarta Sans',sans-serif;color:#2b4935;display:grid;gap:6px}
+.mqb50-field select,.mqb50-field input,.mqb50-field textarea{width:100%;min-width:0;padding:11px 12px;border:1px solid #cfd9cc;border-radius:7px;background:#fff;color:#233c2b;font:500 13px 'Plus Jakarta Sans',sans-serif}
+.mqb50-check{display:flex;align-items:center;gap:10px;font:600 13px/1.6 'Plus Jakarta Sans',sans-serif;color:#234132}
+.mqb50-check input{accent-color:#22533a;width:17px;height:17px}
+.mqb50-staff-actions{display:flex;gap:10px;flex-wrap:wrap}
+.mqb50-save,.mqb50-secondary{cursor:pointer;min-height:42px;border-radius:7px;padding:10px 15px;font:700 12px 'Plus Jakarta Sans',sans-serif}
+.mqb50-save{background:#1f4533;color:#fff;border:1px solid #1f4533}
+.mqb50-secondary{background:#f8f7f2;border:1px solid #cbd3c9;color:#31513c}
+.mqb50-save:disabled{opacity:.55;cursor:not-allowed}
+#mqb50StockStatus,#mqb50GreetingStatus{font-size:12px;min-height:16px}
+@keyframes mqb50fade{from{opacity:0}to{opacity:1}}
+@keyframes mqb50up{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){#productDetailsScroll{max-height:100dvh!important;border-radius:0!important}#productDetailsModal{padding:0!important}#productDetailsContent>.grid{grid-template-columns:minmax(0,1fr);gap:14px}#productDetailsContent>.grid>div:nth-child(2)>h2{font-size:27px!important}#productDescriptionInDetails{padding:15px!important}.mqb50-admin-grid{grid-template-columns:1fr}.mqb50-greeting-panel{padding:26px 20px}}
+@media(prefers-reduced-motion:reduce){#mqb50GreetingOverlay,.mqb50-greeting-panel,#productDetailsContent>.grid{animation:none!important}#productGrid>*,.mqb26-product,.mqb50-enter,#productDetailsContent img{transition:none!important;transform:none!important}}

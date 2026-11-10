@@ -99,8 +99,24 @@
   </style>
   <script>document.documentElement.classList.remove('mqb42-catalog-ready');</script>
   <link rel="stylesheet" href="css/mqb-v49-analytics.css" />
+  <link rel="stylesheet" href="css/mqb-v50-storefront.css" />
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased selection:bg-brand-gold selection:text-white">
+
+
+  <!-- V50: optional, accessible welcome greeting; disabled by Super Admin in Firebase settings -->
+  <section id="mqb50GreetingOverlay" hidden aria-label="MOIN QURAN BOX welcome">
+    <div class="mqb50-greeting-panel" role="dialog" aria-modal="true" aria-labelledby="mqb50GreetingTitle" aria-describedby="mqb50GreetingMessage" tabindex="-1">
+      <div class="mqb50-greeting-emblem" aria-hidden="true">☪</div>
+      <p class="mqb50-greeting-kicker">MOIN QURAN BOX · Welcome</p>
+      <p class="mqb50-greeting-arabic" lang="ar" dir="rtl">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ</p>
+      <h2 id="mqb50GreetingTitle">Assalamu Alaikum wa Rahmatullahi wa Barakatuh</h2>
+      <p id="mqb50GreetingMessage" class="mqb50-greeting-message">May Allah grant you and your family peace, beneficial knowledge, good health, and barakah. May your visit bring khair. Ameen.</p>
+      <p class="mqb50-greeting-jazak">JazakAllahu Khairan for visiting MOIN QURAN BOX.</p>
+      <button id="mqb50EnterStore" class="mqb50-enter" type="button">Enter the Store <span aria-hidden="true">→</span></button>
+      <button id="mqb50SkipGreeting" class="mqb50-skip" type="button">Continue without greeting</button>
+    </div>
+  </section>
 
   <div id="liveSyncBanner" role="status" aria-live="polite" style="padding:9px 18px;text-align:center;background:#fcf5dc;color:#5d481b;font:600 12px system-ui,sans-serif;">Connecting to secure Firebase catalog…</div>
   <!-- ================= TOP FIXED HEADER SECTION ================= -->
@@ -845,12 +861,29 @@
 
         <!-- TAB: FEATURE TOGGLES & CONTROL CENTER -->
         <div id="adminTab-features" class="hidden space-y-4">
+
+
           <div class="flex justify-between items-center">
             <div>
               <h4 class="serif-title text-base font-bold text-brand-charcoal">Admin Role & Feature Control Center</h4>
               <p class="text-xs text-brand-muted">Instantly activate or deactivate store modules, AI features, and staff permissions.</p>
             </div>
           </div>
+
+        <!-- V50: Super Admin greeting page control. Separate from existing announcement banner. -->
+        <section id="mqb50GreetingAdmin" class="mqb50-staff-panel" hidden aria-label="Welcome greeting controls">
+          <h4>Welcome Greeting — Super Admin</h4>
+          <p>Show a respectful Salaam, dua and JazakAllahu Khairan screen once per visitor tab session. The shop remains usable if Firebase is unavailable.</p>
+          <label class="mqb50-check"><input id="mqb50GreetingEnabled" type="checkbox" checked /> Enable greeting for website visitors</label>
+          <label class="mqb50-field">Dua / welcome message
+            <textarea id="mqb50GreetingText" rows="3" maxlength="320" placeholder="May Allah grant you and your family peace, beneficial knowledge, good health, and barakah. May your visit bring khair. Ameen."></textarea>
+          </label>
+          <div class="mqb50-staff-actions">
+            <button type="button" id="mqb50GreetingSave" class="mqb50-save">Save welcome settings</button>
+            <button type="button" id="mqb50GreetingPreview" class="mqb50-secondary">Preview greeting</button>
+          </div>
+          <p id="mqb50GreetingStatus" role="status" aria-live="polite"></p>
+        </section>
           <section id="mqb42CodControl" class="bg-white rounded-xl border p-4 space-y-3" hidden>
             <h5 class="font-bold text-base">Cash on Delivery — Customer Checkout</h5>
             <label class="flex gap-3 items-center font-semibold text-sm"><input type="checkbox" id="mqb42CodSwitch" checked /> Enable Cash on Delivery for new orders</label>
@@ -925,6 +958,24 @@
             <h4 class="serif-title text-base font-bold text-brand-charcoal">Stock &amp; Pricing Inventory</h4>
             <button onclick="openProductEditModal(null)" class="bg-brand-darkgreen text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase">+ Add Product</button>
           </div>
+
+        <!-- V50: Limited-stock notices are manual toggles AND always verified against actual live stock. -->
+        <section id="mqb50LowStockPanel" class="mqb50-staff-panel" hidden aria-label="Limited stock alert controls">
+          <h4>Limited Stock Alerts — Admin, Owner &amp; Manager</h4>
+          <p>Choose a real catalog product. The badge displays only when the product's actual stock is 1–threshold. An alert never changes stock counts, prices, orders or payment statuses.</p>
+          <div class="mqb50-admin-grid">
+            <label class="mqb50-field">Product
+              <select id="mqb50StockProduct"><option value="">Choose product…</option></select>
+            </label>
+            <label class="mqb50-field">Show alert when stock is at or below
+              <input id="mqb50StockThreshold" type="number" min="1" max="50" value="5" inputmode="numeric" />
+            </label>
+          </div>
+          <label class="mqb50-check"><input id="mqb50StockEnabled" type="checkbox" /> Enable limited stock alert for this product</label>
+          <div class="mqb50-staff-actions"><button id="mqb50StockSave" type="button" class="mqb50-save">Save product alert</button></div>
+          <p id="mqb50StockCurrent" class="mqb50-small"></p>
+          <p id="mqb50StockStatus" role="status" aria-live="polite"></p>
+        </section>
           <section class="bg-white rounded-xl border border-brand-border p-4 space-y-3" id="customCategorySection">
             <h5 class="font-bold text-sm">Add / Edit Product Categories</h5>
             <p class="text-xs text-neutral-600">Create your own categories. They will sync to the website and product dropdown. Existing categories and products are not removed.</p>
@@ -1987,5 +2038,6 @@
   <script defer src="js/mqb-v48-product-links.js"></script>
   <script defer src="js/mqb-v48-cancel-request.js"></script>
   <script defer src="js/mqb-v49-analytics.js"></script>
+  <script defer src="js/mqb-v50-storefront.js"></script>
 </body>
 </html>
