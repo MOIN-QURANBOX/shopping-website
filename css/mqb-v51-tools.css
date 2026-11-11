@@ -21,3 +21,55 @@ body.mqb51-crop-open{overflow:hidden}
 @media(max-width:880px){.mqb51-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:530px){.mqb51-kpis{grid-template-columns:minmax(0,1fr)}.mqb51-table{min-width:670px}.mqb51-table-wrap{overflow-x:auto}#mqb51CropCanvas{width:min(100%,300px)}}
 @media(prefers-reduced-motion:reduce){#mqb51CropModal *,#mqb51LabelPanel *{animation:none!important;transition:none!important}}
 .mqb51-toolbar label.mqb51-row{display:flex;justify-content:flex-start;gap:9px;line-height:1.4}
+
+/* V51.1: Product photos - display the complete saved image. */
+/* Keep the editor preview readable, including portrait-shaped products. */
+#productEditModal #mqb35EditorMediaPreview {
+  width: 100%;
+  max-width: 420px;
+}
+#productEditModal #mqb35EditorMediaPreview .mqb35-gallery-stage {
+  height: clamp(260px, 38vw, 380px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #ffffff;
+}
+#productEditModal #mqb35EditorMediaPreview .mqb35-gallery-image {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+/* Upload previews for the main and second gallery photo. */
+#productEditModal #photoUploadPreview,
+#productEditModal #mqb353SecondPreview {
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+/* Storefront product cards and featured-product tiles. */
+#productGrid > div img,
+#mqbV26Highlights .mqb26-prodimage img {
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+/* The full photo should remain visible even when hovering over a card. */
+#productGrid > div:hover img,
+#mqbV26Highlights .mqb26-prodimage:hover img {
+  transform: none !important;
+}
+/* Product detail view (single photo or multi-photo gallery). */
+#productDetailsContent .aspect-square img,
+#productDetailsContent .mqb35-gallery-image {
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+@media (max-width: 530px) {
+  #productEditModal #mqb35EditorMediaPreview .mqb35-gallery-stage {
+    height: 300px;
+    max-height: 50dvh;
+  }
+}
